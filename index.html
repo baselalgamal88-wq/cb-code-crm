@@ -1339,6 +1339,18 @@ function appDrawer(e,b){ var A=window.CB_APP; if(!A) return;
       .then(function(){ st.className="ok"; st.textContent="Saved. Also log it in CloudBlue."; note.value=""; save.disabled=false; setTimeout(function(){ openClient(e); },900); })
       .catch(function(err){ st.className="bad"; st.textContent="Not saved ("+((err&&err.code)||"error")+")"; save.disabled=false; }); });
   b.appendChild(f);
+  if(A.admin&&l0&&A.reassign){ var rs=el("div","logf dsec"); rs.appendChild(el("h4",null,"Reassign this lead"));
+    var rr=el("div","row2"), to=el("select"); to.setAttribute("aria-label","New agent");
+    Object.keys(A.AK_OF).forEach(function(n){ var o=el("option",null,n.split(" ").slice(0,2).join(" ")); o.value=n; if(n===agentName) o.selected=true; to.appendChild(o); });
+    var mv=el("button","btn primary","Move lead"); mv.type="button"; rr.appendChild(to); rr.appendChild(mv); rs.appendChild(rr);
+    var st2=el("span"); st2.setAttribute("role","status"); rs.appendChild(st2);
+    rs.appendChild(el("div","hint","Now with "+(agentName||"no agent")+". The lead moves in the app at once; your sheet's Agent column and the Reassigned tab update within a minute, and both agents get an alert. CloudBlue is not changed."));
+    mv.addEventListener("click",function(){ if(to.value===agentName){ st2.className="bad"; st2.textContent="The lead is already with this agent."; return; }
+      mv.disabled=true; st2.className=""; st2.textContent="Moving…";
+      A.reassign({id:String(l0[C.id]), agent:to.value, fromAgent:agentName||"", client:e.name, phone:e.number||"", project:X.project[l0[C.project]]||"", source:X.source[l0[C.source]]||"", feedback:X.feedback[l0[C.feedback]]||"", status:X.status[l0[C.status]]||""})
+        .then(function(){ st2.className="ok"; st2.textContent="Moved to "+to.value.split(" ").slice(0,2).join(" ")+"."; mv.disabled=false; })
+        .catch(function(err){ st2.className="bad"; st2.textContent="Not moved ("+((err&&err.code)||"error")+")"; mv.disabled=false; }); });
+    b.appendChild(rs); }
   var ups=A.updatesFor(pkeys(e.number), e.leads.map(function(l){ return l[C.id]; }));
   if(ups.length){ var sec=el("div","dsec"); sec.appendChild(el("h4",null,"Logged in the app ("+ups.length+")"));
     ups.forEach(function(u){ var t=u.at&&u.at.toDate?u.at.toDate():new Date(); sec.appendChild(recBox(t.toLocaleString("en-GB",{day:"numeric",month:"short",hour:"numeric",minute:"2-digit"}),u.feedback,fbClass(u.feedback)+(u.done?"":""),[["By",u.by],["Next follow-up",u.next],["Note",u.note],["Copied to CloudBlue",u.done?"Yes":"Not yet"]])); });
@@ -1453,7 +1465,7 @@ function rzUniq(a){ var s={},o=[]; a.forEach(function(x){ if(x&&!s[x]){ s[x]=1; 
 function rzShort(n){ return String(n||"").split(" ").slice(0,2).join(" "); }
 function rzRows(){ var by={}, me=window.CB_AGENT;
   RZ_BASE.forEach(function(x){ by[String(x[0])]={id:String(x[0]),to:x[1],from:x[2],day:x[3],how:x[4]||"Reassigned in CloudBlue"}; });
-  RZ_LIVE.forEach(function(c){ var at=c.at instanceof Date?c.at:(c.at&&c.at.toDate?c.at.toDate():null); by[String(c.id)]={id:String(c.id),to:c.agent,from:c.fromAgent||"",day:at?at.toISOString().slice(0,10):"",how:"Moved in Basel's sheet"}; });
+  RZ_LIVE.forEach(function(c){ var at=c.at instanceof Date?c.at:(c.at&&c.at.toDate?c.at.toDate():null); by[String(c.id)]={id:String(c.id),to:c.agent,from:c.fromAgent||"",day:at?at.toISOString().slice(0,10):"",how:c.by==="sheet"?"Moved in Basel's sheet":"Moved by Basel in the app"}; });
   var out=[]; Object.keys(by).forEach(function(id){ var x=by[id]; if(me&&x.to!==me) return; var l=leadById[id]||leadById[+id]; if(!l) return; x.lead=l; out.push(x); });
   return out; }
 function rzRender(){ var box=$("v-reassigned"); if(!box) return; var A=window.CB_APP||{}; box.textContent="";
@@ -1638,7 +1650,7 @@ async function loadData(path) {
 function startDashboard(data) {
   window.LEADS = data.LEADS; window.EXTRA = data.EXTRA; window.SNAP = data.SNAP; window.PREV = data.PREV; window.HIST = data.HIST;
   window.CB_AGENT = ME.admin ? "" : ME.name; window.CB_NAME = ME.admin ? "Basel" : (ME.name || "").split(" ")[0];
-  window.CB_APP = { admin: ME.admin, email: ME.email, ak: ME.ak, name: ME.name, logFeedback, updatesFor, FB_OPTIONS, AK_OF };
+  window.CB_APP = { admin: ME.admin, email: ME.email, ak: ME.ak, name: ME.name, logFeedback, updatesFor, FB_OPTIONS, AK_OF, reassign: ME.admin ? reassignLead : null };
   window.__startDashboard();
   started = true;
   gate.hidden = true;
@@ -1713,6 +1725,18 @@ function setupBell() {
     try { bellState(await saveToken(true)); } catch (e) { alert("Could not turn on notifications (" + (e.message || e.code || e) + ")."); }
     b.disabled = false;
   });
+}
+
+// ---------- Basel reassigns a lead in the app (the sheet's script copies it to "All leads" within a minute) ----------
+async function reassignLead(r) {
+  if (!ME.admin) throw new Error("only Basel can reassign");
+  const id = String(r.id), key = "reassign_" + id;
+  const data = { kind: "reassign", id, ak: AK_OF[r.agent] || "", agent: r.agent, from: AK_OF[r.fromAgent] || "", fromAgent: r.fromAgent || "",
+    client: String(r.client || "").slice(0, 200), phone: String(r.phone || "").slice(0, 60), project: r.project || "", source: r.source || "",
+    feedback: r.feedback || "", note: "", status: r.status || "", at: serverTimestamp(), by: ME.email };
+  await setDoc(doc(db, "changes", key), data);
+  CHANGES[key] = Object.assign({ docId: key }, data, { at: new Date() });
+  pushOverlay();
 }
 
 // ---------- feedback logged in the app ----------
