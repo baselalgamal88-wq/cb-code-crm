@@ -443,6 +443,7 @@ svg .gauge-k{font-size:10.5px;fill:var(--ink-3);font-family:var(--font)}
       <div class="hero-btns">
         <button class="herobtn" id="wa-open" type="button"><svg viewBox="0 0 24 24"><path d="M21 12a8.5 8.5 0 0 1-12.6 7.4L3 21l1.6-5.2A8.5 8.5 0 1 1 21 12z"/></svg>Messages</button>
         <a class="herobtn" id="zm-start" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3z"/></svg>Start Zoom</a>
+        <button class="herobtn" id="app-add" type="button" hidden><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Add lead</button>
         <button class="herobtn icon" id="theme" type="button" aria-label="Switch light or dark mode" title="Light or dark mode"><svg viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg></button>
       </div>
     </div>
@@ -1327,6 +1328,28 @@ function appDrawer(e,b){ var A=window.CB_APP; if(!A) return;
     ups.forEach(function(u){ var t=u.at&&u.at.toDate?u.at.toDate():new Date(); sec.appendChild(recBox(t.toLocaleString("en-GB",{day:"numeric",month:"short",hour:"numeric",minute:"2-digit"}),u.feedback,fbClass(u.feedback)+(u.done?"":""),[["By",u.by],["Next follow-up",u.next],["Note",u.note],["Copied to CloudBlue",u.done?"Yes":"Not yet"]])); });
     b.appendChild(sec); } }
 
+// ---------- Team app: add a new lead ----------
+function appAddLead(){ var A=window.CB_APP; if(!A) return; lastFocus=document.activeElement;
+  $("dr-name").textContent="New lead"; $("dr-phone").textContent=A.admin?"Add a client for any agent":"Add a client you are working on"; $("dr-tags").textContent="";
+  var b=$("dr-body"); b.textContent=""; var f=el("div","logf dsec"); f.appendChild(el("h4",null,"Client details"));
+  function field(label,node){ var w=el("label"); w.style.cssText="display:block;margin-bottom:8px;font-size:12px;color:var(--ink-3);font-weight:700"; w.appendChild(document.createTextNode(label)); node.style.marginTop="4px"; w.appendChild(node); f.appendChild(w); return node; }
+  var nm=field("Client name *",el("input")); nm.maxLength=150; nm.autocomplete="off";
+  var ph=field("Mobile number *",el("input")); ph.type="tel"; ph.maxLength=40; ph.placeholder="01xxxxxxxxx";
+  var pr=field("Project",el("input")); pr.maxLength=100; pr.setAttribute("list","app-projects"); var dl=el("datalist"); dl.id="app-projects"; X.project.slice().sort().forEach(function(p){ if(p&&p!=="No project"){ var o=el("option"); o.value=p; dl.appendChild(o); } }); f.appendChild(dl);
+  var so=field("Lead source",el("select")); ["Facebook","Instagram","TikTok","Website","Referral","Walk-in","Cold call","Event","Other"].forEach(function(s){ so.appendChild(el("option",null,s)); });
+  var ag=null; if(A.admin){ ag=field("Agent",el("select")); Object.keys(A.AK_OF).forEach(function(n){ var o=el("option",null,n.split(" ").slice(0,2).join(" ")); o.value=A.AK_OF[n]; ag.appendChild(o); }); }
+  var fb=field("Feedback",el("select")); ["New, not contacted yet"].concat(A.FB_OPTIONS).forEach(function(o){ fb.appendChild(el("option",null,o)); });
+  var nx=field("Next follow-up",el("input")); nx.type="date";
+  var no=field("Note",el("textarea")); no.maxLength=1990; no.placeholder="What the client wants: budget, unit type, timing";
+  var acts=el("div","acts"), save=el("button","btn primary","Add lead"); save.type="button"; var st=el("span"); st.setAttribute("role","status"); acts.appendChild(save); acts.appendChild(st); f.appendChild(acts); b.appendChild(f);
+  save.addEventListener("click",function(){ var n=nm.value.trim(), p=ph.value.trim(); if(!n){ nm.focus(); st.className="bad"; st.textContent="Add the client's name"; return; } if(p.replace(/\D/g,"").length<8){ ph.focus(); st.className="bad"; st.textContent="Add a valid mobile number"; return; }
+    save.disabled=true; st.className=""; st.textContent="Saving…";
+    A.logFeedback({kind:"new", ak:ag?ag.value:"", client:n, phone:p, project:pr.value.trim(), source:so.value, feedback:fb.value, note:no.value.trim(), next:nx.value})
+      .then(function(){ st.className="ok"; st.textContent="Added. It will appear in Basel's sheet within 15 minutes."; nm.value=""; ph.value=""; no.value=""; save.disabled=false; })
+      .catch(function(err){ st.className="bad"; st.textContent="Not saved ("+((err&&err.code)||"error")+")"; save.disabled=false; }); });
+  $("scrim").classList.add("on"); var dr=$("drawer"); dr.classList.add("on"); dr.setAttribute("aria-hidden","false"); setTimeout(function(){ nm.focus(); },60); }
+(function(){ var btn=$("app-add"); if(btn&&window.CB_APP){ btn.hidden=false; btn.addEventListener("click",appAddLead); } })();
+
 function render(){
   var c=$("count"); c.textContent=""; c.appendChild(el("b",null,fmt(view.length))); c.appendChild(document.createTextNode(" of "+fmt(R.length)+" leads"+(state.stale?" · no activity for "+(state.stale>=1440?Math.round(state.stale/1440)+" days":Math.round(state.stale/60)+" hours")+" or more":"")));
   tiles(); bars("c-feedback",C.feedback,X.feedback,"feedback"); bars("c-status",C.status,X.status,"status"); months(); bars("c-project",C.project,X.project,"project",10);
@@ -1399,7 +1422,7 @@ const ADMINS = ["basel.algamal@icloud.com", "basel.algamal88@gmail.com"];
 const BUNDLE_URL = "https://raw.githubusercontent.com/baselalgamal88-wq/cb-code-crm/data/bundle.bin";
 const AK_OF = { "Zeyad Samir Mohamedy Aly": "zeyad", "Morad Atef talaat Gwda Ahmed": "morad", "Omar Ahmed Abd El-fattah foda": "omar",
   "Remonda Atef Hanna Nageb": "remonda", "Mohamed Emad Nagty Youssef Mohamed": "mohamed" };
-const FB_OPTIONS = ["No Answer", "Call Later", "Qualified", "UnQualified", "Low Budget", "Wrong Number", "Meeting Scheduled", "Meeting Done", "Showing", "Follow up", "Other"];
+const FB_OPTIONS = ["Qualified", "UnQualified", "No Answer", "Call Later", "Wrong Number", "Low Budget", "Meeting Scheduled", "Meeting Done", "Showing", "Follow up", "Other"];
 
 const app = initializeApp(CONFIG);
 const auth = getAuth(app);
@@ -1475,7 +1498,7 @@ async function loadData(path) {
 function startDashboard(data) {
   window.LEADS = data.LEADS; window.EXTRA = data.EXTRA; window.SNAP = data.SNAP; window.PREV = data.PREV; window.HIST = data.HIST;
   window.CB_AGENT = ME.admin ? "" : ME.name; window.CB_NAME = ME.admin ? "Basel" : (ME.name || "").split(" ")[0];
-  window.CB_APP = { admin: ME.admin, email: ME.email, ak: ME.ak, logFeedback, updatesFor, FB_OPTIONS, AK_OF };
+  window.CB_APP = { admin: ME.admin, email: ME.email, ak: ME.ak, name: ME.name, logFeedback, updatesFor, FB_OPTIONS, AK_OF };
   window.__startDashboard();
   started = true;
   gate.hidden = true;
@@ -1488,7 +1511,7 @@ function startDashboard(data) {
 async function logFeedback(rec) {
   const ak = ME.admin ? (rec.ak || "basel") : ME.ak;
   const docData = { ak, lead: String(rec.lead || ""), client: String(rec.client || "").slice(0, 200), phone: String(rec.phone || "").slice(0, 60),
-    feedback: String(rec.feedback || ""), note: String(rec.note || "").slice(0, 1990), next: String(rec.next || ""), at: serverTimestamp(), by: ME.email, src: "app" };
+    feedback: String(rec.feedback || ""), kind: rec.kind === "new" ? "new" : "feedback", project: String(rec.project || "").slice(0, 120), source: String(rec.source || "").slice(0, 60), note: String(rec.note || "").slice(0, 1990), next: String(rec.next || ""), at: serverTimestamp(), by: ME.email, src: "app" };
   await addDoc(collection(db, "updates"), docData);
 }
 function updatesFor(phoneKeys, leadIds) {
@@ -1510,7 +1533,7 @@ function renderUpdates() {
     : (list.length ? "Your latest updates. Remember to log them in CloudBlue too." : "Feedback you log on a client (tap a client's name) appears here.");
   list.forEach(u => {
     const it = h("div", "upi" + (u.done ? " done" : ""));
-    const t = h("div"); t.appendChild(h("div", "t", (u.client || "Client") + " · " + (u.feedback || "")));
+    const t = h("div"); t.appendChild(h("div", "t", (u.kind === "new" ? "New lead: " : "") + (u.client || "Client") + " · " + (u.feedback || "")));
     t.appendChild(h("div", "m", (ME.admin ? (u.by || "") + " · " : "") + when(u) + (u.next ? " · next follow-up " + u.next : "") + (u.phone ? " · " + u.phone : "")));
     it.appendChild(t);
     if (ME.admin) { const b = h("button", "btn", "Copied to CloudBlue ✓"); b.type = "button"; b.addEventListener("click", async () => { b.disabled = true; try { await updateDoc(doc(db, "updates", u.id), { done: true }); } catch (e) { b.disabled = false; } }); it.appendChild(b); }

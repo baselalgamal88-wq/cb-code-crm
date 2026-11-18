@@ -37,8 +37,9 @@ service cloud.firestore {
       allow create: if isAdmin() || (myAgent() != ''
         && request.resource.data.ak == myAgent()
         && request.resource.data.by == email()
-        && request.resource.data.keys().hasOnly(['ak', 'lead', 'client', 'phone', 'feedback', 'note', 'next', 'at', 'by', 'src'])
-        && request.resource.data.note is string && request.resource.data.note.size() < 2000);
+        && request.resource.data.keys().hasOnly(['ak', 'lead', 'client', 'phone', 'feedback', 'note', 'next', 'at', 'by', 'src', 'kind', 'project', 'source'])
+        && request.resource.data.note is string && request.resource.data.note.size() < 2000
+        && request.resource.data.client is string && request.resource.data.client.size() < 200);
       allow update, delete: if isAdmin();
     }
   }
