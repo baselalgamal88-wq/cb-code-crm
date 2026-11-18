@@ -1422,10 +1422,10 @@ function showSignIn(note, err) {
     g.disabled = true;
     try { await signInWithPopup(auth, new GoogleAuthProvider()); }
     catch (e) {
-      if (/popup-blocked|popup-closed|operation-not-supported|cancelled-popup/.test(e.code || "")) {
-        if ((e.code || "").includes("blocked") || (e.code || "").includes("not-supported")) { await signInWithRedirect(auth, new GoogleAuthProvider()); return; }
-      } else showSignIn("Google sign-in did not finish. Please try again.", true);
-      g.disabled = false;
+      const c = e.code || "";
+      if (c.includes("popup-blocked")) showSignIn("Your browser blocked the Google window. Allow pop-ups for this site, then tap Sign in with Google again.", true);
+      else if (c.includes("popup-closed") || c.includes("cancelled-popup")) showSignIn();
+      else showSignIn("Google sign-in did not finish (" + c + "). Please try again.", true);
     }
   });
   gbody.appendChild(g);
