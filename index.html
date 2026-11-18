@@ -420,6 +420,15 @@ svg .gauge-k{font-size:10.5px;fill:var(--ink-3);font-family:var(--font)}
 #app-bell.on{background:rgba(230,201,125,.18);border-color:rgba(230,201,125,.6);color:#e6c97d}
 #app-bell.on svg{stroke:#e6c97d}
 
+.lbar{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 10px}.lbar input{flex:1 1 200px}.lbar select,.lbar input{min-height:40px}
+.lcount{font-size:12px;color:var(--ink-3);margin:6px 2px 10px}.lempty{padding:18px;color:var(--ink-2)}
+.llist{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+.lrow{background:var(--card,#fff);border:1px solid var(--line,#e3e7ee);border-radius:14px;padding:12px 14px;cursor:pointer}
+.lrow:hover,.lrow:focus-visible{border-color:var(--gold,#c9a54a);outline:none}
+.ltop{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}.ltop b{font-size:15px}
+.lmeta{font-size:12.5px;color:var(--ink-3);margin-top:4px}.lnote{font-size:13px;color:var(--ink-2);margin-top:6px;white-space:pre-wrap;max-height:3.9em;overflow:hidden}
+.lacts{display:flex;gap:8px;margin-top:10px}.btn.sm{padding:6px 12px;font-size:12.5px;min-height:32px;text-decoration:none}
+
 </style>
 </head>
 <body>
@@ -575,6 +584,9 @@ svg .gauge-k{font-size:10.5px;fill:var(--ink-3);font-family:var(--font)}
     <div class="tblwrap"><table id="cl-table"></table></div>
     <div class="pager"><span id="cl-info"></span><button class="btn" id="cl-prev" type="button">Previous</button><button class="btn" id="cl-next" type="button">Next</button></div>
   </section>
+
+  <section class="view" id="v-rotation"><div class="lcount">Loading…</div></section>
+  <section class="view" id="v-cold"><div class="lcount">Loading…</div></section>
 
   <section class="view" id="v-performance">
     <div class="note">Share of each agent's clients with each feedback. Agents with fewer than 50 clients are left out of highest and lowest so a handful of leads can't top the table. The filters above apply to the CloudBlue figures.</div>
@@ -1221,12 +1233,12 @@ var ICONS={today:"M12 3v2M12 19v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M3 12h2M19 12
   sales:"M3 3v18h18M7 15l4-4 3 3 6-6",
   projects:"M4 21V7l8-4 8 4v14M9 21v-6h6v6M8 10h.01M12 10h.01M16 10h.01"};
 var SECTIONS=[{id:"today",label:"Today",views:[["today","Today"],["daily","Daily report"],["changes","What changed"]]},
-  {id:"leads",label:"Leads",views:[["overview","Overview"],["leads","All leads"],["clients","Clients"]]},
+  {id:"leads",label:"Leads",views:[["overview","Overview"],["leads","All leads"],["clients","Clients"],["rotation","Rotation"],["cold","Cold calls"]]},
   {id:"team",label:"Team",views:[["agents","Agents"],["team","Feedback mix"],["performance","Agent rates"],["sheets","Agent sheets"]]},
   {id:"sales",label:"Sales",views:[["tcrs","TCRs and targets"],["reports","Reports"]]},
   {id:"projects",label:"Projects",views:[["projects","Projects"]]}];
 var ALLVIEWS=[], SECOF={}, LASTV={}; SECTIONS.forEach(function(s){ LASTV[s.id]=s.views[0][0]; s.views.forEach(function(v){ ALLVIEWS.push(v[0]); SECOF[v[0]]=s.id; }); });
-var NOFILTER={today:1,agents:1,myleads:1};
+var NOFILTER={today:1,agents:1,myleads:1,rotation:1,cold:1};
 function icon(name){ var NS="http://www.w3.org/2000/svg", s=document.createElementNS(NS,"svg"); s.setAttribute("viewBox","0 0 24 24"); s.setAttribute("aria-hidden","true"); var p=document.createElementNS(NS,"path"); p.setAttribute("d",ICONS[name]); s.appendChild(p); return s; }
 function buildNav(){ [$("tabs"),$("botnav")].forEach(function(nav){ nav.textContent=""; SECTIONS.forEach(function(s){ var b=el("button"); b.type="button"; b.dataset.sec=s.id; b.appendChild(icon(s.id)); b.appendChild(el("span",null,s.label)); b.addEventListener("click",function(){ go(LASTV[s.id]); }); nav.appendChild(b); }); }); }
 
@@ -1375,6 +1387,61 @@ window.__cbOverlay=function(list){
   leadById={}; for(var i=0;i<R.length;i++) leadById[R[i][C.id]]=R[i];
   FU=null; TCB=null; CL=null; CLMAP={}; NAMEMAP={};
   apply(); today(); homeCharts(); agents(); heroTarget(); };
+
+// ---------- Team app: Rotation and Cold calls (tabs in Basel's sheet) ----------
+var LISTS={rotation:[],cold:[]}, LQ={rotation:{q:"",ag:"",fb:""},cold:{q:"",ag:"",fb:""}}, LNAME={rotation:"Rotation",cold:"Cold calls"};
+window.__cbLists=function(L){ Object.keys(L).forEach(function(k){ LISTS[k]=L[k]||[]; renderList(k); }); };
+function telDigits(p){ var d=String(p||"").replace(/\D/g,""); if(/^1[0125]\d{8}$/.test(d)) d="0"+d; return d; }
+function waLink(p){ var d=telDigits(p); if(/^0\d{10}$/.test(d)) d="2"+d; return "https://wa.me/"+d; }
+function uniq(a){ var s={},o=[]; a.forEach(function(x){ if(!s[x]){ s[x]=1; o.push(x); } }); return o; }
+function noFb(r){ return !r.fb||r.fb==="New"; }
+function renderList(k){ var box=$("v-"+k); if(!box) return; var A=window.CB_APP||{}; box.textContent="";
+  var all=LISTS[k], st=LQ[k];
+  var bar=el("div","lbar"), q=el("input"); q.type="search"; q.placeholder="Search name or number"; q.value=st.q; q.setAttribute("aria-label","Search "+LNAME[k]); bar.appendChild(q);
+  var fbs=el("select"); fbs.setAttribute("aria-label","Feedback");
+  [["","All feedback"],["__none","No feedback yet"]].concat(uniq(all.map(function(r){return r.fb;})).filter(Boolean).sort().map(function(f){return [f,f];})).forEach(function(o){ var op=el("option",null,o[1]); op.value=o[0]; if(o[0]===st.fb) op.selected=true; fbs.appendChild(op); });
+  bar.appendChild(fbs);
+  var ags=null; if(A.admin){ ags=el("select"); ags.setAttribute("aria-label","Agent");
+    [["","All agents"]].concat(uniq(all.map(function(r){return r.agent;})).filter(Boolean).sort().map(function(a){return [a,a.split(" ").slice(0,2).join(" ")];})).forEach(function(o){ var op=el("option",null,o[1]); op.value=o[0]; if(o[0]===st.ag) op.selected=true; ags.appendChild(op); });
+    bar.appendChild(ags); }
+  box.appendChild(bar);
+  var ql=st.q.toLowerCase(), qd=st.q.replace(/\D/g,"");
+  var rows=all.filter(function(r){ if(st.ag&&r.agent!==st.ag) return false; if(st.fb==="__none"&&!noFb(r)) return false; if(st.fb&&st.fb!=="__none"&&r.fb!==st.fb) return false;
+    if(ql&&String(r.client).toLowerCase().indexOf(ql)<0&&!(qd.length>=3&&telDigits(r.phone).indexOf(qd)>=0)) return false; return true; });
+  rows.sort(function(a,b){ var na=noFb(a)?0:1, nb=noFb(b)?0:1; if(na!==nb) return na-nb; return String(b.added).localeCompare(String(a.added)); });
+  var todo=all.filter(noFb).length;
+  box.appendChild(el("div","lcount",rows.length+" of "+all.length+" "+LNAME[k]+" leads · "+todo+" without feedback"));
+  if(!all.length) box.appendChild(el("div","card lempty",A.admin?"No rows yet. Add leads on the “"+LNAME[k]+"” tab of your Google Sheet (Client, Mobile, Agent) and they appear here within seconds.":"No "+LNAME[k]+" leads for you yet."));
+  var list=el("div","llist");
+  rows.slice(0,300).forEach(function(r){ var c=el("div","lrow"); c.tabIndex=0; c.setAttribute("role","button");
+    var top=el("div","ltop"); top.appendChild(el("b",null,r.client||"(no name)")); top.appendChild(el("span","chip "+fbClass(r.fb||"Pending Feedback"),r.fb||"No feedback")); c.appendChild(top);
+    var meta=[r.phone,r.project,A.admin?String(r.agent).split(" ").slice(0,2).join(" "):"",r.next?"Next: "+r.next:""].filter(Boolean).join(" · ");
+    c.appendChild(el("div","lmeta",meta));
+    if(r.note) c.appendChild(el("div","lnote",r.note));
+    var acts=el("div","lacts"), call=el("a","btn sm","Call"); call.href="tel:"+telDigits(r.phone);
+    var wa=el("a","btn sm","WhatsApp"); wa.href=waLink(r.phone); wa.target="_blank"; wa.rel="noopener"; acts.appendChild(call); acts.appendChild(wa);
+    [call,wa].forEach(function(a){ a.addEventListener("click",function(ev){ ev.stopPropagation(); }); }); c.appendChild(acts);
+    function open(){ openListItem(k,r); } c.addEventListener("click",open); c.addEventListener("keydown",function(ev){ if(ev.key==="Enter") open(); });
+    list.appendChild(c); });
+  if(rows.length>300) list.appendChild(el("div","lcount","Showing the first 300. Search to find the rest."));
+  box.appendChild(list);
+  q.addEventListener("input",function(){ st.q=q.value; clearTimeout(q._t); q._t=setTimeout(function(){ renderList(k); var n=$("v-"+k).querySelector("input"); if(n){ n.focus(); n.setSelectionRange(n.value.length,n.value.length); } },250); });
+  fbs.addEventListener("change",function(){ st.fb=fbs.value; renderList(k); });
+  if(ags) ags.addEventListener("change",function(){ st.ag=ags.value; renderList(k); }); }
+function openListItem(k,r){ var A=window.CB_APP; if(!A) return; lastFocus=document.activeElement;
+  $("dr-name").textContent=r.client||"(no name)"; $("dr-phone").textContent=r.phone||""; $("dr-tags").textContent=""; $("dr-tags").appendChild(el("span","chip",LNAME[k]));
+  var b=$("dr-body"); b.textContent="";
+  b.appendChild(recBox(r.added||"",r.fb||"No feedback yet",fbClass(r.fb||"Pending Feedback"),[["Project",r.project],["Agent",r.agent],["Source",r.source],["Next follow-up",r.next],["Note",r.note],["Last update in the app",r.upAt?(r.upAt+" by "+r.upBy):""]]));
+  var f=el("div","logf dsec"); f.appendChild(el("h4",null,"Log feedback"));
+  var row=el("div","row2"), sel=el("select"); sel.setAttribute("aria-label","Feedback"); A.FB_OPTIONS.forEach(function(o){ var op=el("option",null,o); if(o===r.fb) op.selected=true; sel.appendChild(op); });
+  var nx=el("input"); nx.type="date"; nx.setAttribute("aria-label","Next follow-up date"); row.appendChild(sel); row.appendChild(nx); f.appendChild(row);
+  var note=el("textarea"); note.placeholder="Note: what the client said, what's next"; note.setAttribute("aria-label","Note"); note.maxLength=1990; f.appendChild(note);
+  var acts=el("div","acts"), save=el("button","btn primary","Save"); save.type="button"; var st=el("span"); st.setAttribute("role","status"); acts.appendChild(save); acts.appendChild(st); f.appendChild(acts); b.appendChild(f);
+  save.addEventListener("click",function(){ save.disabled=true; st.className=""; st.textContent="Saving…";
+    A.logFeedback({ak:r.ak||A.ak||"", lead:r.id, client:r.client, phone:r.phone, project:r.project, source:LNAME[k], feedback:sel.value, note:note.value.trim(), next:nx.value})
+      .then(function(){ r.fb=sel.value; if(nx.value) r.next=nx.value; if(note.value.trim()) r.note=note.value.trim(); st.className="ok"; st.textContent="Saved. The sheet updates within a minute."; save.disabled=false; renderList(k); })
+      .catch(function(err){ st.className="bad"; st.textContent="Not saved ("+((err&&err.code)||"error")+")"; save.disabled=false; }); });
+  $("scrim").classList.add("on"); var dr=$("drawer"); dr.classList.add("on"); dr.setAttribute("aria-hidden","false"); }
 
 function render(){
   var c=$("count"); c.textContent=""; c.appendChild(el("b",null,fmt(view.length))); c.appendChild(document.createTextNode(" of "+fmt(R.length)+" leads"+(state.stale?" · no activity for "+(state.stale>=1440?Math.round(state.stale/1440)+" days":Math.round(state.stale/60)+" hours")+" or more":"")));
@@ -1535,7 +1602,32 @@ function startDashboard(data) {
   watchUpdates();
   watchChanges();
   setupBell();
+  watchLists();
 }
+
+// ---------- Rotation and Cold calls (tabs in Basel's sheet) ----------
+let LISTS_VER = {};
+function applyLists(docs) {
+  const by = {};
+  docs.forEach(d => { const v = d.data(); (by[v.tab] = by[v.tab] || []).push(v); });
+  const out = {};
+  Object.keys(by).forEach(tab => {
+    const vers = {}; by[tab].forEach(v => { (vers[v.ver] = vers[v.ver] || []).push(v); });
+    // newest version whose parts are all there (the sheet may be writing a new one right now)
+    const ok = Object.keys(vers).sort().reverse().find(k => vers[k].length >= Number(vers[k][0].n || 1));
+    if (!ok || LISTS_VER[tab] === ok) return;
+    try { out[tab] = JSON.parse(vers[ok].sort((a, b) => Number(a.i) - Number(b.i)).map(v => v.d).join("")); LISTS_VER[tab] = ok; } catch (e) {}
+  });
+  if (Object.keys(out).length && window.__cbLists) window.__cbLists(out);
+}
+function watchLists() {
+  const q = query(collection(db, "lists"), where("ak", "==", ME.admin ? "all" : ME.ak));
+  let live = false;
+  onSnapshot(q, s => { live = true; applyLists(s.docs); }, () => {});
+  const poll = async () => { try { applyLists((await getDocs(q)).docs); } catch (e) {} };
+  setTimeout(() => { if (!live) { poll(); setInterval(poll, ME.admin ? 15000 : 30000); } }, 6000);
+}
+
 
 // ---------- phone notifications ----------
 const IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);

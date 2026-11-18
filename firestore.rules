@@ -44,6 +44,11 @@ service cloud.firestore {
         && (isAdmin() || (request.resource.data.ak == myAgent() && request.resource.data.admin == false));
       allow delete: if isAdmin() || resource.data.email == email();
     }
+    // Rotation and Cold calls tabs from Basel's sheet: each agent reads only their own rows ('all' = Basel)
+    match /lists/{d} {
+      allow read: if isAdmin() || (myAgent() != '' && resource.data.ak == myAgent());
+      allow write: if isAdmin();
+    }
     // feedback agents log in the app
     match /updates/{id} {
       allow read: if isAdmin() || (myAgent() != '' && resource.data.ak == myAgent());
