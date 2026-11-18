@@ -417,6 +417,8 @@ svg .gauge-k{font-size:10.5px;fill:var(--ink-3);font-family:var(--font)}
 .upi .n{grid-column:1/-1;font-size:13px;color:var(--ink-2);white-space:pre-wrap;overflow-wrap:anywhere}
 .upi.done{opacity:.6}
 .upi .btn{height:30px;font-size:12px;padding:0 10px;border-radius:999px}
+#app-bell.on{background:rgba(230,201,125,.18);border-color:rgba(230,201,125,.6);color:#e6c97d}
+#app-bell.on svg{stroke:#e6c97d}
 
 </style>
 </head>
@@ -443,6 +445,7 @@ svg .gauge-k{font-size:10.5px;fill:var(--ink-3);font-family:var(--font)}
       <div class="hero-btns">
         <button class="herobtn" id="wa-open" type="button"><svg viewBox="0 0 24 24"><path d="M21 12a8.5 8.5 0 0 1-12.6 7.4L3 21l1.6-5.2A8.5 8.5 0 1 1 21 12z"/></svg>Messages</button>
         <a class="herobtn" id="zm-start" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3z"/></svg>Start Zoom</a>
+        <button class="herobtn" id="app-bell" type="button" hidden><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span>Alerts</span></button>
         <button class="herobtn" id="app-add" type="button" hidden><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Add lead</button>
         <button class="herobtn icon" id="theme" type="button" aria-label="Switch light or dark mode" title="Light or dark mode"><svg viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg></button>
       </div>
@@ -1447,6 +1450,8 @@ const AK_OF = { "Zeyad Samir Mohamedy Aly": "zeyad", "Morad Atef talaat Gwda Ahm
   "Remonda Atef Hanna Nageb": "remonda", "Mohamed Emad Nagty Youssef Mohamed": "mohamed" };
 const FB_OPTIONS = ["Qualified", "UnQualified", "No Answer", "Call Later", "Wrong Number", "Low Budget", "Meeting Scheduled", "Meeting Done", "Showing", "Follow up", "Other"];
 
+import { getMessaging, getToken, isSupported } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
+const VAPID = "BHNYmr_qAZCxQJdMej-dcFOfsScMpkeJTQyTMvdexOiIuPaJ18c672HMv4YhE_Ypn7O3WfBz5RTo31R3-dah8rw";
 const app = initializeApp(CONFIG);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -1529,6 +1534,43 @@ function startDashboard(data) {
   $("app-who").textContent = (ME.admin ? "Basel (all data) · " : ME.name.split(" ").slice(0, 2).join(" ") + " · ") + ME.email;
   watchUpdates();
   watchChanges();
+  setupBell();
+}
+
+// ---------- phone notifications ----------
+const IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+const STANDALONE = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+function bellState(on) { const b = $("app-bell"); if (!b) return; b.classList.toggle("on", !!on); b.title = on ? "Notifications are on" : "Turn on notifications"; b.querySelector("span").textContent = on ? "Alerts on" : "Alerts"; }
+async function saveToken(ask) {
+  if (!(await isSupported().catch(() => false))) {
+    if (ask) alert(IOS && !STANDALONE
+      ? "To get notifications on iPhone: tap the Share button, choose \"Add to Home Screen\", then open CB Code CRM from the new icon and tap Alerts again."
+      : "This browser can't receive notifications. Use Chrome or Safari, or add the app to your home screen.");
+    return false;
+  }
+  if (Notification.permission !== "granted") {
+    if (!ask) return false;
+    const p = await Notification.requestPermission();
+    if (p !== "granted") { alert("Notifications are blocked. Allow them for this app in your phone or browser settings, then tap Alerts again."); return false; }
+  }
+  const reg = await navigator.serviceWorker.register("sw.js");
+  await navigator.serviceWorker.ready;
+  const token = await getToken(getMessaging(app), { vapidKey: VAPID, serviceWorkerRegistration: reg });
+  if (!token) return false;
+  await setDoc(doc(db, "tokens", token), { email: ME.email, ak: ME.admin ? "" : ME.ak, admin: !!ME.admin, ua: navigator.userAgent.slice(0, 150), at: serverTimestamp() });
+  try { localStorage.setItem("cb-push", token); } catch (e) {}
+  return true;
+}
+function setupBell() {
+  const b = $("app-bell"); if (!b) return;
+  b.hidden = false;
+  saveToken(false).then(bellState).catch(() => bellState(false));
+  b.addEventListener("click", async () => {
+    if (b.classList.contains("on")) { alert("Notifications are on for this device. You'll get an alert when your leads change."); return; }
+    b.disabled = true;
+    try { bellState(await saveToken(true)); } catch (e) { alert("Could not turn on notifications (" + (e.message || e.code || e) + ")."); }
+    b.disabled = false;
+  });
 }
 
 // ---------- feedback logged in the app ----------
