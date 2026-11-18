@@ -1,0 +1,1578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0a1f3d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CB Code CRM">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<title>CB Code CRM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Playfair+Display:wght@600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* CB Code CRM — navy, white and gold. Today-first desk with five sections. */
+:root{
+  color-scheme:light;
+  --bg:#f4f6fa; --surface:#ffffff; --surface-2:#f1f4f9; --surface-3:#e9edf4; --line:#e3e8f0; --line-2:#d3dae6;
+  --ink:#0b1b33; --ink-2:#46546a; --ink-3:#7a879b;
+  --navy:#0a1f3d; --navy-2:#11305e; --royal:#1d4e9e;
+  --gold:#b8902f; --gold-2:#d9b865; --gold-soft:#f6efdc; --gold-ink:#7d5f17;
+  --accent:#1d4e9e; --accent-soft:#e6eefb; --bar:#2c62bd; --bar-track:#e9eef5;
+  --good:#0b7a3b; --good-bg:#e3f4e9; --warn:#a14a07; --warn-bg:#fcebdc; --bad:#b3261e; --bad-bg:#fbe5e3; --info:#1d4e9e; --info-bg:#e6eefb; --mute-bg:#edf0f5;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s5:#e87ba4; --s6:#008300; --s7:#6250d6; --s-other:#9aa3b0;
+  --a1:#2a78d6; --a2:#1baf7a; --a3:#6250d6; --a4:#b8902f; --a5:#e87ba4; --a6:#008300; --a-other:#8a94a6;
+  --font:"Manrope","IBM Plex Sans Arabic",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --display:"Playfair Display",Georgia,"Times New Roman",serif;
+  --shadow:0 1px 2px rgba(10,31,61,.04),0 10px 28px -16px rgba(10,31,61,.18);
+  --radius:14px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#070f1d; --surface:#0f1a2c; --surface-2:#142238; --surface-3:#1a2b45; --line:#1f3150; --line-2:#2a3f62;
+    --ink:#eef2f8; --ink-2:#b3bfd2; --ink-3:#8392aa;
+    --accent:#86b2f2; --accent-soft:#16294a; --bar:#3e7fe0; --bar-track:#1a2a44;
+    --gold:#d4b25b; --gold-2:#e6c97d; --gold-soft:#2a2414; --gold-ink:#e6c97d;
+    --good:#6fd598; --good-bg:#11301e; --warn:#f2a564; --warn-bg:#36210f; --bad:#f39a94; --bad-bg:#3a1b19; --info:#86b2f2; --info-bg:#16294a; --mute-bg:#1a2a44;
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#0ca30c; --s7:#9085e9; --s-other:#6b7584;
+    --a1:#3987e5; --a2:#199e70; --a3:#9085e9; --a4:#b48a2e; --a5:#d55181; --a6:#0ca30c; --a-other:#6b7584;
+    --shadow:0 1px 0 rgba(255,255,255,.02);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#070f1d; --surface:#0f1a2c; --surface-2:#142238; --surface-3:#1a2b45; --line:#1f3150; --line-2:#2a3f62;
+  --ink:#eef2f8; --ink-2:#b3bfd2; --ink-3:#8392aa;
+  --accent:#86b2f2; --accent-soft:#16294a; --bar:#3e7fe0; --bar-track:#1a2a44;
+  --gold:#d4b25b; --gold-2:#e6c97d; --gold-soft:#2a2414; --gold-ink:#e6c97d;
+  --good:#6fd598; --good-bg:#11301e; --warn:#f2a564; --warn-bg:#36210f; --bad:#f39a94; --bad-bg:#3a1b19; --info:#86b2f2; --info-bg:#16294a; --mute-bg:#1a2a44;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#0ca30c; --s7:#9085e9; --s-other:#6b7584;
+  --a1:#3987e5; --a2:#199e70; --a3:#9085e9; --a4:#b48a2e; --a5:#d55181; --a6:#0ca30c; --a-other:#6b7584;
+  --shadow:0 1px 0 rgba(255,255,255,.02);
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button,select,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+/* ---------- header ---------- */
+.hero{position:relative;color:#fff;background:
+  radial-gradient(1200px 300px at 85% -40%,rgba(217,184,101,.22),transparent 60%),
+  radial-gradient(900px 400px at -10% 140%,rgba(44,98,189,.45),transparent 60%),
+  linear-gradient(135deg,#071730 0%,#0c2550 55%,#123a78 100%)}
+.hero::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,transparent,#b8902f 18%,#e6c97d 50%,#b8902f 82%,transparent)}
+.hero-in{max-width:1320px;margin:0 auto;padding:22px 24px 18px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px 28px}
+.brand{display:flex;align-items:center;gap:16px}
+.brand .mark{width:52px;height:52px;border-radius:14px;background:linear-gradient(160deg,#0a1f3d,#14366c);border:1.5px solid #c9a54c;color:#e6c97d;font-family:var(--display);font-weight:700;font-size:21px;display:flex;align-items:center;justify-content:center;letter-spacing:.5px;box-shadow:inset 0 0 0 3px rgba(201,165,76,.12)}
+.hero h1{font-family:var(--display);font-weight:700;color:#fff;font-size:30px;line-height:1.05;margin:0;letter-spacing:.2px}
+.team{font-size:11.5px;letter-spacing:.28em;text-transform:uppercase;color:#e6c97d;margin-top:6px;font-weight:600}
+.hero-r{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.hero .sub{color:#c9d6ec;text-align:right;font-size:12.5px;line-height:1.55}
+.hero .sub b{color:#fff;font-weight:600}
+.hero-btns{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.herobtn{display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(230,201,125,.45);background:rgba(255,255,255,.06);color:#fff;border-radius:999px;height:34px;padding:0 14px;cursor:pointer;font-weight:600;font-size:13px;text-decoration:none;transition:background .15s}
+.herobtn:hover{background:rgba(230,201,125,.16)}
+.herobtn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8}
+.herobtn.icon{width:34px;padding:0;justify-content:center}
+.target{max-width:1320px;margin:0 auto;padding:0 24px 20px;display:grid;grid-template-columns:auto 1fr auto;gap:6px 16px;align-items:center}
+.target .tl{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#c9d6ec;font-weight:600}
+.target .tt{height:8px;border-radius:999px;background:rgba(255,255,255,.12);overflow:hidden;position:relative}
+.target .tt i{position:absolute;left:0;top:0;bottom:0;border-radius:999px;background:linear-gradient(90deg,#b8902f,#e6c97d)}
+.target .tv{font-size:13px;color:#fff;font-variant-numeric:tabular-nums;white-space:nowrap}
+.target .tv b{font-family:var(--display);font-size:16px;color:#e6c97d;font-weight:700;margin-right:4px}
+
+/* ---------- navigation ---------- */
+.wrap{max-width:1320px;margin:0 auto;padding:0 24px 56px}
+.secnav{display:flex;gap:4px;padding:14px 0 0;border-bottom:1px solid var(--line)}
+.secnav button,.botnav button{all:unset;cursor:pointer;display:flex;align-items:center;gap:8px;color:var(--ink-2);font-weight:600;font-size:14px}
+.secnav button{padding:10px 16px 12px;border-bottom:2px solid transparent;margin-bottom:-1px}
+.secnav button:hover{color:var(--ink)}
+.secnav button[aria-current="page"]{color:var(--ink);border-bottom-color:var(--gold)}
+.secnav svg,.botnav svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.secnav button[aria-current="page"] svg{stroke:var(--gold)}
+.subnav{display:flex;gap:6px;padding:14px 0 2px;overflow-x:auto;scrollbar-width:none}
+.subnav::-webkit-scrollbar{display:none}
+.subnav button{all:unset;cursor:pointer;white-space:nowrap;padding:7px 14px;border-radius:999px;font-size:13px;font-weight:600;color:var(--ink-2);background:var(--surface);border:1px solid var(--line)}
+.subnav button:hover{border-color:var(--line-2);color:var(--ink)}
+.subnav button[aria-current="page"]{background:var(--navy);border-color:var(--navy);color:#fff}
+:root[data-theme="dark"] .subnav button[aria-current="page"]{background:var(--gold);border-color:var(--gold);color:#0b1b33}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .subnav button[aria-current="page"]{background:var(--gold);border-color:var(--gold);color:#0b1b33}}
+.subnav:empty{display:none}
+.botnav{display:none}
+@media (max-width:760px){
+  .secnav{display:none}
+  .botnav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--surface);border-top:1px solid var(--line);padding:6px 4px calc(6px + env(safe-area-inset-bottom));justify-content:space-around;box-shadow:0 -8px 24px -18px rgba(10,31,61,.35)}
+  .botnav button{flex-direction:column;gap:2px;font-size:10.5px;padding:4px 8px;border-radius:10px;min-width:56px;align-items:center}
+  .botnav svg{width:22px;height:22px}
+  .botnav button[aria-current="page"]{color:var(--ink)}
+  .botnav button[aria-current="page"] svg{stroke:var(--gold)}
+  body{padding-bottom:76px}
+}
+
+/* ---------- filters ---------- */
+.filters{position:sticky;top:0;z-index:12;background:var(--bg);padding:12px 0 10px;border-bottom:1px solid var(--line)}
+.filters.off{display:none}
+.fbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.search{position:relative;flex:0 1 300px;min-width:180px}
+.search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:16px;height:16px;stroke:var(--ink-3);fill:none;stroke-width:1.8}
+.search input{width:100%;height:38px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:0 14px 0 34px}
+.fbtn{display:inline-flex;align-items:center;gap:8px;height:38px;padding:0 14px;border:1px solid var(--line);border-radius:999px;background:var(--surface);cursor:pointer;font-weight:600}
+.fbtn:hover{border-color:var(--line-2)}
+.fbtn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8}
+.fbtn .badge{min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--gold);color:#0b1b33;font-size:11.5px;font-weight:700;display:none;align-items:center;justify-content:center}
+.fbtn .badge.on{display:inline-flex}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 6px 0 12px;border-radius:999px;background:var(--gold-soft);color:var(--gold-ink);font-size:12.5px;font-weight:600;border:1px solid transparent;cursor:pointer}
+.chip:hover{border-color:var(--gold)}
+.chip span.x{width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:13px;line-height:1}
+.chip:hover span.x{background:rgba(184,144,47,.2)}
+.count{margin-left:auto;color:var(--ink-2);font-size:13px;font-variant-numeric:tabular-nums}
+.count b{color:var(--ink)}
+.fpanel{display:none;flex-wrap:wrap;gap:10px;align-items:flex-end;padding:12px 0 2px}
+.fpanel.on{display:flex}
+.f{display:flex;flex-direction:column;gap:4px;min-width:0}
+.f label{font-size:10.5px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.1em;font-weight:700}
+.f select,.f input{height:36px;border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:0 10px;max-width:100%}
+.f select{width:180px}.f input[type=date]{width:150px}.f input[type=search]{width:210px}
+.btn{height:36px;border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:0 14px;cursor:pointer;font-weight:600}
+.btn:hover{border-color:var(--line-2);background:var(--surface-2)}
+.btn.primary{background:var(--navy);border-color:var(--navy);color:#fff}
+.btn.primary:hover{background:var(--navy-2)}
+
+/* ---------- views, tiles, cards ---------- */
+section.view{display:none;padding-top:20px}
+section.view.on{display:block;animation:fade .22s ease}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){section.view.on{animation:none}}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
+.tile{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px 13px;box-shadow:var(--shadow);text-align:left;overflow:hidden}
+button.tile{cursor:pointer;transition:border-color .15s,transform .15s}
+button.tile:hover{border-color:var(--gold);transform:translateY(-1px)}
+.tile .k{font-size:12px;color:var(--ink-2);font-weight:600}
+.tile .v{font-family:var(--display);font-size:31px;font-weight:700;font-variant-numeric:lining-nums tabular-nums;line-height:1.15;color:var(--ink);margin-top:2px}
+.tile .n{font-size:12px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.tile.attn::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--warn)}
+.tile.gold::before{content:"";position:absolute;left:0;top:0;right:0;height:3px;background:linear-gradient(90deg,var(--gold),var(--gold-2))}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:14px;margin-top:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow);min-width:0}
+.card h2{font-size:15px;font-weight:700;margin:0 0 2px;color:var(--ink)}
+.card .hint{font-size:12px;color:var(--ink-3);margin-bottom:12px}
+.bars{display:flex;flex-direction:column;gap:7px}
+.brow{display:grid;grid-template-columns:minmax(90px,34%) 1fr 64px;gap:10px;align-items:center;background:none;border:0;padding:3px 4px;text-align:left;cursor:pointer;border-radius:7px;width:100%}
+.brow:hover{background:var(--surface-2)}
+.brow .lab{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink)}
+.brow .track{height:10px;background:var(--bar-track);border-radius:0 4px 4px 0;overflow:hidden}
+.brow .fill{height:100%;background:var(--bar);border-radius:0 4px 4px 0;min-width:2px}
+.brow .num{text-align:right;font-variant-numeric:tabular-nums;color:var(--ink-2);font-weight:600}
+.cols{display:flex;align-items:flex-end;gap:3px;height:170px;border-bottom:1px solid var(--line);padding-top:18px}
+.col{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;position:relative}
+.col .cb{width:74%;max-width:30px;background:var(--bar);border-radius:4px 4px 0 0;min-height:1px}
+.col .cv{font-size:10px;color:var(--ink-2);font-variant-numeric:tabular-nums;margin-bottom:2px;white-space:nowrap}
+.colx{display:flex;gap:3px;margin-top:5px}
+.colx span{flex:1;min-width:0;text-align:center;font-size:10px;color:var(--ink-3);white-space:nowrap;overflow:hidden}
+.col.pick{cursor:pointer}.col.pick:hover .cb{background:var(--royal)}.col.sel .cb{background:var(--gold)}
+.col .cb.alt{background:var(--s-other)}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;margin-bottom:10px;font-size:12px;color:var(--ink-2)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.srow{display:grid;grid-template-columns:minmax(110px,26%) 1fr 56px;gap:10px;align-items:center;margin-bottom:8px}
+.stack{display:flex;height:16px;gap:2px;border-radius:0 4px 4px 0;overflow:hidden}
+.stack span{display:block;height:100%;min-width:1px}
+
+/* ---------- tables ---------- */
+.tblwrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);box-shadow:var(--shadow)}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-size:10.5px;text-transform:uppercase;letter-spacing:.09em;color:var(--ink-3);font-weight:700;background:var(--surface-2);position:sticky;top:0}
+th button{all:unset;cursor:pointer;display:inline-flex;gap:4px;align-items:center}
+th button:hover{color:var(--ink)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+td.wrapc{max-width:320px;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+td.wrapc.open{white-space:normal;min-width:260px;overflow:visible}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover td{background:color-mix(in srgb,var(--gold-soft) 45%,transparent)}
+tbody tr.click{cursor:pointer}
+.clink{all:unset;cursor:pointer;color:var(--ink);font-weight:600;border-bottom:1px dashed var(--line-2)}
+.clink:hover{color:var(--royal);border-bottom-color:var(--gold)}
+:root[data-theme="dark"] .clink:hover{color:var(--gold-2)}
+.pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:600;background:var(--mute-bg);color:var(--ink-2)}
+.pill.good{background:var(--good-bg);color:var(--good)}.pill.warn{background:var(--warn-bg);color:var(--warn)}
+.pill.bad{background:var(--bad-bg);color:var(--bad)}.pill.info{background:var(--info-bg);color:var(--info)}
+.pill.gold{background:var(--gold-soft);color:var(--gold-ink)}
+.pager{display:flex;gap:8px;align-items:center;justify-content:flex-end;padding:12px 0;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.mini{height:6px;background:var(--bar-track);border-radius:3px;overflow:hidden;width:90px;display:inline-block;vertical-align:middle;margin-left:6px}
+.mini i{display:block;height:100%;background:var(--good)}
+#tip{position:fixed;pointer-events:none;background:var(--navy);color:#fff;padding:6px 9px;border-radius:8px;font-size:12px;z-index:60;display:none;max-width:260px;box-shadow:0 8px 20px -8px rgba(0,0,0,.4)}
+.empty{padding:28px;text-align:center;color:var(--ink-3)}
+.trow{display:grid;grid-template-columns:minmax(110px,30%) 1fr;gap:4px 12px;align-items:center;margin-bottom:12px}
+.trow .lab{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.trow.tteam .lab{font-weight:700}
+.ttrack{position:relative;height:12px;background:var(--bar-track);border-radius:0 4px 4px 0}
+.ttrack .fill{position:absolute;left:0;top:0;bottom:0;background:var(--bar);border-radius:0 4px 4px 0}
+.ttrack .fill.hit{background:var(--good)}
+.trow.tteam .ttrack .fill{background:linear-gradient(90deg,var(--gold),var(--gold-2))}
+.ttrack .mark{border:0;border-radius:0;box-shadow:none;position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink)}
+.tnum{grid-column:2;font-size:12px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.tnum b{color:var(--ink);font-weight:700}
+a.wa{display:inline-flex;align-items:center;gap:4px;margin-left:8px;padding:2px 9px 2px 7px;border-radius:999px;background:#1f8f4e;color:#fff;font-size:11.5px;font-weight:600;text-decoration:none;vertical-align:1px;white-space:nowrap}
+a.wa:hover{background:#17733e}
+a.wa.zm{background:var(--royal)}
+a.wa.zm:hover{background:#163d7c}
+a.wa svg{width:12px;height:12px;fill:currentColor}
+.wabox{display:none;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;margin-top:16px;box-shadow:var(--shadow)}
+.wabox.on{display:block}
+.wabox textarea{width:100%;min-height:84px;border:1px solid var(--line);border-radius:9px;padding:8px 10px;background:var(--surface);resize:vertical}
+.wabox .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}
+.hl{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.hl>div{border:1px solid var(--line);border-radius:10px;padding:9px 11px;min-width:0}
+.hl .k{font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-3);font-weight:700}
+.hl .n{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hl .v{font-family:var(--display);font-size:22px;font-weight:700;font-variant-numeric:lining-nums tabular-nums}
+.note{color:var(--ink-2);font-size:13px;margin-bottom:12px}
+.subfilters{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;margin:16px 0 10px}
+.foot{margin-top:28px;color:var(--ink-3);font-size:12px;text-align:center}
+
+/* ---------- Today ---------- */
+.greet{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:8px 20px;margin-bottom:16px}
+.greet h2{font-family:var(--display);font-size:30px;font-weight:700;margin:0;line-height:1.1}
+.greet h2 em{font-style:normal;color:var(--gold)}
+.greet p{margin:4px 0 0;color:var(--ink-2)}
+.attn-t td{vertical-align:middle}
+.who{display:flex;align-items:center;gap:10px}
+.av{width:32px;height:32px;border-radius:50%;flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px;letter-spacing:.3px}
+.numbtn{all:unset;cursor:pointer;font-variant-numeric:tabular-nums;font-weight:700;padding:2px 8px;border-radius:7px}
+.numbtn:hover{background:var(--surface-3)}
+.numbtn.hot{color:var(--bad);background:var(--bad-bg)}
+.numbtn.zero{color:var(--ink-3);font-weight:500;cursor:default}
+.numbtn.zero:hover{background:none}
+.since{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.since>div{border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--surface-2)}
+.since .v{font-family:var(--display);font-size:24px;font-weight:700;font-variant-numeric:lining-nums tabular-nums}
+.since .k{font-size:12px;color:var(--ink-2)}
+.lb{display:flex;flex-direction:column;gap:12px}
+.lbrow{display:grid;grid-template-columns:24px 1fr auto;gap:10px;align-items:center}
+.lbrow .rk{font-family:var(--display);font-weight:700;color:var(--gold);font-size:16px;text-align:center}
+.lbrow .nm{font-weight:600;font-size:13.5px;margin-bottom:4px}
+.lbrow .tr{height:8px;background:var(--bar-track);border-radius:999px;overflow:hidden}
+.lbrow .tr i{display:block;height:100%;border-radius:999px}
+.lbrow .vv{text-align:right;font-variant-numeric:tabular-nums;font-size:12.5px;color:var(--ink-2)}
+.lbrow .vv b{display:block;color:var(--ink);font-size:14px}
+
+/* ---------- agent cards ---------- */
+.agrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
+.acard{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:18px 18px 14px;overflow:hidden}
+.acard::before{content:"";position:absolute;left:0;right:0;top:0;height:4px;background:var(--ac)}
+.ahead{display:flex;align-items:center;gap:12px}
+.ahead .av{width:44px;height:44px;font-size:15px;background:var(--ac)}
+.ahead .nm{font-weight:700;font-size:15.5px;line-height:1.2}
+.ahead .tg{font-size:12px;color:var(--ink-3)}
+.abody{display:grid;grid-template-columns:112px 1fr;gap:16px;align-items:center;margin:14px 0 12px}
+.ring{position:relative;width:112px;height:112px}
+.ring svg{width:112px;height:112px;transform:rotate(-90deg)}
+.ring .c{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring .c b{font-family:var(--display);font-size:24px;font-weight:700;line-height:1}
+.ring .c span{font-size:10.5px;color:var(--ink-3);margin-top:3px;text-align:center;line-height:1.25}
+.astats{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px}
+.astats div{min-width:0}
+.astats .k{font-size:10.5px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;line-height:1.3}
+.astats .v{font-weight:700;font-size:16px;font-variant-numeric:tabular-nums}
+.flag{display:flex;gap:8px;align-items:flex-start;padding:9px 11px;border-radius:10px;font-size:12.5px;font-weight:600;margin-bottom:12px}
+.flag.bad{background:var(--bad-bg);color:var(--bad)}
+.flag.ok{background:var(--good-bg);color:var(--good)}
+.aact{display:flex;gap:6px;flex-wrap:wrap}
+.aact .btn{height:32px;padding:0 12px;font-size:12.5px;border-radius:999px}
+.aact a.wa{margin-left:0;height:32px;padding:0 12px;font-size:12.5px}
+
+/* ---------- client drawer ---------- */
+.scrim{position:fixed;inset:0;background:rgba(5,14,30,.45);z-index:40;opacity:0;pointer-events:none;transition:opacity .2s}
+.scrim.on{opacity:1;pointer-events:auto}
+.drawer{visibility:hidden;position:fixed;top:0;right:0;bottom:0;width:min(480px,100vw);background:var(--surface);z-index:41;transform:translateX(100%);transition:transform .25s ease,visibility .25s;display:flex;flex-direction:column;box-shadow:-20px 0 40px -20px rgba(5,14,30,.5)}
+.drawer.on{transform:none;visibility:visible}
+.dhead{padding:20px 22px 16px;background:linear-gradient(135deg,#071730,#123a78);color:#fff;position:relative}
+.dhead::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,#b8902f,#e6c97d,#b8902f)}
+.dhead h3{font-family:var(--display);font-size:24px;margin:0 36px 4px 0;line-height:1.15}
+.dhead .ph{color:#c9d6ec;font-size:13.5px;direction:ltr;unicode-bidi:isolate}
+.dhead .row{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;align-items:center}
+.dhead a.wa{margin-left:0}
+.dclose{position:absolute;top:14px;right:14px;width:34px;height:34px;border-radius:50%;border:1px solid rgba(230,201,125,.45);background:rgba(255,255,255,.06);color:#fff;cursor:pointer;font-size:18px;line-height:1}
+.dbody{padding:16px 22px 28px;overflow-y:auto;flex:1}
+.dsec{margin-bottom:18px}
+.dsec h4{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-ink);margin:0 0 8px;font-weight:700}
+.rec{border:1px solid var(--line);border-radius:12px;padding:11px 13px;margin-bottom:8px;background:var(--surface-2)}
+.rec .top{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:6px;flex-wrap:wrap}
+.rec .top b{font-size:13.5px}
+.rec dl{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;margin:0;font-size:12.5px}
+.rec dt{color:var(--ink-3)}
+.rec dd{margin:0;min-width:0;overflow-wrap:anywhere}
+
+@media (max-width:760px){
+  .hero-in{padding:16px 16px 12px}.target{padding:0 16px 16px;grid-template-columns:1fr auto}.target .tl{grid-column:1/-1}
+  .hero h1{font-size:24px}.brand .mark{width:44px;height:44px;font-size:18px}
+  .hero-r{align-items:flex-start;width:100%}.hero .sub{text-align:left}.hero-btns{justify-content:flex-start}
+  .wrap{padding:0 14px 40px}
+  .f select,.f input[type=search],.f input[type=date]{width:100%}.f{flex:1 1 46%}
+  .search{flex:1 1 100%}.count{margin-left:0;width:100%}
+  .grid{grid-template-columns:1fr}
+  .greet h2{font-size:24px}
+  .since{grid-template-columns:1fr 1fr}
+  .abody{grid-template-columns:100px 1fr}.ring,.ring svg{width:100px;height:100px}
+}
+/* ---------- home charts ---------- */
+.sect{display:flex;align-items:center;gap:12px;font-family:var(--display);font-size:20px;font-weight:700;margin:26px 0 0;color:var(--ink)}
+.sect::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--gold),transparent)}
+.charts{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media (max-width:1100px){.charts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.card.chart.wide{grid-column:1/-1}
+.card.chart svg{width:100%;height:auto;display:block}
+.card.chart .hit{transition:opacity .15s}
+.card.chart .hit:hover{opacity:.82}
+svg .ct{font-size:12px;fill:var(--ink-2)}
+svg .ax{font-size:11px;fill:var(--ink-3);font-family:var(--font)}
+svg .cv-in{font-size:16px;font-weight:700;fill:#fff;font-family:var(--display)}
+svg .cl-in{font-size:11px;fill:rgba(255,255,255,.88);font-family:var(--font);font-weight:600}
+svg .donut-v{font-size:26px;font-weight:700;fill:var(--ink);font-family:var(--display)}
+svg .donut-k{font-size:11px;fill:var(--ink-3);font-family:var(--font)}
+svg .gauge-v{font-size:30px;font-weight:700;fill:var(--ink);font-family:var(--display)}
+svg .gauge-k{font-size:10.5px;fill:var(--ink-3);font-family:var(--font)}
+.donutwrap{display:grid;grid-template-columns:minmax(150px,200px) 1fr;gap:16px;align-items:center}
+.dleg{display:flex;flex-direction:column;gap:4px;min-width:0}
+.dl{all:unset;cursor:pointer;display:grid;grid-template-columns:12px 1fr auto;gap:8px;align-items:center;padding:4px 6px;border-radius:7px;font-size:13px}
+.dl:hover{background:var(--surface-2)}.dl:disabled{cursor:default}
+.dl i{width:12px;height:12px;border-radius:3px}
+.dl .n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dl .v{font-weight:700;font-variant-numeric:tabular-nums;color:var(--ink-2)}
+.gbars{display:flex;flex-direction:column;gap:12px}
+.gb{display:grid;grid-template-columns:140px 1fr;gap:12px;align-items:center}
+.gb .who{font-size:13px;font-weight:600}.gb .av{width:26px;height:26px;font-size:10.5px}
+.gbs{display:flex;flex-direction:column;gap:4px}
+.gbl{all:unset;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--ink-2)}
+.gbl i{display:block;height:10px;border-radius:0 4px 4px 0;min-width:2px}
+.gbl:hover i{filter:brightness(1.12)}
+.salewrap{display:grid;grid-template-columns:1fr;gap:10px;justify-items:center}
+.salewrap svg{max-width:230px}
+.salewrap .mcols{width:100%}
+.mcols{display:flex;align-items:flex-end;gap:6px;height:130px;border-bottom:1px solid var(--line)}
+.mc{all:unset;cursor:pointer;flex:1;min-width:0;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;position:relative}
+.mc i{display:block;width:70%;max-width:28px;max-height:calc(100% - 16px);background:var(--bar);border-radius:4px 4px 0 0}
+.mc:hover i{background:var(--gold)}
+.mc .mv{font-size:10px;color:var(--ink-2);margin-bottom:2px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.mc .ml{position:absolute;bottom:-18px;font-size:10px;color:var(--ink-3);white-space:nowrap}
+.salewrap{padding-bottom:18px}
+.pbars{display:flex;flex-direction:column;gap:6px}
+.pb{all:unset;cursor:pointer;display:grid;grid-template-columns:minmax(90px,32%) 1fr 74px;gap:10px;align-items:center;padding:3px 4px;border-radius:7px;font-size:13px}
+.pb:hover{background:var(--surface-2)}
+.pb .lab{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pb .ptr{position:relative;height:12px}
+.pb .ptr i{position:absolute;left:0;top:0;bottom:0;border-radius:0 4px 4px 0}
+.pb .ptr i.all{background:var(--accent-soft)}
+.pb .ptr i.q{background:var(--royal);min-width:2px}
+:root[data-theme="dark"] .pb .ptr i.q{background:var(--accent)}
+.pb .num{text-align:right;font-variant-numeric:tabular-nums;color:var(--ink-2);font-weight:600;font-size:12px}
+@media (max-width:760px){.charts{grid-template-columns:1fr}.donutwrap{grid-template-columns:1fr}.donutwrap svg{max-width:220px;margin:0 auto}.salewrap{grid-template-columns:1fr}.gb{grid-template-columns:110px 1fr}}
+
+
+/* ---------- team app: sign-in screen, app bar, feedback logging ---------- */
+.gate{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:20px;background:
+  radial-gradient(1000px 400px at 85% -10%,rgba(217,184,101,.25),transparent 60%),
+  radial-gradient(900px 500px at -10% 110%,rgba(44,98,189,.45),transparent 60%),
+  linear-gradient(135deg,#071730 0%,#0c2550 55%,#123a78 100%)}
+.gate[hidden]{display:none}
+.gate-card{width:100%;max-width:400px;background:rgba(255,255,255,.04);border:1px solid rgba(230,201,125,.35);border-radius:22px;padding:32px 28px 26px;color:#fff;text-align:center;backdrop-filter:blur(6px)}
+.gate-mark{width:64px;height:64px;margin:0 auto 14px;border-radius:16px;background:linear-gradient(160deg,#0a1f3d,#14366c);border:1.5px solid #c9a54c;color:#e6c97d;font-family:var(--display);font-weight:700;font-size:26px;display:flex;align-items:center;justify-content:center}
+.gate h1{font-family:var(--display);font-size:30px;margin:0;color:#fff}
+.gate-team{font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:#e6c97d;margin:8px 0 22px;font-weight:600}
+.gate-msg{color:#c9d6ec;font-size:14px;margin:8px 0 16px;line-height:1.5}
+.gate-msg.err{color:#ffb4ab}
+.gbtn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;height:46px;border-radius:12px;border:0;cursor:pointer;font-weight:700;font-size:15px;font-family:var(--font)}
+.gbtn.google{background:#fff;color:#1f1f1f}
+.gbtn.gold{background:linear-gradient(90deg,#b8902f,#e6c97d);color:#0b1b33}
+.gbtn.ghost{background:transparent;color:#e6c97d;border:1px solid rgba(230,201,125,.45);height:40px;font-size:13.5px}
+.gbtn:disabled{opacity:.6;cursor:default}
+.gbtn svg{width:18px;height:18px}
+.gor{display:flex;align-items:center;gap:10px;color:#8fa3c4;font-size:12px;margin:16px 0}
+.gor::before,.gor::after{content:"";flex:1;height:1px;background:rgba(255,255,255,.15)}
+.gate input[type=email]{width:100%;height:44px;border-radius:12px;border:1px solid rgba(230,201,125,.4);background:rgba(255,255,255,.08);color:#fff;padding:0 14px;font-size:15px;margin-bottom:10px;font-family:var(--font)}
+.gate input::placeholder{color:#8fa3c4}
+.gate .small{font-size:12px;color:#8fa3c4;margin-top:14px}
+.app-bar{display:flex;align-items:center;justify-content:flex-end;gap:10px;max-width:1320px;margin:0 auto;padding:8px 24px 0;font-size:12.5px;color:var(--ink-2)}
+.app-bar[hidden]{display:none}
+.app-out{all:unset;cursor:pointer;color:var(--royal);font-weight:600;padding:4px 10px;border-radius:999px;border:1px solid var(--line)}
+.app-out:hover{border-color:var(--gold)}
+.logf{border:1px solid var(--gold);background:var(--gold-soft);border-radius:12px;padding:12px 13px;margin-bottom:16px}
+.logf h4{color:var(--gold-ink)}
+.logf .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.logf select,.logf input,.logf textarea{width:100%;border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:8px 10px;font:inherit;color:var(--ink)}
+.logf textarea{min-height:64px;resize:vertical}
+.logf .acts{display:flex;align-items:center;gap:10px;margin-top:8px}
+.logf .ok{color:var(--good);font-size:12.5px;font-weight:600}
+.logf .bad{color:var(--bad);font-size:12.5px;font-weight:600}
+.upl{display:flex;flex-direction:column;gap:8px}
+.upi{display:grid;grid-template-columns:1fr auto;gap:6px 12px;align-items:start;border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--surface-2)}
+.upi .t{font-weight:700;font-size:13.5px}
+.upi .m{font-size:12px;color:var(--ink-3)}
+.upi .n{grid-column:1/-1;font-size:13px;color:var(--ink-2);white-space:pre-wrap;overflow-wrap:anywhere}
+.upi.done{opacity:.6}
+.upi .btn{height:30px;font-size:12px;padding:0 10px;border-radius:999px}
+
+</style>
+</head>
+<body>
+<div id="gate" class="gate" role="dialog" aria-modal="true" aria-labelledby="gate-title">
+  <div class="gate-card">
+    <div class="gate-mark" aria-hidden="true">CB</div>
+    <h1 id="gate-title">CB Code CRM</h1>
+    <div class="gate-team">Basel Algamal Team</div>
+    <div id="gate-body">
+      <p class="gate-msg" id="gate-msg">Loading…</p>
+    </div>
+  </div>
+</div>
+<div id="app-bar" class="app-bar" hidden>
+  <span id="app-who"></span>
+  <button type="button" class="app-out" id="app-out">Sign out</button>
+</div>
+
+<header class="hero">
+  <div class="hero-in">
+    <div class="brand"><div class="mark" aria-hidden="true">CB</div><div><h1>CB Code CRM</h1><div class="team">Basel Algamal Team</div></div></div>
+    <div class="hero-r"><div class="sub" id="sub"></div>
+      <div class="hero-btns">
+        <button class="herobtn" id="wa-open" type="button"><svg viewBox="0 0 24 24"><path d="M21 12a8.5 8.5 0 0 1-12.6 7.4L3 21l1.6-5.2A8.5 8.5 0 1 1 21 12z"/></svg>Messages</button>
+        <a class="herobtn" id="zm-start" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3z"/></svg>Start Zoom</a>
+        <button class="herobtn icon" id="theme" type="button" aria-label="Switch light or dark mode" title="Light or dark mode"><svg viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg></button>
+      </div>
+    </div>
+  </div>
+  <div class="target" id="hero-target"></div>
+</header>
+<div class="wrap">
+  <div class="wabox" id="wa-box">
+    <h2 style="font-size:14px;margin:0 0 4px">WhatsApp greeting message</h2>
+    <div class="note" style="margin-bottom:8px">This text opens in WhatsApp when you press a WhatsApp button next to a client. You press Send in WhatsApp yourself. Use {name} for the client's name and {project} for the project.</div>
+    <label for="wa-text" class="note" style="display:block;margin-bottom:4px">Message</label>
+    <textarea id="wa-text" dir="auto"></textarea>
+    <h2 style="font-size:14px;margin:14px 0 4px">Zoom invitation</h2>
+    <div class="note" style="margin-bottom:8px">The Zoom button next to a client opens WhatsApp with this invitation. {zoom} is replaced by your meeting link.</div>
+    <label for="zm-link" class="note" style="display:block;margin-bottom:4px">Your Zoom meeting link</label>
+    <input id="zm-link" type="url" style="width:100%;height:34px;border:1px solid var(--line);border-radius:7px;padding:0 9px;background:var(--surface);color:inherit;font:inherit">
+    <label for="zm-text" class="note" style="display:block;margin:8px 0 4px">Invitation message</label>
+    <textarea id="zm-text" dir="auto"></textarea>
+    <div class="row"><button class="btn" id="wa-save" type="button">Save messages</button><button class="btn" id="wa-reset" type="button">Restore default</button><span class="note" id="wa-msg" style="margin:0"></span></div>
+  </div>
+  <nav class="secnav" id="tabs" aria-label="Sections"></nav>
+  <div class="subnav" id="subnav" role="tablist" aria-label="Pages in this section"></div>
+  <div class="filters" id="filters">
+    <div class="fbar">
+      <label class="search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input type="search" id="f-q" placeholder="Search name, number or lead ID" aria-label="Search name, number or lead ID"></label>
+      <button class="fbtn" id="f-toggle" type="button" aria-expanded="false" aria-controls="f-panel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>Filters<span class="badge" id="f-badge"></span></button>
+      <div class="chips" id="f-chips"></div>
+      <div class="count" id="count"></div>
+    </div>
+    <div class="fpanel" id="f-panel">
+      <div class="f"><label for="f-agent">Agent</label><select id="f-agent"></select></div>
+      <div class="f"><label for="f-project">Project</label><select id="f-project"></select></div>
+      <div class="f"><label for="f-status">Status</label><select id="f-status"></select></div>
+      <div class="f"><label for="f-feedback">Last feedback</label><select id="f-feedback"></select></div>
+      <div class="f"><label for="f-from">Created from</label><input type="date" id="f-from"></div>
+      <div class="f"><label for="f-to">Created to</label><input type="date" id="f-to"></div>
+      <div class="f"><label for="f-act">Activity</label><select id="f-act"><option value="0">All</option><option value="1">No activity logged</option><option value="2">Activity logged</option></select></div>
+      <button class="btn" id="f-reset" type="button">Clear filters</button>
+    </div>
+  </div>
+
+  <section class="view" id="v-today">
+    <div class="greet"><div><h2 id="td-hello"></h2><p id="td-sub"></p></div><button class="btn primary" id="td-copy" type="button">Copy today's summary</button></div>
+    <div class="tiles" id="td-tiles"></div>
+    <h3 class="sect">At a glance</h3>
+    <div class="grid charts" id="td-charts"></div>
+    <h3 class="sect">Logged in the app</h3>
+    <div class="card" id="app-upd-card" style="margin-top:14px"><h2>Feedback logged in the app</h2><div class="hint" id="app-upd-hint"></div><div class="upl" id="app-updates"></div></div>
+    <h3 class="sect">Today's follow-ups</h3>
+    <div class="grid" style="grid-template-columns:minmax(0,1.6fr) minmax(0,1fr)">
+      <div class="card"><h2>Needs attention, by agent</h2><div class="hint" id="td-attn-hint">Tap a red number to list those leads. Notify opens WhatsApp with that agent's to-do list.</div><div class="tblwrap" style="box-shadow:none"><table class="attn-t" id="td-attn"></table></div></div>
+      <div style="display:flex;flex-direction:column;gap:14px;min-width:0">
+        <div class="card"><h2>Since the last refresh</h2><div class="hint" id="td-since-hint"></div><div class="since" id="td-since"></div><div style="margin-top:12px"><button class="btn" id="td-changes" type="button">See every change</button></div></div>
+        <div class="card"><h2>Sales against target</h2><div class="hint">EGP, Prime TCRs in MyCB</div><div class="lb" id="td-lb"></div></div>
+      </div>
+    </div>
+    <div id="td-msg" class="note" role="status" style="margin-top:10px"></div>
+  </section>
+
+  <section class="view" id="v-agents">
+    <div class="note">One card per agent. The ring shows TCR sales against their target. Today's numbers come from the latest refresh.</div>
+    <div class="agrid" id="ag-grid"></div>
+  </section>
+
+  <section class="view" id="v-overview">
+    <div class="tiles" id="tiles"></div>
+    <div class="grid">
+      <div class="card"><h2>Leads by last feedback</h2><div class="hint">Click any bar, tile or chart to list the leads behind it</div><div class="bars" id="c-feedback"></div></div>
+      <div class="card"><h2>Leads by status</h2><div class="hint">Ticket status in CloudBlue</div><div class="bars" id="c-status"></div></div>
+      <div class="card"><h2>New leads by month</h2><div class="hint">By creation date</div><div class="cols" id="c-month"></div><div class="colx" id="c-month-x"></div></div>
+      <div class="card"><h2>Top projects</h2><div class="hint">The 10 projects with the most leads</div><div class="bars" id="c-project"></div></div>
+    </div>
+  </section>
+
+  <section class="view" id="v-team">
+    <div class="card"><h2>Feedback mix by agent</h2><div class="hint">Each bar is one agent's leads, split by last feedback. Bar length shows lead count.</div>
+      <div class="legend" id="team-legend"></div><div id="team-stack"></div></div>
+    <div style="height:12px"></div>
+    <div class="tblwrap"><table id="team-table"></table></div>
+  </section>
+
+  <section class="view" id="v-projects">
+    <div class="grid" style="margin-top:0;margin-bottom:12px">
+      <div class="card"><h2>Qualified leads by project</h2><div class="hint">Top 10. Click a bar to filter by project.</div><div class="bars" id="pj-qual"></div></div>
+      <div class="card"><h2>Leads with no feedback, by project</h2><div class="hint">Top 10 projects where leads are still waiting</div><div class="bars" id="pj-wait"></div></div>
+    </div>
+    <div class="tblwrap"><table id="proj-table"></table></div>
+  </section>
+
+  <section class="view" id="v-leads">
+    <div class="tblwrap"><table id="lead-table"></table></div>
+    <div class="pager"><span id="pg-info"></span><button class="btn" id="pg-prev" type="button">Previous</button><button class="btn" id="pg-next" type="button">Next</button></div>
+  </section>
+
+  <section class="view" id="v-myleads">
+    <div class="note" id="ml-note">Leads you add here are saved inside CB Code CRM only. They are not sent to CloudBlue or to the agents' Google Sheets, and they are kept across your devices.</div>
+    <form class="card" id="ml-form" autocomplete="off">
+      <h2>Add a new lead</h2><div class="hint">Name and phone number are required</div>
+      <div class="subfilters" style="margin:0">
+        <div class="f"><label for="ml-name">Client name</label><input id="ml-name" type="text" dir="auto" style="width:200px" required></div>
+        <div class="f"><label for="ml-phone">Phone number</label><input id="ml-phone" type="tel" dir="ltr" style="width:160px" required placeholder="01xxxxxxxxx"></div>
+        <div class="f"><label for="ml-project">Project</label><input id="ml-project" type="text" dir="auto" list="ml-projects" style="width:180px"><datalist id="ml-projects"></datalist></div>
+        <div class="f"><label for="ml-source">Source</label><select id="ml-source"><option>Personal</option><option>Referral</option><option>Facebook</option><option>Instagram</option><option>WhatsApp</option><option>Walk-in</option><option>Event</option><option>Cold call</option><option>Other</option></select></div>
+        <div class="f"><label for="ml-agent">Assigned to</label><select id="ml-agent"></select></div>
+        <div class="f"><label for="ml-fb">Feedback</label><select id="ml-fb"></select></div>
+        <div class="f"><label for="ml-follow">Follow up on</label><input id="ml-follow" type="date"></div>
+        <div class="f" style="flex:1 1 260px"><label for="ml-notes">Notes</label><input id="ml-notes" type="text" dir="auto" style="width:100%"></div>
+        <button class="btn" id="ml-add" type="submit" style="background:var(--accent);color:var(--surface);border-color:var(--accent)">Add lead</button>
+      </div>
+      <div class="note" id="ml-msg" style="margin:10px 0 0" role="status"></div>
+    </form>
+    <div style="height:12px"></div>
+    <div class="tiles" id="ml-tiles"></div>
+    <div style="height:12px"></div>
+    <div class="tblwrap"><table id="ml-table"></table></div>
+  </section>
+
+  <section class="view" id="v-clients">
+    <div class="note">One row per client, keyed by phone number. Duplicate records from CloudBlue and the agents' sheets are merged here. The Agent and Search filters above apply.</div>
+    <div class="tiles" id="cl-tiles"></div>
+    <div class="grid">
+      <div class="card"><h2>Clients by validation</h2><div class="hint">Validated means the client is in an agent's sheet and in CloudBlue. Click a bar to filter.</div><div class="bars" id="cl-val"></div></div>
+      <div class="card"><h2>Sheet clients validated in CloudBlue, by agent</h2><div class="hint">Share of each agent's sheet clients that also exist in CloudBlue</div><div class="bars" id="cl-agent"></div></div>
+    </div>
+    <div class="subfilters"><div class="f"><label for="cl-f-kind">Show</label><select id="cl-f-kind"><option value="all">All clients</option><option value="both">Validated (sheet and CloudBlue)</option><option value="sheet">In a sheet, not in CloudBlue</option><option value="cb">In CloudBlue only</option><option value="dup">Had duplicate records</option><option value="multi">Held by more than one agent</option></select></div></div>
+    <div class="tblwrap"><table id="cl-table"></table></div>
+    <div class="pager"><span id="cl-info"></span><button class="btn" id="cl-prev" type="button">Previous</button><button class="btn" id="cl-next" type="button">Next</button></div>
+  </section>
+
+  <section class="view" id="v-performance">
+    <div class="note">Share of each agent's clients with each feedback. Agents with fewer than 50 clients are left out of highest and lowest so a handful of leads can't top the table. The filters above apply to the CloudBlue figures.</div>
+    <div class="subfilters" style="margin-top:0"><div class="f"><label for="pf-src">Feedback taken from</label><select id="pf-src"><option value="cb">CloudBlue last feedback</option><option value="sh">Agents' Google Sheets</option></select></div></div>
+    <div class="tiles" id="pf-tiles"></div>
+    <div class="grid" id="pf-grid"></div>
+  </section>
+
+  <section class="view" id="v-daily">
+    <div class="note">One day at a time, from CloudBlue. New leads are counted on their creation date. From 16 Nov 2026 the system logs every change it sees between copies (morning and evening): leads received, feedback changes in CloudBlue and new clients or feedback changes in the agents' Google Sheets. "Actions logged" are leads whose Last Agent Activity Date in CloudBlue is that day. The Agent filter above applies.</div>
+    <div class="subfilters" style="margin-top:0"><button class="btn" id="dy-prev" type="button">Previous day</button><div class="f"><label for="dy-date">Day</label><input type="date" id="dy-date"></div><button class="btn" id="dy-next" type="button">Next day</button><button class="btn" id="dy-copy" type="button">Copy this day's report</button><span class="note" style="margin:0">To message an agent, use the green Notify button beside their name in the table below.</span><span class="note" id="dy-copied" style="margin:0"></span></div>
+    <div class="tiles" id="dy-tiles"></div>
+    <div class="grid">
+      <div class="card"><h2>New leads per day</h2><div class="hint">Last 14 days with data. Click a bar to open that day.</div><div class="cols" id="dy-new"></div><div class="colx" id="dy-new-x"></div></div>
+      <div class="card"><h2>Agent actions per day</h2><div class="hint">Leads with activity logged that day. Click a bar to open that day.</div><div class="cols" id="dy-act"></div><div class="colx" id="dy-act-x"></div></div>
+    </div>
+    <div class="card" style="margin-top:12px;padding-bottom:6px"><h2>Follow-up status by agent</h2><div class="hint" id="dy-st-hint"></div></div>
+    <div class="tblwrap" style="margin-top:8px"><table id="dy-status"></table></div>
+    <div class="card" style="margin-top:14px;padding-bottom:6px"><h2>Changes and actions on this day</h2><div class="hint">What each agent received and did on the selected day</div></div>
+    <div class="tblwrap" style="margin-top:8px"><table id="dy-table"></table></div>
+  </section>
+
+  <section class="view" id="v-reports">
+    <div class="note">Team report from all three sources. The date filters above apply to the CloudBlue lead figures.</div>
+    <div class="tiles" id="rp-tiles"></div>
+    <div class="grid">
+      <div class="card"><h2>Qualified leads by agent</h2><div class="hint">CloudBlue last feedback is Qualified</div><div class="bars" id="rp-qual"></div></div>
+      <div class="card"><h2>Leads with activity logged, by agent</h2><div class="hint">Share of CloudBlue leads that have a Last Agent Activity Date</div><div class="bars" id="rp-cont"></div></div>
+      <div class="card"><h2>TCR sales volume by agent</h2><div class="hint">EGP, Prime TCRs in MyCB</div><div class="bars" id="rp-vol"></div></div>
+    </div>
+    <div class="subfilters"><button class="btn" id="rp-copy" type="button">Copy report as text</button><span class="note" id="rp-copied" style="margin:0"></span></div>
+    <div class="tblwrap"><table id="rp-table"></table></div>
+  </section>
+
+  <section class="view" id="v-sheets">
+    <div class="note" id="sh-note">Clients from each agent's Google Sheet, one row per agent and phone number, checked against CloudBlue by phone number. The Agent and Search filters above apply here.</div>
+    <div class="tiles" id="sh-tiles"></div>
+    <div class="grid">
+      <div class="card"><h2>Sheet rows by feedback</h2><div class="hint">As the agents wrote it. Click a bar to filter.</div><div class="bars" id="sh-fb"></div></div>
+      <div class="card"><h2>Sheet rows by agent</h2><div class="hint">Click a bar to filter by agent</div><div class="bars" id="sh-agent"></div></div>
+    </div>
+    <div class="subfilters">
+      <div class="f"><label for="sh-f-tab">Sheet tab</label><select id="sh-f-tab"></select></div>
+      <div class="f"><label for="sh-f-fb">Sheet feedback</label><select id="sh-f-fb"></select></div>
+      <div class="f"><label for="sh-f-match">CloudBlue match</label><select id="sh-f-match"><option value="all">All rows</option><option value="in">In CloudBlue</option><option value="out">Not in CloudBlue</option><option value="diff">Feedback differs from CloudBlue</option></select></div>
+    </div>
+    <div class="tblwrap"><table id="sh-table"></table></div>
+    <div class="pager"><span id="sh-info"></span><button class="btn" id="sh-prev" type="button">Previous</button><button class="btn" id="sh-next" type="button">Next</button></div>
+  </section>
+
+  <section class="view" id="v-tcrs">
+    <div class="note">Prime TCRs from MyCB. The Agent and Search filters above apply here.</div>
+    <div class="tiles" id="tc-tiles"></div>
+    <div class="grid">
+      <div class="card"><h2>TCRs by status</h2><div class="hint">Status in MyCB</div><div class="bars" id="tc-status"></div></div>
+      <div class="card"><h2>Sales volume against target</h2><div class="hint">EGP. The dark line marks each target. Basel's volume counts in the team total and has no target of its own.</div><div id="tc-target"></div></div>
+      <div class="card"><h2>Sales volume by contract month</h2><div class="hint" id="tc-month-hint">By Confirmed Contracting Date in MyCB</div><div class="cols" id="tc-month"></div><div class="colx" id="tc-month-x"></div></div>
+    </div>
+    <div style="height:12px"></div>
+    <div class="tblwrap"><table id="tc-table"></table></div>
+  </section>
+
+  <section class="view" id="v-changes">
+    <div class="note" id="ch-note"></div>
+    <div class="tiles" id="ch-tiles"></div>
+    <div style="height:12px"></div>
+    <div class="subfilters"><div class="f"><label for="ch-f-kind">Show</label><select id="ch-f-kind"></select></div></div>
+    <div class="tblwrap"><table id="ch-table"></table></div>
+    <div class="pager"><span id="ch-info"></span><button class="btn" id="ch-prev" type="button">Previous</button><button class="btn" id="ch-next" type="button">Next</button></div>
+  </section>
+
+  <div class="foot" id="foot"></div>
+</div>
+<nav class="botnav" id="botnav" aria-label="Sections"></nav>
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="dr-name" aria-hidden="true">
+  <div class="dhead"><button class="dclose" id="dr-close" type="button" aria-label="Close">×</button><h3 id="dr-name" dir="auto"></h3><div class="ph" id="dr-phone"></div><div class="row" id="dr-tags"></div></div>
+  <div class="dbody" id="dr-body"></div>
+</aside>
+<div id="tip" role="tooltip"></div>
+<script>
+window.__startDashboard=function(){
+"use strict";
+var D = window.LEADS || {rows:[],dict:{},updated:null,total:0};
+// row layout: [id, client, ptype, project, branch, agent, status, createdMin, lastActMin, feedback, comment, source, manager]
+var C = {id:0,client:1,ptype:2,project:3,branch:4,agent:5,status:6,created:7,lastAct:8,feedback:9,comment:10,source:11,manager:12,contact:13};
+var R = D.rows, X = D.dict;
+var $ = function(id){return document.getElementById(id)};
+function el(tag, cls, text){var e=document.createElement(tag); if(cls) e.className=cls; if(text!==undefined&&text!==null) e.textContent=text; return e;}
+function fmt(n){return n.toLocaleString("en-US")}
+function pct(a,b){return b? Math.round(a/b*100)+"%":"0%"}
+function dstr(min){ if(!min) return "No activity"; var d=new Date(min*60000); return d.getUTCDate()+" "+["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][d.getUTCMonth()]+" "+d.getUTCFullYear(); }
+function dtstr(min){ if(!min) return "No activity"; var d=new Date(min*60000); var h=d.getUTCHours(), m=d.getUTCMinutes(); return dstr(min)+", "+((h%12)||12)+":"+(m<10?"0":"")+m+(h<12?" AM":" PM"); }
+function fbClass(name){ var n=(name||"").toLowerCase();
+  if(n==="qualified"||n.indexOf("meeting")>=0||n.indexOf("interested")===0||n.indexOf("contract")>=0||n.indexOf("reserv")>=0) return "good";
+  if(n.indexOf("unqualified")>=0||n.indexOf("low budget")>=0||n.indexOf("not interested")>=0||n.indexOf("wrong")>=0) return "bad";
+  if(n.indexOf("no answer")>=0||n.indexOf("pending")>=0||n.indexOf("unreach")>=0) return "warn";
+  if(n.indexOf("call later")>=0||n.indexOf("follow")>=0) return "info";
+  return ""; }
+function idx(list,name){ var i=(list||[]).indexOf(name); return i; }
+var I_PENDING = idx(X.feedback,"Pending Feedback"); var I_NONE = idx(X.feedback,"No feedback recorded");
+
+var REFMIN=(function(){ var m=/^(\d+) (\w{3}) (\d{4}), (\d+):(\d+) (AM|PM)/.exec(D.updated||""); var mo={Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11}; if(!m) return Math.floor(Date.now()/60000)+120; var hr=(+m[4]%12)+(m[6]==="PM"?12:0); return Math.floor(Date.UTC(+m[3],mo[m[2]],+m[1],hr,+m[5])/60000); })();
+var state = {stale:0,act:0,agent:-1,project:-1,status:-1,feedback:-1,from:"",to:"",q:"",sort:C.created,dir:-1,page:0};
+var PAGE=50, view=[];
+
+function fillSelect(id,list,allLabel){ var s=$(id); s.textContent=""; var o=el("option",null,allLabel); o.value="-1"; s.appendChild(o);
+  var order=list.map(function(n,i){return i}).sort(function(a,b){return list[a].localeCompare(list[b])});
+  order.forEach(function(i){var o=el("option",null,list[i]||"(blank)"); o.value=String(i); s.appendChild(o);}); }
+
+function dayMin(s,end){ if(!s) return null; var p=s.split("-"); var t=Date.UTC(+p[0],+p[1]-1,+p[2])/60000; return end? t+1439 : t; }
+
+function apply(){
+  var a=state.agent,p=state.project,s=state.status,f=state.feedback, from=dayMin(state.from), to=dayMin(state.to,true), q=state.q.trim().toLowerCase(), qd=q.replace(/\D/g,"");
+  view=[];
+  for(var i=0;i<R.length;i++){ var r=R[i];
+    if(a>=0&&r[C.agent]!==a) continue; if(p>=0&&r[C.project]!==p) continue; if(s>=0&&r[C.status]!==s) continue; if(f>=0&&r[C.feedback]!==f) continue; if(f===-2&&r[C.feedback]!==I_PENDING&&r[C.feedback]!==I_NONE) continue; if(state.act===1&&r[C.lastAct]) continue; if(state.act===2&&!r[C.lastAct]) continue; if(state.stale&&r[C.lastAct]&&r[C.lastAct]>REFMIN-state.stale) continue;
+    if(from!==null&&r[C.created]<from) continue; if(to!==null&&r[C.created]>to) continue;
+    if(q){ var ct=(r[C.contact]||"").toLowerCase(); if(String(r[C.id]).indexOf(q)<0 && r[C.client].toLowerCase().indexOf(q)<0 && ct.indexOf(q)<0 && (!qd || ct.replace(/\D/g,"").indexOf(qd)<0)) continue; }
+    view.push(r); }
+  state.page=0; render();
+}
+
+// Show the leads behind a chart or tile: set the filters, open the Leads tab, bring the table into view.
+function goLeads(f){ f=f||{}; if(f.agentName!==undefined){ var ai=X.agent.indexOf(f.agentName); if(ai>=0) f.agent=ai; }
+  ["agent","project","status","feedback"].forEach(function(k){ if(f[k]!==undefined){ state[k]=f[k]; $("f-"+k).value=String(f[k]); } });
+  state.stale=f.stale||0; if(f.act!==undefined){ state.act=f.act; $("f-act").value=String(f.act); } if(f.from!==undefined){ state.from=f.from; $("f-from").value=f.from; } if(f.to!==undefined){ state.to=f.to; $("f-to").value=f.to; }
+  go("leads"); apply(); showTable("lead-table"); }
+function showTable(id){ setTimeout(function(){ var t=$(id); if(t&&t.scrollIntoView) t.scrollIntoView({behavior:"smooth",block:"start"}); },60); }
+function countBy(col){ var m={}; for(var i=0;i<view.length;i++){var k=view[i][col]; m[k]=(m[k]||0)+1;} return m; }
+function sorted(m){ return Object.keys(m).map(function(k){return [+k,m[k]]}).sort(function(a,b){return b[1]-a[1]}); }
+
+function bars(target,col,list,key,limit){ var t=$(target); t.textContent=""; var arr=sorted(countBy(col)); if(limit) arr=arr.slice(0,limit);
+  if(!arr.length){ t.appendChild(el("div","empty","No leads match these filters")); return; }
+  var max=arr[0][1];
+  arr.forEach(function(d){ var b=el("button","brow"); b.type="button"; b.title="Filter by "+(list[d[0]]||"(blank)");
+    b.appendChild(el("span","lab",list[d[0]]||"(blank)")); var tr=el("span","track"), fl=el("span","fill"); fl.style.width=(d[1]/max*100)+"%"; fl.style.display="block"; tr.appendChild(fl); b.appendChild(tr);
+    b.appendChild(el("span","num",fmt(d[1])));
+    b.title="Show these "+fmt(d[1])+" leads"; b.addEventListener("click",function(){ var f={}; f[key]=d[0]; goLeads(f); });
+    t.appendChild(b); }); }
+
+function tiles(){ var t=$("tiles"); t.textContent=""; var n=view.length;
+  var fb=countBy(C.feedback), noAct=0; for(var i=0;i<view.length;i++) if(!view[i][C.lastAct]) noAct++;
+  function tile(k,v,note,attn,onclick){ var e=el(onclick?"button":"div","tile"+(attn?" attn":"")); if(onclick){e.type="button"; e.addEventListener("click",onclick);} e.appendChild(el("div","k",k)); e.appendChild(el("div","v",fmt(v))); e.appendChild(el("div","n",note)); t.appendChild(e); }
+  tile("Leads",n,"of "+fmt(R.length)+" in CloudBlue",false,function(){ goLeads({}); });
+  if(I_PENDING>=0){ var pn=fb[I_PENDING]||0; tile("Pending feedback",pn,pct(pn,n)+" have no agent feedback yet",pn>0,function(){ goLeads({feedback:I_PENDING}); }); }
+  tile("No activity logged in CloudBlue",noAct,pct(noAct,n)+" have an empty Last Agent Activity Date",noAct>0,function(){ goLeads({act:1}); });
+  sorted(fb).filter(function(d){return d[0]!==I_PENDING&&d[0]!==I_NONE}).slice(0,4).forEach(function(d){
+    tile(X.feedback[d[0]]||"(blank)",d[1],pct(d[1],n)+" of leads shown",false,function(){ goLeads({feedback:d[0]}); }); });
+}
+
+function months(){ var c=$("c-month"), x=$("c-month-x"); c.textContent=""; x.textContent=""; var m={};
+  for(var i=0;i<view.length;i++){ var d=new Date(view[i][C.created]*60000); var k=d.getUTCFullYear()*12+d.getUTCMonth(); m[k]=(m[k]||0)+1; }
+  var ks=Object.keys(m).map(Number).sort(function(a,b){return a-b}); if(!ks.length){ c.appendChild(el("div","empty","No leads match these filters")); return; }
+  var first=ks[0], last=ks[ks.length-1]; if(last-first>35) first=last-35; var max=0; for(var k=first;k<=last;k++) if((m[k]||0)>max) max=m[k];
+  var names=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"], count=last-first+1;
+  for(k=first;k<=last;k++){ var v=m[k]||0; var col=el("div","col"); var lab=names[k%12]+" "+Math.floor(k/12);
+    if(count<=18||v===max) col.appendChild(el("div","cv",v?fmt(v):"")); var b=el("div","cb"); b.style.height=(max? v/max*100:0)+"%"; col.appendChild(b);
+    tipOn(col,lab+": "+fmt(v)+" leads. Click to list them."); col.className+=" pick"; (function(kk){ col.addEventListener("click",function(){ var y=Math.floor(kk/12), mo=kk%12, last=new Date(Date.UTC(y,mo+1,0)).getUTCDate(), mm=(mo<9?"0":"")+(mo+1); goLeads({from:y+"-"+mm+"-01",to:y+"-"+mm+"-"+last}); }); })(k); c.appendChild(col);
+    x.appendChild(el("span",null,(count<=14||k%12===0||k===first)? (names[k%12]+(k%12===0||k===first?" "+String(Math.floor(k/12)).slice(2):"")):"")); }
+}
+
+var SER=["--s1","--s2","--s3","--s4","--s5","--s6","--s7"];
+function fbOrder(){ var tot={}; for(var i=0;i<R.length;i++){var k=R[i][C.feedback]; tot[k]=(tot[k]||0)+1;} return Object.keys(tot).map(Number).sort(function(a,b){return tot[b]-tot[a]}); }
+var FB_ORDER=fbOrder(), FB_TOP=FB_ORDER.slice(0,7);
+function fbColor(i){ var p=FB_TOP.indexOf(i); return p>=0? "var("+SER[p]+")":"var(--s-other)"; }
+
+function team(){
+  var lg=$("team-legend"); lg.textContent=""; FB_TOP.forEach(function(i){ var s=el("span"); var sw=el("i"); sw.style.background=fbColor(i); s.appendChild(sw); s.appendChild(document.createTextNode(X.feedback[i]||"(blank)")); lg.appendChild(s); });
+  if(FB_ORDER.length>7){ var s=el("span"); var sw=el("i"); sw.style.background="var(--s-other)"; s.appendChild(sw); s.appendChild(document.createTextNode("Other")); lg.appendChild(s); }
+  var per={}; for(var i=0;i<view.length;i++){ var r=view[i], a=r[C.agent]; var o=per[a]||(per[a]={n:0,fb:{},noAct:0,last:0}); o.n++; o.fb[r[C.feedback]]=(o.fb[r[C.feedback]]||0)+1; if(!r[C.lastAct]) o.noAct++; else if(r[C.lastAct]>o.last) o.last=r[C.lastAct]; }
+  var agents=Object.keys(per).map(Number).sort(function(a,b){return per[b].n-per[a].n}); var max=agents.length? per[agents[0]].n:1;
+  var st=$("team-stack"); st.textContent=""; if(!agents.length) st.appendChild(el("div","empty","No leads match these filters"));
+  agents.forEach(function(a){ var o=per[a]; var row=el("div","srow"); row.appendChild(el("span","lab",X.agent[a]||"(unassigned)")); var wrap=el("div"); var stack=el("div","stack"); stack.style.width=(o.n/max*100)+"%";
+    var other=0; FB_ORDER.forEach(function(f){ var v=o.fb[f]||0; if(!v) return; if(FB_TOP.indexOf(f)<0){other+=v;return;} var sg=el("span"); sg.style.flex=v+" 0 0"; sg.style.background=fbColor(f); tipOn(sg,(X.agent[a]||"")+" · "+(X.feedback[f]||"(blank)")+": "+fmt(v)+" ("+pct(v,o.n)+"). Click to list them."); sg.style.cursor="pointer"; sg.addEventListener("click",function(){ goLeads({agent:a,feedback:f}); }); stack.appendChild(sg); });
+    if(other){ var sg=el("span"); sg.style.flex=other+" 0 0"; sg.style.background="var(--s-other)"; tipOn(sg,(X.agent[a]||"")+" · Other: "+fmt(other)); stack.appendChild(sg); }
+    wrap.appendChild(stack); row.appendChild(wrap); row.appendChild(el("span","num",fmt(o.n))); row.lastChild.style.textAlign="right"; st.appendChild(row); });
+  // table
+  var cols=FB_ORDER.slice(0,6); var t=$("team-table"); t.textContent=""; var th=el("thead"), hr=el("tr");
+  ["Agent","Leads"].concat(cols.map(function(f){return X.feedback[f]||"(blank)"})).concat(["Given feedback","No activity logged","Last activity"]).forEach(function(h,i){ hr.appendChild(el("th",i>0&&i<cols.length+4?"num":"",h)); });
+  th.appendChild(hr); t.appendChild(th); var tb=el("tbody");
+  agents.forEach(function(a){ var o=per[a]; var tr=el("tr","click"); tr.title="Show this agent's leads"; tr.appendChild(el("td",null,X.agent[a]||"(unassigned)")); tr.appendChild(el("td","num",fmt(o.n)));
+    cols.forEach(function(f){ tr.appendChild(el("td","num",fmt(o.fb[f]||0))); });
+    var done=o.n-(I_PENDING>=0?(o.fb[I_PENDING]||0):0)-(I_NONE>=0?(o.fb[I_NONE]||0):0); var td=el("td","num",pct(done,o.n)); var mini=el("span","mini"), mi=el("i"); mi.style.width=(o.n?done/o.n*100:0)+"%"; mini.appendChild(mi); td.appendChild(mini); tr.appendChild(td);
+    tr.appendChild(el("td","num",fmt(o.noAct))); tr.appendChild(el("td",null,o.last?dstr(o.last):"No activity"));
+    tr.addEventListener("click",function(){ state.agent=a; $("f-agent").value=String(a); go("leads"); apply(); }); tb.appendChild(tr); });
+  t.appendChild(tb);
+}
+
+function projects(){
+  var per={}; for(var i=0;i<view.length;i++){ var r=view[i], p=r[C.project]; var o=per[p]||(per[p]={n:0,fb:{},ag:{}}); o.n++; o.fb[r[C.feedback]]=(o.fb[r[C.feedback]]||0)+1; o.ag[r[C.agent]]=(o.ag[r[C.agent]]||0)+1; }
+  var ps=Object.keys(per).map(Number).sort(function(a,b){return per[b].n-per[a].n}); var max=ps.length?per[ps[0]].n:1; var cols=FB_ORDER.slice(0,5);
+  var t=$("proj-table"); t.textContent=""; var th=el("thead"), hr=el("tr");
+  ["Project","Leads",""].concat(cols.map(function(f){return X.feedback[f]||"(blank)"})).concat(["Agents","Top agent"]).forEach(function(h,i){ hr.appendChild(el("th",(i===1||(i>2&&i<cols.length+4))?"num":"",h)); });
+  th.appendChild(hr); t.appendChild(th); var tb=el("tbody");
+  if(!ps.length){ var tr=el("tr"), td=el("td","empty","No leads match these filters"); td.colSpan=cols.length+5; tr.appendChild(td); tb.appendChild(tr); }
+  ps.forEach(function(p){ var o=per[p]; var tr=el("tr","click"); tr.title="Show this project's leads"; tr.appendChild(el("td",null,X.project[p]||"(no project)")); tr.appendChild(el("td","num",fmt(o.n)));
+    var td=el("td"); var tk=el("span","mini"); tk.style.width="140px"; tk.style.marginLeft="0"; var fi=el("i"); fi.style.background="var(--bar)"; fi.style.width=(o.n/max*100)+"%"; tk.appendChild(fi); td.appendChild(tk); tr.appendChild(td);
+    cols.forEach(function(f){ tr.appendChild(el("td","num",fmt(o.fb[f]||0))); });
+    var ags=Object.keys(o.ag).map(Number).sort(function(a,b){return o.ag[b]-o.ag[a]}); tr.appendChild(el("td","num",String(ags.length))); tr.appendChild(el("td",null,(X.agent[ags[0]]||"(unassigned)")+" ("+fmt(o.ag[ags[0]])+")"));
+    tr.addEventListener("click",function(){ state.project=p; $("f-project").value=String(p); go("leads"); apply(); }); tb.appendChild(tr); });
+  t.appendChild(tb);
+}
+
+var LCOLS=[["Lead ID",C.id],["Client",C.client],["Contact",C.contact],["Project",C.project],["Agent",C.agent],["Status",C.status],["Last feedback",C.feedback],["Created",C.created],["Last activity",C.lastAct],["Source",C.source],["Feedback comment",C.comment]];
+function leads(){
+  var col=state.sort, dir=state.dir; var dictFor={}; dictFor[C.project]=X.project; dictFor[C.agent]=X.agent; dictFor[C.status]=X.status; dictFor[C.feedback]=X.feedback; dictFor[C.source]=X.source;
+  var v=view.slice().sort(function(a,b){ var x=a[col], y=b[col]; if(dictFor[col]){x=dictFor[col][x]||"";y=dictFor[col][y]||"";} if(typeof x==="string") return x.localeCompare(y)*dir; return (x-y)*dir; });
+  var pages=Math.max(1,Math.ceil(v.length/PAGE)); if(state.page>=pages) state.page=pages-1; var start=state.page*PAGE, slice=v.slice(start,start+PAGE);
+  var t=$("lead-table"); t.textContent=""; var th=el("thead"), hr=el("tr");
+  LCOLS.forEach(function(c){ var h=el("th"); var b=el("button",null,c[0]+(state.sort===c[1]?(state.dir>0?" ▲":" ▼"):"")); b.type="button"; b.title="Sort by "+c[0]; b.addEventListener("click",function(){ if(state.sort===c[1]) state.dir=-state.dir; else {state.sort=c[1]; state.dir=1;} leads(); }); h.appendChild(b); hr.appendChild(h); });
+  th.appendChild(hr); t.appendChild(th); var tb=el("tbody");
+  if(!slice.length){ var tr=el("tr"), td=el("td","empty","No leads match these filters"); td.colSpan=LCOLS.length; tr.appendChild(td); tb.appendChild(tr); }
+  slice.forEach(function(r){ var tr=el("tr"); tr.appendChild(el("td","num",String(r[C.id]))); tr.lastChild.style.textAlign="left"; var n=el("td"); n.appendChild(clientLink(r[C.client],clientOfLead(r))); tr.appendChild(n); var ct=el("td",null,r[C.contact]||""); ct.dir="ltr"; addWa(ct,r[C.contact],r[C.client],X.project[r[C.project]]); tr.appendChild(ct);
+    tr.appendChild(el("td",null,X.project[r[C.project]]||"")); tr.appendChild(el("td",null,X.agent[r[C.agent]]||"")); tr.appendChild(el("td",null,X.status[r[C.status]]||""));
+    var f=el("td"); var fn=X.feedback[r[C.feedback]]||""; f.appendChild(el("span","pill "+fbClass(fn),fn)); tr.appendChild(f);
+    tr.appendChild(el("td",null,dstr(r[C.created]))); tr.lastChild.title=dtstr(r[C.created]); tr.appendChild(el("td",null,dstr(r[C.lastAct]))); if(r[C.lastAct]) tr.lastChild.title=dtstr(r[C.lastAct]);
+    tr.appendChild(el("td",null,X.source[r[C.source]]||"")); var cm=el("td","wrapc",r[C.comment]||""); cm.dir="auto"; if(r[C.comment]){cm.title="Click to show the full comment"; cm.addEventListener("click",function(){cm.classList.toggle("open");});} tr.appendChild(cm); tb.appendChild(tr); });
+  t.appendChild(tb);
+  $("pg-info").textContent=v.length? (fmt(start+1)+" to "+fmt(start+slice.length)+" of "+fmt(v.length)) : "0 leads"; $("pg-prev").disabled=state.page<=0; $("pg-next").disabled=state.page>=pages-1;
+}
+
+var tip=$("tip");
+function tipOn(node,text){ node.addEventListener("mousemove",function(e){ tip.textContent=text; tip.style.display="block"; var x=Math.min(e.clientX+12,window.innerWidth-tip.offsetWidth-8), y=Math.max(8,e.clientY-34); tip.style.left=x+"px"; tip.style.top=y+"px"; }); node.addEventListener("mouseleave",function(){ tip.style.display="none"; }); }
+
+// ---------- Agent sheets ----------
+var E=window.EXTRA||{}, SH=E.sheets, TC=E.tcrs;
+var S={agent:0,tab:1,project:2,name:3,number:4,date:5,fb:6,next:7,notes:8,lead:9};
+var shState={tab:-1,fb:-1,match:"all",page:0}, shView=[];
+var leadById={}; for(var li=0;li<R.length;li++) leadById[R[li][C.id]]=R[li];
+function normFb(s){ s=(s||"").toLowerCase().replace(/[^a-z]/g,""); if(s==="nofeedback"||s==="nofeedbackrecorded"||s==="pendingfeedback") return ""; return s; }
+function selAgentName(){ return state.agent>=0? X.agent[state.agent]:null; }
+function crmFb(r){ var l=r[S.lead]&&leadById[r[S.lead]]; return l? X.feedback[l[C.feedback]]:""; }
+function shApply(){ shView=[]; if(!SH) return; var an=selAgentName(), q=state.q.trim().toLowerCase(), qd=q.replace(/\D/g,""), d=SH.dict;
+  for(var i=0;i<SH.rows.length;i++){ var r=SH.rows[i];
+    if(an&&d.agent[r[S.agent]]!==an) continue; if(shState.tab>=0&&r[S.tab]!==shState.tab) continue; if(shState.fb>=0&&r[S.fb]!==shState.fb) continue;
+    if(shState.match==="in"&&!r[S.lead]) continue; if(shState.match==="out"&&r[S.lead]) continue;
+    if(shState.match==="diff"){ if(!r[S.lead]) continue; if(normFb(d.feedback[r[S.fb]])===normFb(crmFb(r))) continue; }
+    if(q){ var num=(r[S.number]||""); if(r[S.name].toLowerCase().indexOf(q)<0 && num.indexOf(q)<0 && (!qd||num.replace(/\D/g,"").indexOf(qd)<0) && (r[S.project]||"").toLowerCase().indexOf(q)<0) continue; }
+    shView.push(r); } }
+function simpleBars(target,pairs,onclick,fmtv){ var t=$(target); t.textContent=""; if(!pairs.length){ t.appendChild(el("div","empty","Nothing to show for these filters")); return; } var max=pairs[0][1]||1;
+  pairs.forEach(function(d){ var b=el(onclick?"button":"div","brow"); if(onclick){b.type="button"; b.addEventListener("click",function(){onclick(d)});} else b.style.cursor="default";
+    b.appendChild(el("span","lab",d[0])); var tr=el("span","track"), fl=el("span","fill"); fl.style.width=(d[1]/max*100)+"%"; if(AGC[d[0]]) fl.style.background=agColor(d[0]); fl.style.display="block"; tr.appendChild(fl); b.appendChild(tr); b.appendChild(el("span","num",fmtv?fmtv(d[1]):fmt(d[1]))); t.appendChild(b); }); }
+function tileIn(t,k,v,note,attn,onclick){ var e=el(onclick?"button":"div","tile"+(attn?" attn":"")); if(onclick){e.type="button"; e.addEventListener("click",onclick);} e.appendChild(el("div","k",k)); e.appendChild(el("div","v",v)); e.appendChild(el("div","n",note)); t.appendChild(e); }
+function sheets(){ var tiles=$("sh-tiles"); tiles.textContent=""; if(!SH){ tiles.appendChild(el("div","empty","No sheet data loaded yet")); return; }
+  shApply(); var d=SH.dict, n=shView.length, inC=0, diff=0, fb={}, ag={};
+  for(var i=0;i<n;i++){ var r=shView[i]; if(r[S.lead]){ inC++; if(normFb(d.feedback[r[S.fb]])!==normFb(crmFb(r))) diff++; } fb[r[S.fb]]=(fb[r[S.fb]]||0)+1; ag[r[S.agent]]=(ag[r[S.agent]]||0)+1; }
+  function setMatch(m){ return function(){ shState.match=m; $("sh-f-match").value=m; shState.page=0; sheets(); showTable("sh-table"); }; }
+  tileIn(tiles,"Sheet rows",fmt(n),"of "+fmt(SH.rows.length)+" across "+d.agent.length+" agents",false,setMatch("all"));
+  tileIn(tiles,"Also in CloudBlue",fmt(inC),pct(inC,n)+" matched by phone number",false,setMatch("in"));
+  tileIn(tiles,"Not in CloudBlue",fmt(n-inC),pct(n-inC,n)+" only in the sheets",false,setMatch("out"));
+  tileIn(tiles,"Feedback differs",fmt(diff),"sheet and CloudBlue disagree",diff>0,setMatch("diff"));
+  var fbp=Object.keys(fb).map(function(k){return [d.feedback[k],fb[k],+k]}).sort(function(a,b){return b[1]-a[1]}).slice(0,10);
+  simpleBars("sh-fb",fbp,function(x){ shState.fb=x[2]; $("sh-f-fb").value=String(x[2]); shState.page=0; sheets(); showTable("sh-table"); });
+  var agp=Object.keys(ag).map(function(k){return [d.agent[k],ag[k]]}).sort(function(a,b){return b[1]-a[1]});
+  simpleBars("sh-agent",agp,function(x){ var i=X.agent.indexOf(x[0]); if(i>=0){ state.agent=i; $("f-agent").value=String(i); apply(); } });
+  var PAGE2=50, pages=Math.max(1,Math.ceil(n/PAGE2)); if(shState.page>=pages) shState.page=pages-1; var start=shState.page*PAGE2, slice=shView.slice(start,start+PAGE2);
+  var t=$("sh-table"); t.textContent=""; var th=el("thead"), hr=el("tr"); ["Agent","Sheet tab","Project","Client","Number","Date","Sheet feedback","CloudBlue feedback","Lead ID","Next step","Comments"].forEach(function(x){hr.appendChild(el("th",null,x))}); th.appendChild(hr); t.appendChild(th); var tb=el("tbody");
+  if(!slice.length){ var tr0=el("tr"), td0=el("td","empty","No sheet rows match these filters"); td0.colSpan=11; tr0.appendChild(td0); tb.appendChild(tr0); }
+  slice.forEach(function(r){ var tr=el("tr"); tr.appendChild(el("td",null,d.agent[r[S.agent]])); tr.appendChild(el("td",null,d.tab[r[S.tab]])); var pj=el("td",null,r[S.project]||""); pj.dir="auto"; tr.appendChild(pj); var nm=el("td"); nm.appendChild(clientLink(r[S.name],clientOfSheet(r))); tr.appendChild(nm); var nb=el("td",null,r[S.number]); nb.dir="ltr"; addWa(nb,r[S.number],r[S.name],r[S.project]); tr.appendChild(nb);
+    tr.appendChild(el("td",null,r[S.date]?dstr(r[S.date]):"")); var f=el("td"); var fn=d.feedback[r[S.fb]]; f.appendChild(el("span","pill "+fbClass(fn),fn)); tr.appendChild(f);
+    var cf=el("td"); var cn=crmFb(r); if(r[S.lead]){ var differs=normFb(fn)!==normFb(cn); cf.appendChild(el("span","pill "+(differs?"warn":fbClass(cn)),cn)); } else cf.appendChild(el("span","pill","Not in CloudBlue")); tr.appendChild(cf);
+    tr.appendChild(el("td",null,r[S.lead]?String(r[S.lead]):"")); var nx=el("td",null,r[S.next]||""); nx.dir="auto"; tr.appendChild(nx);
+    var cm=el("td","wrapc",r[S.notes]||""); cm.dir="auto"; if(r[S.notes]){cm.title="Click to show the full comment"; cm.addEventListener("click",function(){cm.classList.toggle("open");});} tr.appendChild(cm); tb.appendChild(tr); });
+  t.appendChild(tb); $("sh-info").textContent=n?(fmt(start+1)+" to "+fmt(start+slice.length)+" of "+fmt(n)):"0 rows"; $("sh-prev").disabled=shState.page<=0; $("sh-next").disabled=shState.page>=pages-1; }
+
+// ---------- TCRs ----------
+var T={id:0,type:1,client:2,unit:3,agent:4,project:5,vol:6,date:7,status:8,req:9};
+// Sales targets in EGP, set by Basel on 16 Nov 2026. The team target is their sum.
+var TARGETS={"Zeyad Samir Mohamedy Aly":180e6,"Morad Atef talaat Gwda Ahmed":160e6,"Omar Ahmed Abd El-fattah foda":160e6,"Remonda Atef Hanna Nageb":160e6,"Mohamed Emad Nagty Youssef Mohamed":160e6};
+var TEAM_TARGET=0; Object.keys(TARGETS).forEach(function(k){TEAM_TARGET+=TARGETS[k]});
+if(window.CB_AGENT){ var _t={}; _t[window.CB_AGENT]=TARGETS[window.CB_AGENT]||0; TARGETS=_t; TEAM_TARGET=_t[window.CB_AGENT]; }
+function targetChart(v,an){ var box=$("tc-target"); box.textContent=""; var ag={}, total=0; v.forEach(function(r){ ag[r[T.agent]]=(ag[r[T.agent]]||0)+r[T.vol]; total+=r[T.vol]; });
+  var rows=[]; if(!an) rows.push(["Team",total,TEAM_TARGET,true]); Object.keys(TARGETS).forEach(function(a){ if(!an||a===an) rows.push([a,ag[a]||0,TARGETS[a],false]); });
+  Object.keys(ag).forEach(function(a){ if(!TARGETS[a]) rows.push([a,ag[a],0,false]); });
+  rows.forEach(function(x){ var scale=Math.max(x[1],x[2])*1.05||1; var row=el("div","trow"+(x[3]?" tteam":"")); row.appendChild(el("span","lab",x[0])); var tr=el("div","ttrack"), fl=el("div","fill"+(x[2]&&x[1]>=x[2]?" hit":"")); fl.style.width=(x[1]/scale*100)+"%"; if(!x[3]&&AGC[x[0]]&&!(x[2]&&x[1]>=x[2])) fl.style.background=agColor(x[0]); tr.appendChild(fl);
+    if(x[2]){ var mk=el("div","mark"); mk.style.left=(x[2]/scale*100)+"%"; tr.appendChild(mk); } row.appendChild(tr); var num=el("div","tnum"); num.appendChild(el("b",null,"EGP "+money(x[1])));
+    num.appendChild(document.createTextNode(x[2]? " of "+money(x[2])+" target · "+Math.round(x[1]/x[2]*100)+"% achieved"+(x[1]>=x[2]?" · target reached":" · "+money(x[2]-x[1])+" to go") : " · no target")); row.appendChild(num);
+    tipOn(row,x[0]+": EGP "+fmt(Math.round(x[1]))+(x[2]?" of "+fmt(x[2]):"")); box.appendChild(row); }); }
+function tcrMonths(v){ var c=$("tc-month"), x=$("tc-month-x"); c.textContent=""; x.textContent=""; var m={}, none=0, noneN=0, datedN=0; v.forEach(function(r){ if(!r[T.date]){ none+=r[T.vol]; noneN++; return; } datedN++; var d=new Date(r[T.date]*60000); var k=d.getUTCFullYear()*12+d.getUTCMonth(); m[k]=(m[k]||0)+r[T.vol]; });
+  $("tc-month-hint").textContent="By Confirmed Contracting Date in MyCB. "+datedN+" TCRs have a date; "+noneN+" have none yet and are shown in the grey bar.";
+  var ks=Object.keys(m).map(Number).sort(function(a,b){return a-b}); var names=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]; var bars=[]; if(ks.length){ for(var k=ks[0];k<=ks[ks.length-1];k++) bars.push([names[k%12]+" "+String(Math.floor(k/12)).slice(2),m[k]||0,false]); } if(noneN) bars.push(["No date",none,true]);
+  if(!bars.length){ c.appendChild(el("div","empty","No TCRs match these filters")); return; } var max=0; bars.forEach(function(b){ if(b[1]>max) max=b[1]; });
+  bars.forEach(function(b){ var col=el("div","col"); col.appendChild(el("div","cv",b[1]?money(b[1]):"")); var bar=el("div","cb"+(b[2]?" alt":"")); bar.style.height=(max?b[1]/max*100:0)+"%"; col.appendChild(bar); tipOn(col,b[0]+": EGP "+fmt(Math.round(b[1]))); c.appendChild(col); x.appendChild(el("span",null,b[0])); }); }
+function money(v){ return v>=1e6? (v/1e6).toFixed(v>=1e8?0:1)+"M" : fmt(Math.round(v)); }
+function tcrs(){ var tiles=$("tc-tiles"); tiles.textContent=""; var tbl=$("tc-table"); tbl.textContent=""; if(!TC){ tiles.appendChild(el("div","empty","No TCR data loaded yet")); return; }
+  var an=selAgentName(), q=state.q.trim().toLowerCase(); var v=TC.rows.filter(function(r){ if(an&&r[T.agent]!==an) return false; if(window.__tcStatus&&r[T.status]!==window.__tcStatus) return false; if(q&&(r[T.id]+" "+r[T.client]+" "+r[T.unit]+" "+r[T.project]).toLowerCase().indexOf(q)<0) return false; return true; });
+  var vol=0, st={}, ag={}; v.forEach(function(r){ vol+=r[T.vol]; st[r[T.status]]=(st[r[T.status]]||0)+1; ag[r[T.agent]]=(ag[r[T.agent]]||0)+r[T.vol]; });
+  var reopen=v.filter(function(r){return /re-?open/i.test(r[T.status])}).length;
+  var tgt=an?(TARGETS[an]||0):TEAM_TARGET;
+  tileIn(tiles,"TCRs",fmt(v.length),"of "+fmt(TC.rows.length)+" in MyCB"); tileIn(tiles,"Sales volume","EGP "+money(vol),"sum of the TCRs shown");
+  if(tgt){ tileIn(tiles,an?"Target":"Team target","EGP "+money(tgt),Math.round(vol/tgt*100)+"% achieved",false); tileIn(tiles,"Still to go","EGP "+money(Math.max(0,tgt-vol)),vol>=tgt?"target reached":"to reach the target",vol<tgt); } tileIn(tiles,"Re-opened",fmt(reopen),"need attention",reopen>0);
+  simpleBars("tc-status",Object.keys(st).map(function(k){return [k,st[k]]}).sort(function(a,b){return b[1]-a[1]}),function(x){ window.__tcStatus=(window.__tcStatus===x[0])?null:x[0]; tcrs(); showTable("tc-table"); }); if(window.__tcStatus){ var cl=el("button","btn","Showing only: "+window.__tcStatus+" (click to show all)"); cl.type="button"; cl.style.marginTop="10px"; cl.addEventListener("click",function(){ window.__tcStatus=null; tcrs(); }); $("tc-status").appendChild(cl); }
+  targetChart(v,an); tcrMonths(v);
+  var th=el("thead"), hr=el("tr"); [["TCR",0],["Type",0],["Client",0],["Unit",0],["Project",0],["Agent",0],["Sales volume (EGP)",1],["Contract date",0],["Status",0]].forEach(function(x){hr.appendChild(el("th",x[1]?"num":"",x[0]))}); th.appendChild(hr); tbl.appendChild(th); var tb=el("tbody");
+  if(!v.length){ var tr0=el("tr"), td0=el("td","empty","No TCRs match these filters"); td0.colSpan=9; tr0.appendChild(td0); tb.appendChild(tr0); }
+  v.slice().sort(function(a,b){return b[T.vol]-a[T.vol]}).forEach(function(r){ var tr=el("tr"); tr.appendChild(el("td",null,r[T.id])); tr.appendChild(el("td",null,r[T.type])); var c=el("td"); ensureClients(); c.appendChild(clientLink(r[T.client],NAMEMAP[normName(r[T.client])])); tr.appendChild(c); tr.appendChild(el("td",null,r[T.unit])); tr.appendChild(el("td",null,r[T.project])); tr.appendChild(el("td",null,r[T.agent]));
+    tr.appendChild(el("td","num",fmt(Math.round(r[T.vol])))); tr.appendChild(el("td",null,r[T.date]?dstr(r[T.date]):"Not confirmed")); var s=el("td"); var sn=r[T.status]; s.appendChild(el("span","pill "+(/re-?open|cancel/i.test(sn)?"bad":/confirm|resolved/i.test(sn)?"good":/collection|review|postpon/i.test(sn)?"warn":"info"),sn)); tr.appendChild(s); tb.appendChild(tr); });
+  tbl.appendChild(tb); }
+
+// ---------- What changed ----------
+var CH=null, chState={kind:"all",page:0};
+function computeChanges(){ var P=window.PREV, N=window.SNAP; if(!P||!N) return null; var out=[], k;
+  function ln(id){ var l=leadById[id]; return l? l[C.client]:""; }
+  if(P.leads&&N.leads){ for(k in N.leads){ var n=N.leads[k], a=N.ld[n[0]], p=P.leads[k];
+      if(!p){ out.push(["New lead","Lead "+k,ln(k),"","Assigned to "+a,a]); continue; }
+      if(P.ld[p[0]]!==a) out.push(["Reassigned","Lead "+k,ln(k),P.ld[p[0]],a,a]);
+      if(P.ld[p[1]]!==N.ld[n[1]]) out.push(["Status changed","Lead "+k,ln(k),P.ld[p[1]],N.ld[n[1]],a]);
+      if(P.ld[p[2]]!==N.ld[n[2]]) out.push(["Feedback changed","Lead "+k,ln(k),P.ld[p[2]],N.ld[n[2]],a]); }
+    for(k in P.leads) if(!N.leads[k]) out.push(["Lead removed","Lead "+k,"",P.ld[P.leads[k][0]],"No longer in the list",P.ld[P.leads[k][0]]]); }
+  var tById={}; if(TC) TC.rows.forEach(function(r){tById[r[T.id]]=r});
+  if(P.tcrs&&N.tcrs){ for(k in N.tcrs){ var tr=tById[k]||[]; if(!(k in P.tcrs)) out.push(["New TCR",k,tr[T.client]||"","",N.tcrs[k],tr[T.agent]||""]); else if(P.tcrs[k]!==N.tcrs[k]) out.push(["TCR status changed",k,tr[T.client]||"",P.tcrs[k],N.tcrs[k],tr[T.agent]||""]); }
+    for(k in P.tcrs) if(!(k in N.tcrs)) out.push(["TCR removed",k,"",P.tcrs[k],"No longer in the list",""]); }
+  if(P.sheets&&N.sheets&&P.sd&&N.sd){ var pm={}; for(k in P.sheets){ var pp=k.split("|"); pm[P.sd.agent[pp[0]]+"|"+pp[2]]=P.sd.feedback[P.sheets[k]]; }
+    var names={}; if(SH) SH.rows.forEach(function(r){ var dg=(r[S.number]||"").replace(/\D/g,""); if(dg.length>=9) names[r[S.agent]+"|"+r[S.tab]+"|"+dg.slice(-10)]=r[S.name]; });
+    for(k in N.sheets){ var np=k.split("|"), ag=N.sd.agent[np[0]], key=ag+"|"+np[2], nf=N.sd.feedback[N.sheets[k]], what=N.sd.tab[np[1]]+" · "+np[2];
+      if(!(key in pm)) out.push(["New sheet row",what,names[k]||"","",nf,ag]); else if(pm[key]!==nf) out.push(["Sheet feedback changed",what,names[k]||"",pm[key],nf,ag]); } }
+  return out; }
+function changes(){ var note=$("ch-note"), tiles=$("ch-tiles"), t=$("ch-table"); tiles.textContent=""; t.textContent=""; var P=window.PREV, N=window.SNAP;
+  if(!P||!N){ note.textContent="No earlier copy to compare with yet. Changes appear after the next daily refresh."; $("ch-info").textContent=""; return; }
+  if(!CH) CH=computeChanges(); var base=[]; if(!P.sheets) base.push("agent sheets"); if(!P.tcrs) base.push("TCRs");
+  note.textContent="Comparing the copy from "+N.updated+" with the one from "+P.updated+"."+(base.length?" This is the first copy of the "+base.join(" and ")+", so their changes start showing from the next refresh.":"")+" The Agent filter above applies here.";
+  var an=selAgentName(); var all=CH.filter(function(c){return !an||c[5]===an}); var kinds={}; all.forEach(function(c){kinds[c[0]]=(kinds[c[0]]||0)+1});
+  tileIn(tiles,"All changes",fmt(all.length),"since the previous copy",false,function(){chState.kind="all";chState.page=0;changes();});
+  Object.keys(kinds).sort(function(a,b){return kinds[b]-kinds[a]}).forEach(function(k){ tileIn(tiles,k,fmt(kinds[k]),"click to list them",false,function(){chState.kind=k;chState.page=0;changes();}); });
+  var sel=$("ch-f-kind"); sel.textContent=""; var o=el("option",null,"All changes"); o.value="all"; sel.appendChild(o); Object.keys(kinds).forEach(function(k){var o2=el("option",null,k); o2.value=k; sel.appendChild(o2)}); if(chState.kind!=="all"&&!kinds[chState.kind]) chState.kind="all"; sel.value=chState.kind;
+  var v=all.filter(function(c){return chState.kind==="all"||c[0]===chState.kind}); var PAGE3=50, pages=Math.max(1,Math.ceil(v.length/PAGE3)); if(chState.page>=pages) chState.page=pages-1; var start=chState.page*PAGE3, slice=v.slice(start,start+PAGE3);
+  var th=el("thead"), hr=el("tr"); ["Change","Item","Client","Before","Now","Agent"].forEach(function(x){hr.appendChild(el("th",null,x))}); th.appendChild(hr); t.appendChild(th); var tb=el("tbody");
+  if(!slice.length){ var tr0=el("tr"), td0=el("td","empty","Nothing changed since the previous copy"); td0.colSpan=6; tr0.appendChild(td0); tb.appendChild(tr0); }
+  slice.forEach(function(c){ var tr=el("tr"); var k=el("td"); k.appendChild(el("span","pill "+(/New/.test(c[0])?"good":/removed/.test(c[0])?"bad":"info"),c[0])); tr.appendChild(k); tr.appendChild(el("td",null,c[1])); var n=el("td",null,c[2]); n.dir="auto"; tr.appendChild(n); tr.appendChild(el("td",null,c[3])); tr.appendChild(el("td",null,c[4])); tr.appendChild(el("td",null,c[5])); tb.appendChild(tr); });
+  t.appendChild(tb); $("ch-info").textContent=v.length?(fmt(start+1)+" to "+fmt(start+slice.length)+" of "+fmt(v.length)):"0 changes"; $("ch-prev").disabled=chState.page<=0; $("ch-next").disabled=chState.page>=pages-1; }
+
+// ---------- Clients (one per phone number) ----------
+function pkeys(s){ return (s||"").split(/[,;\/\n]| - /).filter(function(p){return p.indexOf("@")<0}).map(function(p){return p.replace(/\D/g,"")}).filter(function(d){return d.length>=9}).map(function(d){return d.slice(-10)}); }
+var CL=null, clState={kind:"all",page:0};
+function buildClients(){ var m={}, list=[], i, k, e;
+  for(i=0;i<R.length;i++){ var r=R[i], ks=pkeys(r[C.contact]); k=ks.length?ks[0]:"L"+r[C.id]; e=m[k]; if(!e){ e=m[k]={name:r[C.client],number:(r[C.contact]||"").split(",")[0].trim(),leads:[],sheets:[]}; list.push(e); } e.leads.push(r); }
+  if(SH) for(i=0;i<SH.rows.length;i++){ var s=SH.rows[i], ss=pkeys(s[S.number]); k=ss.length?ss[0]:"S"+i; e=m[k]; if(!e){ e=m[k]={name:s[S.name],number:s[S.number],leads:[],sheets:[]}; list.push(e); } if(!e.name) e.name=s[S.name]; e.sheets.push(s); }
+  list.forEach(function(e){ e.kind=e.leads.length&&e.sheets.length?"both":e.leads.length?"cb":"sheet"; var n=0; e.sheets.forEach(function(s){n+=(s[10]||1)}); e.records=e.leads.length+n; var ag={}; e.sheets.forEach(function(s){ag[s[S.agent]]=1}); e.multi=Object.keys(ag).length>1; });
+  return list; }
+var KIND={both:["Validated","good"],sheet:["Not in CloudBlue","warn"],cb:["CloudBlue only","info"]};
+function clients(){ if(!CL) CL=buildClients(); var an=selAgentName(), q=state.q.trim().toLowerCase(), qd=q.replace(/\D/g,""), d=SH?SH.dict:null;
+  var base=CL.filter(function(e){ if(an){ var ok=e.leads.some(function(l){return X.agent[l[C.agent]]===an})||e.sheets.some(function(s){return d.agent[s[S.agent]]===an}); if(!ok) return false; }
+    if(q&&(e.name||"").toLowerCase().indexOf(q)<0&&(e.number||"").indexOf(q)<0&&(!qd||(e.number||"").replace(/\D/g,"").indexOf(qd)<0)) return false; return true; });
+  var c={both:0,sheet:0,cb:0}, dup=0, multi=0, per={}; base.forEach(function(e){ c[e.kind]++; if(e.records>1) dup++; if(e.multi) multi++; e.sheets.forEach(function(s){ var a=d.agent[s[S.agent]]; var o=per[a]||(per[a]=[0,0]); o[0]++; if(e.kind==="both") o[1]++; }); });
+  function setK(kd){ return function(){ clState.kind=kd; $("cl-f-kind").value=kd; clState.page=0; clients(); showTable("cl-table"); }; }
+  var tiles=$("cl-tiles"); tiles.textContent=""; var sheetC=c.both+c.sheet;
+  tileIn(tiles,"Unique clients",fmt(base.length),"one per phone number",false,setK("all"));
+  tileIn(tiles,"Validated",fmt(c.both),pct(c.both,sheetC)+" of sheet clients are in CloudBlue",false,setK("both"));
+  tileIn(tiles,"Not in CloudBlue",fmt(c.sheet),"in an agent's sheet only",c.sheet>0,setK("sheet"));
+  tileIn(tiles,"CloudBlue only",fmt(c.cb),"not in any agent sheet",false,setK("cb"));
+  tileIn(tiles,"Duplicates merged",fmt(dup),"clients that had more than one record",false,setK("dup"));
+  tileIn(tiles,"Shared by agents",fmt(multi),"same client in more than one agent's sheet",multi>0,setK("multi"));
+  simpleBars("cl-val",[["Validated",c.both,"both"],["CloudBlue only",c.cb,"cb"],["Not in CloudBlue",c.sheet,"sheet"]].sort(function(a,b){return b[1]-a[1]}),function(x){setK(x[2])();});
+  simpleBars("cl-agent",Object.keys(per).map(function(a){return [a,per[a][0]?Math.round(per[a][1]/per[a][0]*100):0]}).sort(function(a,b){return b[1]-a[1]}),null,function(v){return v+"%"});
+  var kd=clState.kind, v=base.filter(function(e){ return kd==="all"||(kd==="dup"?e.records>1:kd==="multi"?e.multi:e.kind===kd); });
+  var PG=50, pages=Math.max(1,Math.ceil(v.length/PG)); if(clState.page>=pages) clState.page=pages-1; var start=clState.page*PG, slice=v.slice(start,start+PG);
+  var t=$("cl-table"); t.textContent=""; var th=el("thead"), hr=el("tr"); ["Client","Phone number","Validation","CloudBlue agent","CloudBlue feedback","Project","Sheet agent","Sheet feedback","Records merged","Lead ID"].forEach(function(x){hr.appendChild(el("th",null,x))}); th.appendChild(hr); t.appendChild(th); var tb=el("tbody");
+  if(!slice.length){ var tr0=el("tr"), td0=el("td","empty","No clients match these filters"); td0.colSpan=10; tr0.appendChild(td0); tb.appendChild(tr0); }
+  slice.forEach(function(e){ var tr=el("tr"), l=e.leads[0], s=e.sheets[0]; var n=el("td"); n.appendChild(clientLink(e.name,e)); tr.appendChild(n); var nb=el("td",null,e.number||""); nb.dir="ltr"; addWa(nb,e.number,e.name,l?X.project[l[C.project]]:(s?s[S.project]:"")); tr.appendChild(nb);
+    var k=el("td"); k.appendChild(el("span","pill "+KIND[e.kind][1],KIND[e.kind][0])); tr.appendChild(k);
+    tr.appendChild(el("td",null,l?X.agent[l[C.agent]]:"")); var f=el("td"); if(l){ var fn=X.feedback[l[C.feedback]]; f.appendChild(el("span","pill "+fbClass(fn),fn)); } tr.appendChild(f);
+    var pj=el("td",null,l?X.project[l[C.project]]:(s?s[S.project]:"")); pj.dir="auto"; tr.appendChild(pj);
+    var sa={}; e.sheets.forEach(function(x){sa[d.agent[x[S.agent]]]=1}); tr.appendChild(el("td",null,Object.keys(sa).join(", ")));
+    var sf=el("td"); if(s){ var sn=d.feedback[s[S.fb]]; sf.appendChild(el("span","pill "+fbClass(sn),sn)); } tr.appendChild(sf);
+    tr.appendChild(el("td","num",e.records>1?String(e.records):"")); tr.appendChild(el("td",null,l?String(l[C.id])+(e.leads.length>1?" +"+(e.leads.length-1):""):"")); tb.appendChild(tr); });
+  t.appendChild(tb); $("cl-info").textContent=v.length?(fmt(start+1)+" to "+fmt(start+slice.length)+" of "+fmt(v.length)):"0 clients"; $("cl-prev").disabled=clState.page<=0; $("cl-next").disabled=clState.page>=pages-1; }
+
+// ---------- Reports ----------
+var RPT=[];
+function reports(){ var per={}, d=SH?SH.dict:null; function g(a){ return per[a]||(per[a]={leads:0,cont:0,qual:0,wait:0,sheet:0,val:0,diff:0,tcr:0,vol:0}); }
+  var iq=idx(X.feedback,"Qualified");
+  view.forEach(function(r){ var o=g(X.agent[r[C.agent]]); o.leads++; if(r[C.lastAct]) o.cont++; if(r[C.feedback]===iq) o.qual++; if(r[C.feedback]===I_PENDING||r[C.feedback]===I_NONE) o.wait++; });
+  if(SH) SH.rows.forEach(function(s){ var o=g(d.agent[s[S.agent]]); o.sheet++; if(s[S.lead]){ o.val++; if(normFb(d.feedback[s[S.fb]])!==normFb(crmFb(s))) o.diff++; } });
+  if(TC) TC.rows.forEach(function(t){ var o=g(t[T.agent]); o.tcr++; o.vol+=t[T.vol]; });
+  var an=selAgentName(); var names=Object.keys(per).filter(function(a){return !an||a===an}).sort(function(a,b){return per[b].leads-per[a].leads});
+  var tot={leads:0,cont:0,qual:0,wait:0,sheet:0,val:0,diff:0,tcr:0,vol:0}; names.forEach(function(a){ for(var k in tot) tot[k]+=per[a][k]; });
+  var tiles=$("rp-tiles"); tiles.textContent=""; tileIn(tiles,"Leads",fmt(tot.leads),pct(tot.cont,tot.leads)+" with activity logged"); tileIn(tiles,"Qualified",fmt(tot.qual),pct(tot.qual,tot.leads)+" of leads"); tileIn(tiles,"Waiting for feedback",fmt(tot.wait),pct(tot.wait,tot.leads)+" of leads",tot.wait>0);
+  tileIn(tiles,"Sheet clients",fmt(tot.sheet),pct(tot.val,tot.sheet)+" validated in CloudBlue"); tileIn(tiles,"TCRs",fmt(tot.tcr),"EGP "+money(tot.vol)+" sales volume");
+  simpleBars("rp-qual",names.map(function(a){return [a,per[a].qual]}).filter(function(x){return x[1]>0}).sort(function(a,b){return b[1]-a[1]}),function(x){ goLeads({agentName:x[0],feedback:iq}); });
+  simpleBars("rp-cont",names.filter(function(a){return per[a].leads>0}).map(function(a){return [a,Math.round(per[a].cont/per[a].leads*100)]}).sort(function(a,b){return b[1]-a[1]}),function(x){ goLeads({agentName:x[0],act:2}); },function(v){return v+"%"});
+  simpleBars("rp-vol",names.map(function(a){return [a,per[a].vol]}).filter(function(x){return x[1]>0}).sort(function(a,b){return b[1]-a[1]}),function(x){ var ai=X.agent.indexOf(x[0]); if(ai>=0){ state.agent=ai; $("f-agent").value=String(ai); } go("tcrs"); apply(); showTable("tc-table"); },function(v){return money(v)});
+  var heads=["Agent","Leads","Activity logged","Qualified","Waiting for feedback","Sheet clients","Validated in CloudBlue","Feedback differs","TCRs","Sales volume (EGP)"];
+  var t=$("rp-table"); t.textContent=""; var th=el("thead"), hr=el("tr"); heads.forEach(function(x,i){hr.appendChild(el("th",i?"num":"",x))}); th.appendChild(hr); t.appendChild(th); var tb=el("tbody"); RPT=[heads.join(" | ")];
+  function line(a,o,bold){ var cells=[a,fmt(o.leads),pct(o.cont,o.leads),fmt(o.qual),fmt(o.wait),fmt(o.sheet),o.sheet?pct(o.val,o.sheet):"",fmt(o.diff),fmt(o.tcr),o.vol?fmt(Math.round(o.vol)):""]; var tr=el("tr"); cells.forEach(function(x,i){ var td=el("td",i?"num":"",x); if(bold) td.style.fontWeight="600"; tr.appendChild(td); }); tb.appendChild(tr); RPT.push(cells.join(" | ")); }
+  names.forEach(function(a){ line(a,per[a]); }); if(names.length>1) line("Team total",tot,true); t.appendChild(tb); }
+
+function projCharts(){ var iq=idx(X.feedback,"Qualified"), q={}, w={}; view.forEach(function(r){ var p=r[C.project]; if(r[C.feedback]===iq) q[p]=(q[p]||0)+1; if(r[C.feedback]===I_PENDING||r[C.feedback]===I_NONE) w[p]=(w[p]||0)+1; });
+  function top(m){ return Object.keys(m).map(function(k){return [X.project[k],m[k],+k]}).sort(function(a,b){return b[1]-a[1]}).slice(0,10); }
+  simpleBars("pj-qual",top(q),function(x){ goLeads({project:x[2],feedback:iq}); }); simpleBars("pj-wait",top(w),function(x){ goLeads({project:x[2],feedback:-2}); }); }
+
+// ---------- WhatsApp ----------
+var WA_DEFAULT="Hello {name}, this is Basel Algamal from Coldwell Banker. I hope you are doing well. I am following up on your interest in {project}. When would be a good time for a quick call?";
+var waText=WA_DEFAULT; try{ var sv=localStorage.getItem("cbcode.wa"); if(sv) waText=sv; }catch(e){}
+function waNumber(s){ var part=(s||"").split(/[,;\/\n]| - /).filter(function(p){return p.indexOf("@")<0&&p.replace(/\D/g,"").length>=9})[0]; if(!part) return ""; var d=part.replace(/\D/g,"");
+  if(d.indexOf("00")===0) d=d.slice(2); if(d.indexOf("200")===0) d="20"+d.slice(3); else if(d.length===11&&d.indexOf("01")===0) d="20"+d.slice(1); else if(d.length===10&&d.charAt(0)==="1") d="20"+d;
+  return (d.length>=11&&d.length<=15)? d:""; }
+function waLink(number,name,project){ var n=waNumber(number); if(!n) return null; var first=(name||"").trim(); var msg=waText.replace(/\{name\}/g,first||"there").replace(/\{project\}/g,(project&&project!=="No project")?project:"our projects");
+  var a=document.createElement("a"); a.className="wa"; a.href="https://wa.me/"+n+"?text="+encodeURIComponent(msg); a.target="_blank"; a.rel="noopener"; a.title="Open WhatsApp with the greeting for "+(first||"this client");
+  var NS="http://www.w3.org/2000/svg", svg=document.createElementNS(NS,"svg"); svg.setAttribute("viewBox","0 0 16 16"); svg.setAttribute("aria-hidden","true"); var pth=document.createElementNS(NS,"path"); pth.setAttribute("d","M8 1.5a6.5 6.5 0 0 0-5.6 9.8L1.5 14.5l3.3-.9A6.5 6.5 0 1 0 8 1.5z"); svg.appendChild(pth); a.appendChild(svg); a.appendChild(document.createTextNode("WhatsApp")); return a; }
+// Team WhatsApp numbers, given by Basel on 16 Nov 2026 (used by the Notify buttons in the Daily report)
+var TEAM_WA={"Zeyad Samir Mohamedy Aly":"01158235632","Omar Ahmed Abd El-fattah foda":"01066764988","Morad Atef talaat Gwda Ahmed":"01031994299","Mohamed Emad Nagty Youssef Mohamed":"01013902068","Remonda Atef Hanna Nageb":"01210059940"};
+function notifyBtn(agent,msg){ if(window.CB_AGENT) return null; var n=waNumber(TEAM_WA[agent]||""); if(!n) return null; var a=document.createElement("a"); a.className="wa"; a.style.marginLeft="0"; a.href="https://wa.me/"+n+"?text="+encodeURIComponent(msg); a.target="_blank"; a.rel="noopener"; a.title="Open WhatsApp with this update for "+agent; a.textContent="Notify"; return a; }
+var ZM_LINK_DEFAULT="https://us05web.zoom.us/j/2256394418?pwd=vmytjyeFRmlhNQpnWl6tp26OJx43pU.1";
+var ZM_DEFAULT="Hello {name}, this is Basel Algamal from Coldwell Banker. Here is the link to join our Zoom meeting: {zoom}";
+var zmLink=ZM_LINK_DEFAULT, zmText=ZM_DEFAULT; try{ var zl=localStorage.getItem("cbcode.zmlink"); if(zl) zmLink=zl; var zt=localStorage.getItem("cbcode.zmtext"); if(zt) zmText=zt; }catch(e){}
+function zmBtn(number,name){ var n=waNumber(number); if(!n||!zmLink) return null; var first=(name||"").trim(); var msg=zmText.replace(/\{name\}/g,first||"there").replace(/\{zoom\}/g,zmLink); if(msg.indexOf(zmLink)<0) msg+=" "+zmLink;
+  var a=document.createElement("a"); a.className="wa zm"; a.href="https://wa.me/"+n+"?text="+encodeURIComponent(msg); a.target="_blank"; a.rel="noopener"; a.title="Send your Zoom link to "+(first||"this client")+" on WhatsApp"; a.textContent="Zoom"; return a; }
+function addWa(td,number,name,project){ var a=waLink(number,name,project); if(a) td.appendChild(a); var z=zmBtn(number,name); if(z) td.appendChild(z); }
+
+// ---------- Agent rates ----------
+var pfSrc="cb";
+var PF=[["No Answer","noanswer",false],["Qualified","qualified",true],["Unqualified","unqualified",false],["No feedback","",false]];
+function performance(){ var per={}, d=SH?SH.dict:null; function g(a){ return per[a]||(per[a]={n:0,c:{}}); }
+  if(pfSrc==="cb") view.forEach(function(r){ var o=g(X.agent[r[C.agent]]); o.n++; var k=normFb(X.feedback[r[C.feedback]]); o.c[k]=(o.c[k]||0)+1; });
+  else if(SH){ var an=selAgentName(); SH.rows.forEach(function(s){ var a=d.agent[s[S.agent]]; if(an&&a!==an) return; var o=g(a); o.n++; var k=normFb(d.feedback[s[S.fb]]); o.c[k]=(o.c[k]||0)+1; }); }
+  var names=Object.keys(per), big=names.filter(function(a){return per[a].n>=50}); var tiles=$("pf-tiles"), grid=$("pf-grid"); tiles.textContent=""; grid.textContent="";
+  if(!names.length){ grid.appendChild(el("div","empty","No clients match these filters")); return; }
+  var tot=0; names.forEach(function(a){tot+=per[a].n}); tileIn(tiles,"Agents compared",String(big.length),"with 50 or more clients"); tileIn(tiles,"Clients counted",fmt(tot),pfSrc==="cb"?"CloudBlue leads":"rows in the agents' sheets");
+  PF.forEach(function(m){ var rate=function(a){ return per[a].n? (per[a].c[m[1]]||0)/per[a].n*100 : 0; }; var card=el("div","card"); card.appendChild(el("h2",null,m[0]+" rate by agent")); card.appendChild(el("div","hint","Share of the agent's clients whose feedback is "+m[0]));
+    var srt=big.slice().sort(function(a,b){return rate(b)-rate(a)}); if(srt.length){ var hi=srt[0], lo=srt[srt.length-1]; var hl=el("div","hl"); [["Highest",hi],["Lowest",lo]].forEach(function(x){ var b=el("div"); b.appendChild(el("div","k",x[0])); b.appendChild(el("div","n",x[1])); b.appendChild(el("div","v",rate(x[1]).toFixed(1)+"%")); b.appendChild(el("div","hint",fmt(per[x[1]].c[m[1]]||0)+" of "+fmt(per[x[1]].n))); b.lastChild.style.marginBottom="0"; hl.appendChild(b); }); card.appendChild(hl); }
+    var bars=el("div","bars"); var all=names.slice().sort(function(a,b){return rate(b)-rate(a)}); var max=all.length?rate(all[0])||1:1;
+    all.forEach(function(a){ var row=el("button","brow"); row.type="button"; row.title="Show these clients"; (function(an2,mk){ row.addEventListener("click",function(){ if(pfSrc==="cb"){ var fi=-2; if(mk[1]){ fi=-1; X.feedback.forEach(function(nm,i){ if(normFb(nm)===mk[1]) fi=i; }); } goLeads({agentName:an2,feedback:fi}); } else { var ai=X.agent.indexOf(an2); if(ai>=0){ state.agent=ai; $("f-agent").value=String(ai); } var si=-1; SH.dict.feedback.forEach(function(nm,i){ if(normFb(nm)===mk[1]&&(mk[1]||nm==="No feedback")) si=i; }); shState.fb=si; shState.match="all"; go("sheets"); apply(); $("sh-f-fb").value=String(si); shState.fb=si; sheets(); showTable("sh-table"); } }); })(a,m); row.appendChild(el("span","lab",a+(per[a].n<50?" (few clients)":""))); var tr=el("span","track"), fl=el("span","fill"); fl.style.width=(rate(a)/max*100)+"%"; if(AGC[a]) fl.style.background=agColor(a); fl.style.display="block"; tr.appendChild(fl); row.appendChild(tr); row.appendChild(el("span","num",rate(a).toFixed(1)+"%")); tipOn(row,a+": "+fmt(per[a].c[m[1]]||0)+" of "+fmt(per[a].n)+" clients"); bars.appendChild(row); });
+    card.appendChild(bars); grid.appendChild(card); }); }
+
+// ---------- Daily report ----------
+var dyDay=null, DYTXT=[];
+function dayKey(min){ return Math.floor(min/1440); }
+function isoDay(k){ return new Date(k*86400000).toISOString().slice(0,10); }
+function daily(){ var an=selAgentName(), byNew={}, byAct={}, maxDay=0, i;
+  for(i=0;i<R.length;i++){ var r=R[i]; if(an&&X.agent[r[C.agent]]!==an) continue; var kn=dayKey(r[C.created]); byNew[kn]=(byNew[kn]||0)+1; if(kn>maxDay) maxDay=kn; if(r[C.lastAct]){ var ka=dayKey(r[C.lastAct]); byAct[ka]=(byAct[ka]||0)+1; if(ka>maxDay) maxDay=ka; } }
+  if(dyDay===null) dyDay=maxDay; $("dy-date").value=isoDay(dyDay);
+  function cols(target,xt,m){ var c=$(target), x=$(xt); c.textContent=""; x.textContent=""; var ks=Object.keys(m).map(Number).sort(function(a,b){return a-b}).slice(-14); var max=0; ks.forEach(function(k){ if(m[k]>max) max=m[k]; });
+    if(!ks.length){ c.appendChild(el("div","empty","Nothing to show")); return; }
+    ks.forEach(function(k){ var col=el("div","col pick"+(k===dyDay?" sel":"")); col.appendChild(el("div","cv",fmt(m[k]))); var b=el("div","cb"); b.style.height=(m[k]/max*100)+"%"; col.appendChild(b); var lab=dstr(k*1440); tipOn(col,lab+": "+fmt(m[k])); col.addEventListener("click",function(){ dyDay=k; daily(); }); c.appendChild(col); x.appendChild(el("span",null,lab.replace(/ \d{4}$/,""))); }); }
+  cols("dy-new","dy-new-x",byNew); cols("dy-act","dy-act-x",byAct);
+  var per={}; function g(a){ return per[a]||(per[a]={nw:0,na:0,q:0,uq:0,ot:0,pn:{},pa:{}}); }
+  for(i=0;i<R.length;i++){ var r2=R[i], a=X.agent[r2[C.agent]]; if(an&&a!==an) continue; var pj=X.project[r2[C.project]];
+    if(dayKey(r2[C.created])===dyDay){ var o=g(a); o.nw++; o.pn[pj]=(o.pn[pj]||0)+1; }
+    if(r2[C.lastAct]&&dayKey(r2[C.lastAct])===dyDay){ var o2=g(a), f=normFb(X.feedback[r2[C.feedback]]); if(f==="noanswer") o2.na++; else if(f==="qualified") o2.q++; else if(f==="unqualified") o2.uq++; else o2.ot++; o2.pa[pj]=(o2.pa[pj]||0)+1; } }
+  // leads reassigned to each agent, known from the comparison with the previous copy (only for the day of the current copy)
+  var rs={}, rsDay=null, mths={Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11}; var mu=/^(\d+) (\w{3}) (\d{4})/.exec((window.SNAP&&SNAP.updated)||""); if(mu) rsDay=Math.floor(Date.UTC(+mu[3],mths[mu[2]],+mu[1])/86400000);
+  var H=(window.HIST&&HIST.days&&HIST.days[isoDay(dyDay)])||null;
+  if(H){ Object.keys(H).forEach(function(a){ if(an&&a!==an) return; g(a); if(H[a].cb_in) rs[a]=H[a].cb_in; }); }
+  else if(rsDay===dyDay){ if(!CH) CH=computeChanges(); (CH||[]).forEach(function(c){ if(c[0]==="Reassigned"&&(!an||c[5]===an)){ rs[c[5]]=(rs[c[5]]||0)+1; g(c[5]); } }); }
+  function plist(m){ return Object.keys(m).sort(function(x,y){return m[y]-m[x]}).map(function(k){return k+" ("+m[k]+")"}).join(", "); }
+  var names=Object.keys(per).sort(function(x,y){return ((rs[y]||0)+per[y].nw+per[y].na+per[y].q+per[y].uq+per[y].ot)-((rs[x]||0)+per[x].nw+per[x].na+per[x].q+per[x].uq+per[x].ot)});
+  var tot={nw:0,na:0,q:0,uq:0,ot:0}; names.forEach(function(n){ for(var k in tot) tot[k]+=per[n][k]; }); var rsTot=0; Object.keys(rs).forEach(function(k){rsTot+=rs[k]});
+  var tiles=$("dy-tiles"); tiles.textContent=""; var label=dstr(dyDay*1440); tileIn(tiles,"New leads",fmt(tot.nw),"created on "+label); tileIn(tiles,"Reassigned",fmt(rsTot),(H||rsDay===dyDay)?"leads moved to a new agent":"tracked from 16 Nov 2026 onward"); tileIn(tiles,"Actions logged",fmt(tot.na+tot.q+tot.uq+tot.ot),"leads worked on "+label); tileIn(tiles,"No Answer",fmt(tot.na),"of the actions"); tileIn(tiles,"Qualified",fmt(tot.q),"of the actions"); tileIn(tiles,"Unqualified",fmt(tot.uq),"of the actions");
+  var DYST=["Agent | Fresh total | Fresh CloudBlue | Fresh sheet | Handled | Unhandled | Qualified no activity 1 week | No Answer over 24h"];
+  // ---- follow-up status per agent, as of the latest copy ----
+  (function(){ var iq=idx(X.feedback,"Qualified"), ina=idx(X.feedback,"No Answer"), st={}, sd=SH?SH.dict:null; function gs(a){ return st[a]||(st[a]={c:{},qs:0,na:0}); }
+    // one entry per client (phone number) per agent, from CloudBlue and from the agent's Google Sheet together
+    for(var j=0;j<R.length;j++){ var r3=R[j], a3=X.agent[r3[C.agent]]; if(an&&a3!==an) continue; var o3=gs(a3); var k3=pkeys(r3[C.contact])[0]||("L"+r3[C.id]); var e3=o3.c[k3]||(o3.c[k3]={h:false,cb:false,sh:false}); e3.cb=true;
+      if(!(r3[C.feedback]===I_PENDING||r3[C.feedback]===I_NONE)||r3[C.lastAct]) e3.h=true;
+      if(r3[C.feedback]===iq&&(!r3[C.lastAct]||r3[C.lastAct]<=REFMIN-10080)) o3.qs++;
+      if(r3[C.feedback]===ina&&(!r3[C.lastAct]||r3[C.lastAct]<=REFMIN-1440)) o3.na++; }
+    if(SH) for(var j2=0;j2<SH.rows.length;j2++){ var s3=SH.rows[j2], a5=sd.agent[s3[S.agent]]; if(an&&a5!==an) continue; var o5=gs(a5); var k5=pkeys(s3[S.number])[0]||("S"+j2); var e5=o5.c[k5]||(o5.c[k5]={h:false,cb:false,sh:false}); e5.sh=true; if(sd.feedback[s3[S.fb]]!=="No feedback") e5.h=true; }
+    $("dy-st-hint").textContent="As of the latest copy ("+(D.updated||"")+"), counting each client once across CloudBlue and the agent's Google Sheet. Fresh = received on "+label+" in CloudBlue (new plus reassigned) or newly added to the sheet. Handled = has feedback in CloudBlue or in the sheet, or logged activity. Unhandled = none of those. The last two columns use CloudBlue's activity dates; click those numbers to list the leads.";
+    var t2=$("dy-status"); t2.textContent=""; var th2=el("thead"), hr2=el("tr"); ["Agent","Fresh leads","Fresh: CloudBlue","Fresh: sheet","Handled","Unhandled","Only in sheet","Qualified, no activity for 1 week","No Answer over 24 hours","All clients"].forEach(function(x,i){ hr2.appendChild(el("th",i?"num":"",x)); }); th2.appendChild(hr2); t2.appendChild(th2); var tb2=el("tbody");
+    var rowsS=Object.keys(st).map(function(a4){ var o4=st[a4], n=0, hd=0, os=0; Object.keys(o4.c).forEach(function(k){ var x=o4.c[k]; n++; if(x.h) hd++; if(x.sh&&!x.cb) os++; }); return {a:a4,n:n,h:hd,u:n-hd,os:os,qs:o4.qs,na:o4.na}; }).sort(function(x,y){return y.n-x.n});
+    var tot2={f:0,fc:0,fs:0,h:0,u:0,os:0,qs:0,na:0,n:0};
+    function numCell(v,fn,warn){ var td=el("td","num"); if(v&&fn){ var b=el("button",null,fmt(v)); b.type="button"; b.style.cssText="all:unset;cursor:pointer;text-decoration:underline;font-variant-numeric:tabular-nums"+(warn?";color:var(--bad);font-weight:600":""); b.title="List these leads"; b.addEventListener("click",fn); td.appendChild(b); } else { td.textContent=fmt(v); if(warn){ td.style.color="var(--bad)"; td.style.fontWeight="600"; } } return td; }
+    rowsS.forEach(function(o4){ var a4=o4.a, fc=((per[a4]&&per[a4].nw)||0)+(rs[a4]||0), fs=(H&&H[a4]&&H[a4].sh_new)||0; tot2.f+=fc+fs; tot2.fc+=fc; tot2.fs+=fs; tot2.h+=o4.h; tot2.u+=o4.u; tot2.os+=o4.os; tot2.qs+=o4.qs; tot2.na+=o4.na; tot2.n+=o4.n;
+      var tr=el("tr"); tr.appendChild(el("td",null,a4)); var ft=el("td","num",fmt(fc+fs)); ft.style.fontWeight="600"; tr.appendChild(ft); tr.appendChild(el("td","num",fmt(fc))); tr.appendChild(el("td","num",H?fmt(fs):"Not tracked"));
+      tr.appendChild(numCell(o4.h)); tr.appendChild(numCell(o4.u,null,o4.u>0)); tr.appendChild(el("td","num",fmt(o4.os)));
+      tr.appendChild(numCell(o4.qs,function(){ goLeads({agentName:a4,feedback:iq,act:0,stale:10080}); },o4.qs>0)); tr.appendChild(numCell(o4.na,function(){ goLeads({agentName:a4,feedback:ina,act:0,stale:1440}); },o4.na>0)); tr.appendChild(el("td","num",fmt(o4.n))); tb2.appendChild(tr);
+      DYST.push([a4,fc+fs,fc,fs,o4.h,o4.u,o4.qs,o4.na].join(" | ")); });
+    if(rowsS.length>1){ var trt2=el("tr"); ["Team total",fmt(tot2.f),fmt(tot2.fc),H?fmt(tot2.fs):"",fmt(tot2.h),fmt(tot2.u),fmt(tot2.os),fmt(tot2.qs),fmt(tot2.na),fmt(tot2.n)].forEach(function(x,i){ var td=el("td",i?"num":"",x); td.style.fontWeight="600"; trt2.appendChild(td); }); tb2.appendChild(trt2); }
+    t2.appendChild(tb2); window.__dyTot=tot2; })();
+  function flist(m){ m=m||{}; return Object.keys(m).sort(function(x,y){return m[y]-m[x]}).map(function(k){return k+" ("+m[k]+")"}).join(", "); }
+  function fsum(m){ var s=0; m=m||{}; Object.keys(m).forEach(function(k){s+=m[k]}); return s; }
+  var heads=["Agent","Leads received","New leads","Reassigned to them","CloudBlue feedback changes","New sheet clients","Sheet feedback changes","Actions logged: No Answer","Qualified","Unqualified","Other","Projects"]; var NUM={1:1,2:1,3:1,5:1,7:1,8:1,9:1,10:1};
+  var t=$("dy-table"); t.textContent=""; var th=el("thead"), hr=el("tr"); heads.forEach(function(x,i){hr.appendChild(el("th",NUM[i]?"num":"",x))}); hr.insertBefore(el("th",null,"Send to agent"),hr.children[1]); th.appendChild(hr); t.appendChild(th); var tb=el("tbody"); DYTXT=["CB Code CRM daily report - "+label, heads.join(" | ")];
+  if(!names.length){ var tr0=el("tr"), td0=el("td","empty","No new leads, changes or logged actions on "+label); td0.colSpan=heads.length+1; tr0.appendChild(td0); tb.appendChild(tr0); }
+  var T2={rec:0,nw:0,rs:0,cf:0,sn:0,sf:0,na:0,q:0,uq:0,ot:0};
+  names.forEach(function(n){ var o=per[n], hh=(H&&H[n])||{}, pj={}; [o.pn,o.pa,hh.proj||{}].forEach(function(m){ Object.keys(m).forEach(function(k){ if(k) pj[k]=Math.max(pj[k]||0,m[k]); }); });
+    var r=rs[n]||0, cf=fsum(hh.cb_fb), sf=fsum(hh.sh_fb), sn=hh.sh_new||0; T2.rec+=o.nw+r; T2.nw+=o.nw; T2.rs+=r; T2.cf+=cf; T2.sn+=sn; T2.sf+=sf; T2.na+=o.na; T2.q+=o.q; T2.uq+=o.uq; T2.ot+=o.ot;
+    var cells=[n,fmt(o.nw+r),fmt(o.nw),fmt(r),cf?flist(hh.cb_fb):(H?"None":"Not tracked"),H?fmt(sn):"Not tracked",sf?flist(hh.sh_fb):(H?"None":"Not tracked"),fmt(o.na),fmt(o.q),fmt(o.uq),fmt(o.ot),(function(){var ks=Object.keys(pj).sort(function(x,y){return pj[y]-pj[x]});return ks.slice(0,6).map(function(k){return k+" ("+pj[k]+")"}).join(", ")+(ks.length>6?" and "+(ks.length-6)+" more":"")})()];
+    var tr=el("tr"); cells.forEach(function(x,i){ var td=el("td",NUM[i]?"num":(i===11||i===4||i===6?"wrapc open":""),x); tr.appendChild(td); });
+    var first=n.split(" ")[0], pk=Object.keys(pj).filter(function(k){return k!=="No project"}).sort(function(x,y){return pj[y]-pj[x]}), pjs=pk.slice(0,5).map(function(k){return k+" ("+pj[k]+")"}).join(", ")+(pk.length>5?" and "+(pk.length-5)+" more":""); var msg="Hello "+first+", CB Code CRM update for "+label+": you have "+(o.nw+r+sn)+" new lead"+((o.nw+r+sn)===1?"":"s")+" ("+o.nw+" new in CloudBlue, "+r+" reassigned to you, "+sn+" new in your sheet)."+(pjs?" Projects: "+pjs+".":"")+" Please contact them and log your feedback in CloudBlue. Basel Algamal";
+    var ntd=el("td"); var nb=(o.nw+r+sn)>0?notifyBtn(n,msg):null; if(nb) ntd.appendChild(nb); else ntd.appendChild(el("span","hint",TEAM_WA[n]?"Nothing new":"")); tr.insertBefore(ntd,tr.children[1]);
+    tb.appendChild(tr); DYTXT.push(cells.join(" | ")); });
+  if(names.length>1){ var tc=["Team total",fmt(T2.rec),fmt(T2.nw),fmt(T2.rs),H?fmt(T2.cf)+" changes":"",H?fmt(T2.sn):"",H?fmt(T2.sf)+" changes":"",fmt(T2.na),fmt(T2.q),fmt(T2.uq),fmt(T2.ot),""]; var trt=el("tr"); tc.forEach(function(x,i){ var td=el("td",NUM[i]?"num":"",x); td.style.fontWeight="600"; trt.appendChild(td); }); trt.insertBefore(el("td"),trt.children[1]); tb.appendChild(trt); DYTXT.push(tc.join(" | ")); }
+  var extra=$("dy-tiles"); var tt=window.__dyTot||{}; tileIn(extra,"Fresh leads, both sources",fmt(tt.f||0),fmt(tt.fc||0)+" CloudBlue, "+fmt(tt.fs||0)+" Google Sheets"); tileIn(extra,"Unhandled clients",fmt(tt.u||0),"no feedback in CloudBlue or the sheet",(tt.u||0)>0); tileIn(extra,"Qualified, quiet 1 week",fmt(tt.qs||0),"qualified with no activity for 7 days",(tt.qs||0)>0); tileIn(extra,"No Answer over 24h",fmt(tt.na||0),"not retried since",(tt.na||0)>0); DYTXT=DYTXT.concat(["","Follow-up status as of "+(D.updated||"")],DYST); if(H){ tileIn(extra,"CloudBlue feedback changes",fmt(T2.cf),"leads whose feedback changed"); tileIn(extra,"Sheet updates",fmt(T2.sn+T2.sf),fmt(T2.sn)+" new clients, "+fmt(T2.sf)+" feedback changes"); }
+  t.appendChild(tb); }
+
+// ---------- New leads (saved in CB Code CRM's own database) ----------
+var ML_FB=["New","No Answer","Call Later","Follow Up","Qualified","Meeting","Unqualified","Closed"];
+var mlDb=null, mlRows=[], mlReady=false, mlPendingDelete=null;
+function mlMsg(t){ $("ml-msg").textContent=t||""; }
+function mlRender(){ var tiles=$("ml-tiles"); tiles.textContent=""; var t=$("ml-table"); t.textContent="";
+  if(!mlReady){ tiles.appendChild(el("div","empty",mlDb===false?"Saving is not available in this view. Open CB Code CRM from your Claude account to add leads.":"Loading your leads...")); return; }
+  var due=0, today=new Date().toISOString().slice(0,10), q=0; mlRows.forEach(function(r){ if(r.follow&&r.follow<=today&&r.fb!=="Closed"&&r.fb!=="Unqualified") due++; if(r.fb==="Qualified"||r.fb==="Meeting") q++; });
+  tileIn(tiles,"Leads added here",fmt(mlRows.length),"saved in CB Code CRM only"); tileIn(tiles,"Follow-ups due",fmt(due),"follow-up date is today or earlier",due>0); tileIn(tiles,"Qualified or meeting",fmt(q),"of the leads added here");
+  var th=el("thead"), hr=el("tr"); ["Client","Phone number","Project","Source","Assigned to","Feedback","Follow up on","Notes","Added","In CloudBlue or sheets",""].forEach(function(x){hr.appendChild(el("th",null,x))}); th.appendChild(hr); t.appendChild(th); var tb=el("tbody");
+  if(!mlRows.length){ var tr0=el("tr"), td0=el("td","empty","No leads added yet. Use the form above."); td0.colSpan=11; tr0.appendChild(td0); tb.appendChild(tr0); }
+  if(!CL) CL=buildClients(); var byPhone={}; CL.forEach(function(e){ pkeys(e.number).forEach(function(k){ byPhone[k]=e; }); e.leads.forEach(function(l){ pkeys(l[C.contact]).forEach(function(k){ byPhone[k]=e; }); }); });
+  mlRows.forEach(function(r){ var tr=el("tr"); var n=el("td",null,r.name); n.dir="auto"; tr.appendChild(n); var nb=el("td",null,r.phone); nb.dir="ltr"; addWa(nb,r.phone,r.name,r.project); tr.appendChild(nb);
+    var pj=el("td",null,r.project||""); pj.dir="auto"; tr.appendChild(pj); tr.appendChild(el("td",null,r.source||"")); tr.appendChild(el("td",null,r.agent||""));
+    var ftd=el("td"), sel=el("select"); sel.setAttribute("aria-label","Feedback for "+r.name); sel.style.height="28px"; sel.style.border="1px solid var(--line)"; sel.style.borderRadius="6px"; sel.style.background="var(--surface)"; ML_FB.forEach(function(f){ var o=el("option",null,f); if(f===r.fb) o.selected=true; sel.appendChild(o); });
+    sel.addEventListener("change",function(){ mlDb.doc("leads/"+r.id).update({fb:sel.value,updated:new Date().toISOString()}).then(function(){ mlMsg("Feedback saved for "+r.name+"."); },function(){ mlMsg("Could not save the feedback. Check your connection and try again."); }); }); ftd.appendChild(sel); tr.appendChild(ftd);
+    tr.appendChild(el("td",null,r.follow||"")); var nt=el("td","wrapc open",r.notes||""); nt.dir="auto"; tr.appendChild(nt); tr.appendChild(el("td",null,(r.created||"").slice(0,10)));
+    var k=pkeys(r.phone)[0], ex=k&&byPhone[k]; var dtd=el("td"); if(ex){ var who=ex.leads.length?X.agent[ex.leads[0][C.agent]]:(SH&&ex.sheets.length?SH.dict.agent[ex.sheets[0][S.agent]]:""); dtd.appendChild(el("span","pill warn","Already with "+(who||"the team"))); } else dtd.appendChild(el("span","pill good","New client")); tr.appendChild(dtd);
+    var del=el("td"), b=el("button","btn",mlPendingDelete===r.id?"Confirm delete":"Delete"); b.type="button"; b.style.height="28px"; if(mlPendingDelete===r.id){ b.style.background="var(--bad)"; b.style.color="#fff"; }
+    b.addEventListener("click",function(){ if(mlPendingDelete!==r.id){ mlPendingDelete=r.id; mlRender(); return; } mlPendingDelete=null; mlDb.doc("leads/"+r.id).delete().then(function(){ mlMsg(r.name+" was deleted."); },function(){ mlMsg("Could not delete. Check your connection and try again."); }); }); del.appendChild(b); tr.appendChild(del); tb.appendChild(tr); });
+  t.appendChild(tb); }
+function mlInit(){ var ag=$("ml-agent"); ["Basel Sabry Soliman Ali Algamal"].concat(Object.keys(TEAM_WA)).forEach(function(a){ ag.appendChild(el("option",null,a)); }); var fb=$("ml-fb"); ML_FB.forEach(function(f){ fb.appendChild(el("option",null,f)); });
+  var dl=$("ml-projects"); (X.project||[]).slice().sort().forEach(function(p2){ if(p2&&p2!=="No project"){ var o=document.createElement("option"); o.value=p2; dl.appendChild(o); } });
+  $("ml-form").addEventListener("submit",function(e){ e.preventDefault(); if(!mlDb){ mlMsg("Saving is not available in this view."); return; }
+    var name=$("ml-name").value.trim(), phone=$("ml-phone").value.trim(), key=pkeys(phone)[0]; if(!name){ mlMsg("Enter the client's name."); return; } if(!key){ mlMsg("Enter a valid phone number, at least 9 digits."); return; }
+    var dup=mlRows.filter(function(r){ return pkeys(r.phone)[0]===key; })[0]; if(dup){ mlMsg("This number is already in your new leads as "+dup.name+". It was not added again."); return; }
+    var btn=$("ml-add"); btn.disabled=true; var now=new Date().toISOString();
+    mlDb.collection("leads").add({name:name,phone:phone,project:$("ml-project").value.trim(),source:$("ml-source").value,agent:$("ml-agent").value,fb:$("ml-fb").value,follow:$("ml-follow").value,notes:$("ml-notes").value.trim(),created:now,updated:now}).then(function(){ btn.disabled=false; mlMsg(name+" was added."); ["ml-name","ml-phone","ml-project","ml-follow","ml-notes"].forEach(function(i){ $(i).value=""; }); $("ml-name").focus(); },function(err){ btn.disabled=false; mlMsg(err&&err.code==="quota_exceeded"?"The lead list is full. Delete old leads to add new ones.":"Could not save the lead. Check your connection and try again."); }); });
+  mlRender(); var timer=setTimeout(function(){ if(!mlReady){ mlDb=mlDb||false; mlRender(); } },10000);
+  if(!(window.claude&&claude.use)){ clearTimeout(timer); mlDb=false; mlRender(); return; }
+  claude.use("db").then(function(db){ if(!db){ clearTimeout(timer); mlDb=false; mlRender(); return; } mlDb=db;
+    db.collection("leads").onSnapshot(function(snap){ clearTimeout(timer); mlReady=true; mlRows=snap.docs.map(function(d){ var o=d.data()||{}; return {id:d.id,name:String(o.name||""),phone:String(o.phone||""),project:String(o.project||""),source:String(o.source||""),agent:String(o.agent||""),fb:String(o.fb||"New"),follow:String(o.follow||""),notes:String(o.notes||""),created:String(o.created||"")}; }).sort(function(a,b){ return a.created<b.created?1:-1; }); mlRender(); },
+      function(){ clearTimeout(timer); mlDb=false; mlReady=false; mlRender(); }); },function(){ clearTimeout(timer); mlDb=false; mlRender(); }); }
+
+// ---------- Agent colours (validated set; same colour for an agent everywhere) ----------
+var AGC={"Zeyad Samir Mohamedy Aly":"--a1","Morad Atef talaat Gwda Ahmed":"--a2","Omar Ahmed Abd El-fattah foda":"--a3","Basel Sabry Soliman Ali Algamal":"--a4","Remonda Atef Hanna Nageb":"--a5","Mohamed Emad Nagty Youssef Mohamed":"--a6"};
+function agColor(a){ return "var("+(AGC[a]||"--a-other")+")"; }
+function shortName(a){ var p=(a||"").split(" "); return p.slice(0,2).join(" "); }
+function initials(a){ var p=(a||"").split(" ").filter(Boolean); return ((p[0]||"?").charAt(0)+(p[1]||"").charAt(0)).toUpperCase(); }
+function avatar(a){ var s=el("span","av",initials(a)); s.style.background=agColor(a); s.setAttribute("aria-hidden","true"); return s; }
+
+// ---------- shared figures for Today and the agent cards ----------
+function histLatest(){ if(!(window.HIST&&HIST.days)) return null; var ks=Object.keys(HIST.days).sort(); return ks.length? {day:ks[ks.length-1],d:HIST.days[ks[ks.length-1]]} : null; }
+function followup(){ var iq=idx(X.feedback,"Qualified"), ina=idx(X.feedback,"No Answer"), st={}, sd=SH?SH.dict:null; function gs(a){ return st[a]||(st[a]={c:{},qs:0,na:0,leads:0,q:0,nan:0}); }
+  for(var j=0;j<R.length;j++){ var r=R[j], a=X.agent[r[C.agent]]; var o=gs(a); o.leads++; var k=pkeys(r[C.contact])[0]||("L"+r[C.id]); var e=o.c[k]||(o.c[k]={h:false,cb:false,sh:false}); e.cb=true;
+    if(!(r[C.feedback]===I_PENDING||r[C.feedback]===I_NONE)||r[C.lastAct]) e.h=true;
+    if(r[C.feedback]===iq){ o.q++; if(!r[C.lastAct]||r[C.lastAct]<=REFMIN-10080) o.qs++; }
+    if(r[C.feedback]===ina){ o.nan++; if(!r[C.lastAct]||r[C.lastAct]<=REFMIN-1440) o.na++; } }
+  if(SH) for(var j2=0;j2<SH.rows.length;j2++){ var s=SH.rows[j2], a2=sd.agent[s[S.agent]]; var o2=gs(a2); var k2=pkeys(s[S.number])[0]||("S"+j2); var e2=o2.c[k2]||(o2.c[k2]={h:false,cb:false,sh:false}); e2.sh=true; if(sd.feedback[s[S.fb]]!=="No feedback") e2.h=true; }
+  Object.keys(st).forEach(function(a){ var o=st[a], n=0, h=0; Object.keys(o.c).forEach(function(k){ n++; if(o.c[k].h) h++; }); o.n=n; o.h=h; o.u=n-h; delete o.c; });
+  return st; }
+function tcrBy(){ var m={}, tot=0; if(TC) TC.rows.forEach(function(r){ m[r[T.agent]]=m[r[T.agent]]||{n:0,vol:0}; m[r[T.agent]].n++; m[r[T.agent]].vol+=r[T.vol]; tot+=r[T.vol]; }); return {by:m,total:tot}; }
+function fsum2(m){ var s=0; Object.keys(m||{}).forEach(function(k){s+=m[k]}); return s; }
+var FU=null, TCB=null, TDTXT=[];
+
+function numBtn(v,fn,hot){ var b=el("button","numbtn"+(v?(hot?" hot":""):" zero"),fmt(v)); b.type="button"; if(v&&fn){ b.title="List these leads"; b.addEventListener("click",fn); } else b.disabled=true; return b; }
+
+// ---------- Today ----------
+function today(){ if(!FU) FU=followup(); if(!TCB) TCB=tcrBy(); var H=histLatest(), iq=idx(X.feedback,"Qualified"), ina=idx(X.feedback,"No Answer");
+  var hr=new Date().getHours(); $("td-hello").textContent=""; $("td-hello").appendChild(document.createTextNode((hr<12?"Good morning":hr<18?"Good afternoon":"Good evening")+", ")); $("td-hello").appendChild(el("em",null,window.CB_NAME||"Basel"));
+  $("td-sub").textContent="Here is what needs attention. Data from the refresh of "+(D.updated||"—")+".";
+  var agents=Object.keys(TARGETS), tot={f:0,u:0,na:0,qs:0};
+  var rows=agents.map(function(a){ var o=FU[a]||{u:0,na:0,qs:0,n:0}, h=(H&&H.d[a])||{}; var f=(h.cb_new||0)+(h.cb_in||0)+(h.sh_new||0); tot.f+=f; tot.u+=o.u; tot.na+=o.na; tot.qs+=o.qs; return {a:a,o:o,h:h,f:f}; });
+  var t=$("td-tiles"); t.textContent=""; var pctT=TEAM_TARGET?Math.round(TCB.total/TEAM_TARGET*100):0;
+  tileIn(t,"Fresh leads",fmt(tot.f),H?"received on "+dstr(Math.floor(Date.UTC(+H.day.slice(0,4),+H.day.slice(5,7)-1,+H.day.slice(8,10))/60000)):"from the latest refresh",false,function(){ go("daily"); });
+  tileIn(t,"Unhandled clients",fmt(tot.u),"no feedback in CloudBlue or the sheets",tot.u>0,function(){ goLeads({feedback:-2,act:1}); });
+  tileIn(t,"No Answer over 24h",fmt(tot.na),"not tried again since",tot.na>0,function(){ goLeads({feedback:ina,act:0,stale:1440}); });
+  tileIn(t,"Qualified, quiet 1 week",fmt(tot.qs),"qualified with no activity for 7 days",tot.qs>0,function(){ goLeads({feedback:iq,act:0,stale:10080}); });
+  tileIn(t,window.CB_AGENT?"Your sales":"Team sales",pctT+"%","EGP "+money(TCB.total)+" of "+money(TEAM_TARGET),false,function(){ go("tcrs"); }); t.lastChild.classList.add("gold");
+  // needs attention
+  var tb=$("td-attn"); tb.textContent=""; var th=el("thead"), h1=el("tr"); ["Agent","Fresh","Unhandled","No Answer 24h+","Qualified quiet",""].forEach(function(x,i){ h1.appendChild(el("th",i&&i<5?"num":"",x)); }); th.appendChild(h1); tb.appendChild(th); var body=el("tbody");
+  rows.sort(function(x,y){ return (y.o.na+y.o.qs+y.o.u)-(x.o.na+x.o.qs+x.o.u); });
+  TDTXT=["CB Code CRM - Today ("+(D.updated||"")+")","Fresh leads: "+tot.f+" | Unhandled: "+tot.u+" | No Answer 24h+: "+tot.na+" | Qualified quiet 1 week: "+tot.qs+" | Team sales: EGP "+money(TCB.total)+" of "+money(TEAM_TARGET)+" ("+pctT+"%)",""];
+  rows.forEach(function(x){ var tr=el("tr"), td=el("td"), w=el("div","who"); w.appendChild(avatar(x.a)); w.appendChild(el("span",null,shortName(x.a))); td.appendChild(w); tr.appendChild(td);
+    var c1=el("td","num"); c1.appendChild(numBtn(x.f,function(){ dyDay=null; state.agent=X.agent.indexOf(x.a); $("f-agent").value=String(state.agent); go("daily"); apply(); },false)); tr.appendChild(c1);
+    var c2=el("td","num"); c2.appendChild(numBtn(x.o.u,function(){ goLeads({agentName:x.a,feedback:-2,act:1}); },x.o.u>0)); tr.appendChild(c2);
+    var c3=el("td","num"); c3.appendChild(numBtn(x.o.na,function(){ goLeads({agentName:x.a,feedback:ina,act:0,stale:1440}); },true)); tr.appendChild(c3);
+    var c4=el("td","num"); c4.appendChild(numBtn(x.o.qs,function(){ goLeads({agentName:x.a,feedback:iq,act:0,stale:10080}); },true)); tr.appendChild(c4);
+    var first=x.a.split(" ")[0], parts=[]; if(x.f) parts.push(x.f+" fresh lead"+(x.f===1?"":"s")); if(x.o.u) parts.push(x.o.u+" client"+(x.o.u===1?"":"s")+" with no feedback yet"); if(x.o.na) parts.push(x.o.na+" No Answer lead"+(x.o.na===1?"":"s")+" not retried for over 24 hours"); if(x.o.qs) parts.push(x.o.qs+" qualified lead"+(x.o.qs===1?"":"s")+" with no activity for a week");
+    var msg="Hello "+first+", today's CB Code CRM follow-up list: "+(parts.length?parts.join("; ")+".":"nothing pending, great work.")+" Please work through them and log your feedback in CloudBlue. Basel Algamal";
+    var c5=el("td"); var nb=parts.length?notifyBtn(x.a,msg):null; if(nb) c5.appendChild(nb); tr.appendChild(c5); body.appendChild(tr);
+    TDTXT.push(shortName(x.a)+": fresh "+x.f+", unhandled "+x.o.u+", No Answer 24h+ "+x.o.na+", qualified quiet "+x.o.qs); });
+  tb.appendChild(body);
+  // since last refresh
+  var sv=$("td-since"); sv.textContent=""; var sum={nw:0,rs:0,cf:0,sn:0,sf:0};
+  if(H) Object.keys(H.d).forEach(function(a){ var h=H.d[a]; sum.nw+=h.cb_new||0; sum.rs+=h.cb_in||0; sum.cf+=fsum2(h.cb_fb); sum.sn+=h.sh_new||0; sum.sf+=fsum2(h.sh_fb); });
+  $("td-since-hint").textContent=H?"Changes logged on "+H.day.split("-").reverse().join("/")+" across CloudBlue and the agents' sheets":"Changes appear after the next refresh";
+  [["New leads in CloudBlue",sum.nw],["Leads reassigned",sum.rs],["CloudBlue feedback changes",sum.cf],["New clients in sheets",sum.sn],["Sheet feedback changes",sum.sf],["TCRs in MyCB",TC?TC.rows.length:0]].forEach(function(x){ var d=el("div"); d.appendChild(el("div","v",fmt(x[1]))); d.appendChild(el("div","k",x[0])); sv.appendChild(d); });
+  // leaderboard
+  var lb=$("td-lb"); lb.textContent=""; var names=Object.keys(TARGETS).sort(function(x,y){ return ((TCB.by[y]||{}).vol||0)/TARGETS[y]-((TCB.by[x]||{}).vol||0)/TARGETS[x]; });
+  names.forEach(function(a,i){ var v=(TCB.by[a]||{}).vol||0, p=v/TARGETS[a]; var r=el("div","lbrow"); r.appendChild(el("div","rk",String(i+1))); var mid=el("div"); mid.appendChild(el("div","nm",shortName(a))); var tr=el("div","tr"), fi=el("i"); fi.style.width=Math.min(100,p*100)+"%"; fi.style.background=agColor(a); tr.appendChild(fi); mid.appendChild(tr); r.appendChild(mid);
+    var vv=el("div","vv"); vv.appendChild(el("b",null,Math.round(p*100)+"%")); vv.appendChild(document.createTextNode(money(v)+" / "+money(TARGETS[a]))); r.appendChild(vv); tipOn(r,a+": EGP "+fmt(Math.round(v))+" of "+fmt(TARGETS[a])); lb.appendChild(r); }); }
+
+// ---------- Agent cards ----------
+function ringSvg(p,color){ var NS="http://www.w3.org/2000/svg", s=document.createElementNS(NS,"svg"); s.setAttribute("viewBox","0 0 112 112"); s.setAttribute("aria-hidden","true"); var R0=48, L=2*Math.PI*R0;
+  function c(stroke,dash){ var e=document.createElementNS(NS,"circle"); e.setAttribute("cx","56"); e.setAttribute("cy","56"); e.setAttribute("r",String(R0)); e.setAttribute("fill","none"); e.setAttribute("stroke-width","9"); e.setAttribute("stroke-linecap","round"); e.style.stroke=stroke; if(dash!==undefined){ e.setAttribute("stroke-dasharray",dash+" "+L); } return e; }
+  s.appendChild(c("var(--bar-track)")); if(p>0) s.appendChild(c(color,Math.max(2,Math.min(1,p)*L))); return s; }
+function agents(){ if(!FU) FU=followup(); if(!TCB) TCB=tcrBy(); var H=histLatest(), iq=idx(X.feedback,"Qualified"), ina=idx(X.feedback,"No Answer"), g=$("ag-grid"); g.textContent="";
+  Object.keys(TARGETS).forEach(function(a){ var o=FU[a]||{leads:0,q:0,nan:0,u:0,na:0,qs:0}, h=(H&&H.d[a])||{}, tc=TCB.by[a]||{n:0,vol:0}, p=tc.vol/TARGETS[a], ai=X.agent.indexOf(a);
+    var card=el("article","acard"); card.style.setProperty("--ac",agColor(a));
+    var hd=el("div","ahead"); hd.appendChild(avatar(a)); var nm=el("div"); nm.appendChild(el("div","nm",shortName(a))); nm.appendChild(el("div","tg","Target EGP "+money(TARGETS[a]))); hd.appendChild(nm); card.appendChild(hd);
+    var bd=el("div","abody"), rg=el("div","ring"); rg.appendChild(ringSvg(p,agColor(a))); var cc=el("div","c"); cc.appendChild(el("b",null,Math.round(p*100)+"%")); cc.appendChild(el("span",null,"EGP "+money(tc.vol)+"\nof "+money(TARGETS[a]))); cc.lastChild.style.whiteSpace="pre-line"; rg.appendChild(cc); bd.appendChild(rg);
+    var stt=el("div","astats"); var fresh=(h.cb_new||0)+(h.cb_in||0)+(h.sh_new||0), chg=fsum2(h.cb_fb)+fsum2(h.sh_fb);
+    [["Leads",fmt(o.leads)],["TCRs",fmt(tc.n)],["Qualified",pct(o.q,o.leads)],["No Answer",pct(o.nan,o.leads)],["New today",fmt(fresh)],["Updates",fmt(chg)]].forEach(function(x){ var d=el("div"); d.appendChild(el("div","k",x[0])); d.appendChild(el("div","v",x[1])); stt.appendChild(d); }); bd.appendChild(stt); card.appendChild(bd);
+    var flags=[]; if(o.qs) flags.push([o.qs,o.qs+" qualified lead"+(o.qs===1?"":"s")+" quiet for a week",function(){ goLeads({agentName:a,feedback:iq,act:0,stale:10080}); }]); if(o.na) flags.push([o.na,o.na+" No Answer lead"+(o.na===1?"":"s")+" waiting over 24 hours",function(){ goLeads({agentName:a,feedback:ina,act:0,stale:1440}); }]); if(o.u) flags.push([o.u,o.u+" client"+(o.u===1?"":"s")+" with no feedback yet",function(){ goLeads({agentName:a,feedback:-2,act:1}); }]);
+    var fl; if(flags.length){ fl=el("button","flag bad"); fl.type="button"; fl.style.cssText="border:0;width:100%;text-align:left;cursor:pointer"; fl.appendChild(el("span",null,"!")); fl.appendChild(el("span",null,flags[0][1]+(flags.length>1?" · and more":""))); fl.title="List these leads"; fl.addEventListener("click",flags[0][2]); } else { fl=el("div","flag ok"); fl.appendChild(el("span",null,"✓")); fl.appendChild(el("span",null,"Nothing urgent")); } card.appendChild(fl);
+    var ac=el("div","aact"); function b(label,fn){ var x=el("button","btn",label); x.type="button"; x.addEventListener("click",fn); ac.appendChild(x); }
+    b("Leads",function(){ if(ai>=0){ state.agent=ai; $("f-agent").value=String(ai); } go("overview"); apply(); });
+    b("Sheet",function(){ if(ai>=0){ state.agent=ai; $("f-agent").value=String(ai); } go("sheets"); apply(); });
+    b("TCRs",function(){ if(ai>=0){ state.agent=ai; $("f-agent").value=String(ai); } go("tcrs"); apply(); });
+    var msg="Hello "+a.split(" ")[0]+", your CB Code CRM status: "+fmt(o.leads)+" leads, "+pct(o.q,o.leads)+" qualified, TCR sales EGP "+money(tc.vol)+" of your EGP "+money(TARGETS[a])+" target ("+Math.round(p*100)+"%)."+(flags.length?" To do: "+flags.map(function(f){return f[1]}).join("; ")+".":"")+" Basel Algamal";
+    var nb=notifyBtn(a,msg); if(nb) ac.appendChild(nb); card.appendChild(ac); g.appendChild(card); }); }
+
+// ---------- Client profile drawer ----------
+var CLMAP={}, NAMEMAP={}, lastFocus=null;
+function normName(s){ return (s||"").toLowerCase().replace(/\s+/g," ").trim(); }
+function ensureClients(){ if(!CL) CL=buildClients(); if(!Object.keys(CLMAP).length){ CL.forEach(function(e){ e.leads.forEach(function(l){ var k=pkeys(l[C.contact])[0]||("L"+l[C.id]); CLMAP[k]=e; CLMAP["L"+l[C.id]]=e; }); e.sheets.forEach(function(s){ pkeys(s[S.number]).forEach(function(k){ CLMAP[k]=e; }); }); var nn=normName(e.name); if(nn&&!NAMEMAP[nn]) NAMEMAP[nn]=e; }); } }
+function clientOfLead(r){ ensureClients(); return CLMAP["L"+r[C.id]]||null; }
+function clientOfSheet(r){ ensureClients(); var k=pkeys(r[S.number])[0]; if(k&&CLMAP[k]) return CLMAP[k]; for(var i=0;i<CL.length;i++) if(CL[i].sheets.indexOf(r)>=0) return CL[i]; return null; }
+function clientLink(name,entry){ if(!entry) { var s=el("span",null,name||""); s.dir="auto"; return s; } var b=el("button","clink",name||entry.name||"(no name)"); b.type="button"; b.dir="auto"; b.title="Open the client's profile"; b.addEventListener("click",function(e){ e.stopPropagation(); openClient(entry); }); return b; }
+function recBox(title,pillTxt,pillCls,pairs){ var r=el("div","rec"), tp=el("div","top"); tp.appendChild(el("b",null,title)); if(pillTxt) tp.appendChild(el("span","pill "+(pillCls||""),pillTxt)); r.appendChild(tp); var dl=el("dl"); pairs.forEach(function(p){ if(p[1]===undefined||p[1]===null||p[1]==="") return; dl.appendChild(el("dt",null,p[0])); var dd=el("dd",null,String(p[1])); dd.dir="auto"; dl.appendChild(dd); }); r.appendChild(dl); return r; }
+function openClient(e){ if(!e) return; lastFocus=document.activeElement; var d=SH?SH.dict:null, l0=e.leads[0], s0=e.sheets[0];
+  $("dr-name").textContent=e.name||"(no name)"; $("dr-phone").textContent=e.number||"No phone number";
+  var tags=$("dr-tags"); tags.textContent=""; tags.appendChild(el("span","pill "+KIND[e.kind][1],KIND[e.kind][0])); if(e.records>1) tags.appendChild(el("span","pill gold",e.records+" records merged"));
+  var wrapA=el("span"); addWa(wrapA,e.number,e.name,l0?X.project[l0[C.project]]:(s0?s0[S.project]:"")); Array.prototype.slice.call(wrapA.childNodes).forEach(function(n){ tags.appendChild(n); });
+  var b=$("dr-body"); b.textContent=""; if(window.CB_APP) appDrawer(e,b);
+  var sec=el("div","dsec"); sec.appendChild(el("h4",null,"CloudBlue ("+e.leads.length+")")); if(!e.leads.length) sec.appendChild(el("div","note","Not in CloudBlue."));
+  e.leads.slice().sort(function(x,y){return y[C.created]-x[C.created]}).forEach(function(l){ var fn=X.feedback[l[C.feedback]]||""; sec.appendChild(recBox("Lead "+l[C.id],fn,fbClass(fn),[["Project",X.project[l[C.project]]],["Agent",X.agent[l[C.agent]]],["Status",X.status[l[C.status]]],["Created",dtstr(l[C.created])],["Last activity",dtstr(l[C.lastAct])],["Source",X.source[l[C.source]]],["Comment",l[C.comment]]])); }); b.appendChild(sec);
+  var sec2=el("div","dsec"); sec2.appendChild(el("h4",null,"Agents' Google Sheets ("+e.sheets.length+")")); if(!e.sheets.length) sec2.appendChild(el("div","note","Not in any agent's sheet."));
+  e.sheets.forEach(function(s){ var fn=d.feedback[s[S.fb]]; sec2.appendChild(recBox(d.agent[s[S.agent]]+" · "+d.tab[s[S.tab]],fn,fbClass(fn),[["Project",s[S.project]],["Date",s[S.date]?dstr(s[S.date]):""],["Next step",s[S.next]],["Notes",s[S.notes]]])); }); b.appendChild(sec2);
+  if(TC){ var nn=normName(e.name), tl=TC.rows.filter(function(r){ return nn&&normName(r[T.client])===nn; }); if(tl.length){ var sec3=el("div","dsec"); sec3.appendChild(el("h4",null,"TCRs in MyCB ("+tl.length+")")); tl.forEach(function(r){ sec3.appendChild(recBox(r[T.id]+" · "+r[T.project],r[T.status],/re-?open|cancel/i.test(r[T.status])?"bad":/confirm|resolved/i.test(r[T.status])?"good":"info",[["Unit",r[T.unit]],["Agent",r[T.agent]],["Sales volume","EGP "+fmt(Math.round(r[T.vol]))],["Contract date",r[T.date]?dstr(r[T.date]):"Not confirmed"]])); }); b.appendChild(sec3); } }
+  $("scrim").classList.add("on"); var dr=$("drawer"); dr.classList.add("on"); dr.setAttribute("aria-hidden","false"); b.scrollTop=0; setTimeout(function(){ $("dr-close").focus(); },50); }
+function closeClient(){ $("scrim").classList.remove("on"); var dr=$("drawer"); dr.classList.remove("on"); dr.setAttribute("aria-hidden","true"); if(lastFocus&&lastFocus.focus) try{ lastFocus.focus(); }catch(e){} }
+
+// ---------- Filter chips ----------
+function chips(){ var c=$("f-chips"); c.textContent=""; var list=[];
+  function add(label,clear){ list.push(1); var b=el("button","chip"); b.type="button"; b.title="Remove this filter"; b.appendChild(el("span",null,label)); b.appendChild(el("span","x","×")); b.addEventListener("click",function(){ clear(); apply(); }); c.appendChild(b); }
+  if(state.agent>=0) add(shortName(X.agent[state.agent]),function(){ state.agent=-1; $("f-agent").value="-1"; });
+  if(state.project>=0) add(X.project[state.project]||"(no project)",function(){ state.project=-1; $("f-project").value="-1"; });
+  if(state.status>=0) add(X.status[state.status],function(){ state.status=-1; $("f-status").value="-1"; });
+  if(state.feedback!==-1) add(state.feedback===-2?"No feedback yet":X.feedback[state.feedback],function(){ state.feedback=-1; $("f-feedback").value="-1"; });
+  if(state.from) add("From "+state.from,function(){ state.from=""; $("f-from").value=""; });
+  if(state.to) add("To "+state.to,function(){ state.to=""; $("f-to").value=""; });
+  if(state.act) add(state.act===1?"No activity logged":"Activity logged",function(){ state.act=0; $("f-act").value="0"; });
+  if(state.stale) add("Quiet "+(state.stale>=1440?Math.round(state.stale/1440)+"+ days":Math.round(state.stale/60)+"+ hours"),function(){ state.stale=0; });
+  if(state.q) add("“"+state.q+"”",function(){ state.q=""; $("f-q").value=""; });
+  var bd=$("f-badge"); bd.textContent=list.length?String(list.length):""; bd.classList.toggle("on",list.length>0); }
+
+// ---------- Header target ----------
+function heroTarget(){ if(!TCB) TCB=tcrBy(); var box=$("hero-target"); box.textContent=""; if(!TEAM_TARGET) return; var p=TCB.total/TEAM_TARGET;
+  box.appendChild(el("div","tl",window.CB_AGENT?"Your sales target":"Team sales target")); var tt=el("div","tt"), i=el("i"); i.style.width=Math.min(100,p*100)+"%"; tt.appendChild(i); tt.setAttribute("role","img"); tt.setAttribute("aria-label",Math.round(p*100)+"% of the team target reached"); box.appendChild(tt);
+  var tv=el("div","tv"); tv.appendChild(el("b",null,Math.round(p*100)+"%")); tv.appendChild(document.createTextNode("EGP "+money(TCB.total)+" of "+money(TEAM_TARGET))); box.appendChild(tv); }
+
+// ---------- Sections and navigation ----------
+var ICONS={today:"M12 3v2M12 19v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M3 12h2M19 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z",
+  leads:"M4 6h16M4 12h16M4 18h10",
+  team:"M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21v-1a6 6 0 0 1 6-6h2a6 6 0 0 1 6 6v1M16 3.5a4 4 0 0 1 0 7M22 21v-1a6 6 0 0 0-4-5.6",
+  sales:"M3 3v18h18M7 15l4-4 3 3 6-6",
+  projects:"M4 21V7l8-4 8 4v14M9 21v-6h6v6M8 10h.01M12 10h.01M16 10h.01"};
+var SECTIONS=[{id:"today",label:"Today",views:[["today","Today"],["daily","Daily report"],["changes","What changed"]]},
+  {id:"leads",label:"Leads",views:[["overview","Overview"],["leads","All leads"],["clients","Clients"]]},
+  {id:"team",label:"Team",views:[["agents","Agents"],["team","Feedback mix"],["performance","Agent rates"],["sheets","Agent sheets"]]},
+  {id:"sales",label:"Sales",views:[["tcrs","TCRs and targets"],["reports","Reports"]]},
+  {id:"projects",label:"Projects",views:[["projects","Projects"]]}];
+var ALLVIEWS=[], SECOF={}, LASTV={}; SECTIONS.forEach(function(s){ LASTV[s.id]=s.views[0][0]; s.views.forEach(function(v){ ALLVIEWS.push(v[0]); SECOF[v[0]]=s.id; }); });
+var NOFILTER={today:1,agents:1,myleads:1};
+function icon(name){ var NS="http://www.w3.org/2000/svg", s=document.createElementNS(NS,"svg"); s.setAttribute("viewBox","0 0 24 24"); s.setAttribute("aria-hidden","true"); var p=document.createElementNS(NS,"path"); p.setAttribute("d",ICONS[name]); s.appendChild(p); return s; }
+function buildNav(){ [$("tabs"),$("botnav")].forEach(function(nav){ nav.textContent=""; SECTIONS.forEach(function(s){ var b=el("button"); b.type="button"; b.dataset.sec=s.id; b.appendChild(icon(s.id)); b.appendChild(el("span",null,s.label)); b.addEventListener("click",function(){ go(LASTV[s.id]); }); nav.appendChild(b); }); }); }
+
+// ---------- Home charts (Today page) ----------
+var SVGNS="http://www.w3.org/2000/svg";
+function svgE(tag,attrs,style){ var e=document.createElementNS(SVGNS,tag); for(var k in attrs) e.setAttribute(k,attrs[k]); if(style) e.setAttribute("style",style); return e; }
+function chartCard(title,hint,big){ var c=el("div","card chart"+(big?" wide":"")); c.appendChild(el("h2",null,title)); c.appendChild(el("div","hint",hint)); $("td-charts").appendChild(c); return c; }
+function legendRow(items){ var lg=el("div","legend"); items.forEach(function(x){ var s=el("span"); var i=el("i"); i.style.background=x[1]; if(x[2]==="line"){ i.style.height="3px"; i.style.verticalAlign="3px"; i.style.width="14px"; } s.appendChild(i); s.appendChild(document.createTextNode(x[0])); lg.appendChild(s); }); return lg; }
+function txt(x,y,s,anchor,cls,style){ var t=svgE("text",{x:x,y:y,"text-anchor":anchor||"start","class":cls||"ct"},style); t.textContent=s; return t; }
+
+// 1. Pipeline funnel
+function chFunnel(){ var iq=idx(X.feedback,"Qualified"), good={}, worked=0, qual=0;
+  ["Qualified","Meeting Done","Showing","Agreement","Closed with CB","Meeting Scheduled"].forEach(function(n){ var i=idx(X.feedback,n); if(i>=0) good[i]=1; });
+  R.forEach(function(r){ if(!(r[C.feedback]===I_PENDING||r[C.feedback]===I_NONE)||r[C.lastAct]) worked++; if(good[r[C.feedback]]) qual++; });
+  var tc=TC?TC.rows.length:0, steps=[["All leads",R.length,function(){ goLeads({}); }],["Worked on",worked,function(){ goLeads({act:2}); }],["Qualified or further",qual,function(){ goLeads({feedback:iq}); }],["TCRs (sales)",tc,function(){ go("tcrs"); }]];
+  var c=chartCard("Lead pipeline","From every lead to a signed TCR. Tap a stage to see it.");
+  var W=460,H=230, s=svgE("svg",{viewBox:"0 0 "+W+" "+H,role:"img","aria-label":"Lead pipeline funnel"}); var max=steps[0][1]||1, bh=42, gap=12;
+  steps.forEach(function(st,i){ var w=Math.max(210,(Math.sqrt(st[1]/max))*(W-40)), x=(W-w)/2, y=i*(bh+gap)+4;
+    var g=svgE("g",{"class":"hit"}); var col=["var(--navy-2)","var(--royal)","var(--bar)","var(--gold)"][i];
+    g.appendChild(svgE("rect",{x:x,y:y,width:w,height:bh,rx:6},"fill:"+col));
+    g.appendChild(txt(W/2,y+bh/2-3,fmt(st[1]),"middle","cv-in"));
+    g.appendChild(txt(W/2,y+bh/2+13,st[0]+(i?" · "+(st[1]/max*100).toFixed(st[1]/max<0.1?1:0)+"%":""),"middle","cl-in"));
+    if(i<steps.length-1) { var nx=Math.max(210,(Math.sqrt(steps[i+1][1]/max))*(W-40)); s.appendChild(svgE("path",{d:"M"+x+","+(y+bh)+" L"+((W-nx)/2)+","+(y+bh+gap)+" L"+((W+nx)/2)+","+(y+bh+gap)+" L"+(x+w)+","+(y+bh)+" Z"},"fill:var(--surface-3)")); }
+    g.style.cursor="pointer"; g.addEventListener("click",st[2]); tipOn(g,st[0]+": "+fmt(st[1])+(i?" ("+(st[1]/max*100).toFixed(1)+"% of all leads)":"")); s.appendChild(g); });
+  c.appendChild(s); }
+
+// 2. Feedback mix donut
+function chDonut(){ var m={}, none=0; R.forEach(function(r){ var f=r[C.feedback]; if(f===I_PENDING||f===I_NONE) none++; else m[f]=(m[f]||0)+1; });
+  var arr=Object.keys(m).map(function(k){return [X.feedback[k],m[k],+k]}).sort(function(a,b){return b[1]-a[1]}); var top=arr.slice(0,5), other=arr.slice(5).reduce(function(s,x){return s+x[1]},0);
+  var parts=[["No feedback yet",none,-2,"var(--s-other)"]].concat(top.map(function(x,i){ return [x[0],x[1],x[2],"var("+["--s1","--s3","--s7","--s5","--s4"][i]+")"]; })); if(other) parts.push(["Other",other,null,"var(--line-2)"]);
+  var tot=R.length||1, c=chartCard("What agents reported","Last feedback on every CloudBlue lead. Tap a slice to see those leads.");
+  var wrap=el("div","donutwrap"), S=200, r0=78, r1=54, s=svgE("svg",{viewBox:"0 0 "+S+" "+S,role:"img","aria-label":"Feedback mix"}), a=-Math.PI/2;
+  parts.forEach(function(p){ var ang=p[1]/tot*Math.PI*2; if(ang<=0) return; var a2=a+ang, lg=ang>Math.PI?1:0, cx=S/2, cy=S/2, gapA=Math.min(0.012,ang/4);
+    var x1=cx+r0*Math.cos(a+gapA), y1=cy+r0*Math.sin(a+gapA), x2=cx+r0*Math.cos(a2-gapA), y2=cy+r0*Math.sin(a2-gapA), x3=cx+r1*Math.cos(a2-gapA), y3=cy+r1*Math.sin(a2-gapA), x4=cx+r1*Math.cos(a+gapA), y4=cy+r1*Math.sin(a+gapA);
+    var path=svgE("path",{d:"M"+x1+","+y1+" A"+r0+","+r0+" 0 "+lg+" 1 "+x2+","+y2+" L"+x3+","+y3+" A"+r1+","+r1+" 0 "+lg+" 0 "+x4+","+y4+" Z","class":"hit"},"fill:"+p[3]+";cursor:pointer");
+    tipOn(path,p[0]+": "+fmt(p[1])+" ("+(p[1]/tot*100).toFixed(1)+"%)"); if(p[2]!==null) path.addEventListener("click",function(){ goLeads({feedback:p[2]}); }); s.appendChild(path); a=a2; });
+  s.appendChild(txt(S/2,S/2-2,fmt(R.length),"middle","donut-v")); s.appendChild(txt(S/2,S/2+16,"leads","middle","donut-k"));
+  wrap.appendChild(s); var lg=el("div","dleg"); parts.forEach(function(p){ var row=el("button","dl"); row.type="button"; var i=el("i"); i.style.background=p[3]; row.appendChild(i); row.appendChild(el("span","n",p[0])); row.appendChild(el("span","v",(p[1]/tot*100).toFixed(0)+"%")); if(p[2]!==null) row.addEventListener("click",function(){ goLeads({feedback:p[2]}); }); else row.disabled=true; lg.appendChild(row); }); wrap.appendChild(lg); c.appendChild(wrap); }
+
+// 3. Activity over the last 14 days (line + area)
+function chActivity(){ var endDay=Math.floor(REFMIN/1440), days=[], nw={}, ac={}; for(var d=endDay-13; d<=endDay; d++) days.push(d);
+  R.forEach(function(r){ var k=Math.floor(r[C.created]/1440); if(k>=days[0]) nw[k]=(nw[k]||0)+1; if(r[C.lastAct]){ var k2=Math.floor(r[C.lastAct]/1440); if(k2>=days[0]) ac[k2]=(ac[k2]||0)+1; } });
+  var c=chartCard("Activity, last 14 days","New leads that came in, and leads agents logged activity on, per day",true); c.appendChild(legendRow([["Agent actions","var(--bar)","line"],["New leads","var(--gold)","line"]]));
+  var cw=($("td-charts").clientWidth||1240), W=Math.max(360,Math.min(1240,cw-40)), H=W<700?240:300, P={l:40,r:16,t:14,b:28}, step=W<700?4:2, max=1; days.forEach(function(d){ max=Math.max(max,nw[d]||0,ac[d]||0); }); var nice=Math.pow(10,Math.floor(Math.log10(max))); max=Math.ceil(max/nice)*nice;
+  var s=svgE("svg",{viewBox:"0 0 "+W+" "+H,role:"img","aria-label":"Daily activity chart"}), X0=function(i){ return P.l+i*(W-P.l-P.r)/(days.length-1); }, Y0=function(v){ return H-P.b-(v/max)*(H-P.t-P.b); };
+  for(var g=0; g<=4; g++){ var v=max*g/4, y=Y0(v); s.appendChild(svgE("line",{x1:P.l,x2:W-P.r,y1:y,y2:y},"stroke:var(--line);stroke-width:1")); s.appendChild(txt(P.l-6,y+4,fmt(Math.round(v)),"end","ax")); }
+  days.forEach(function(d,i){ if(i%step===0||i===days.length-1){ var dt=new Date(d*86400000); s.appendChild(txt(X0(i),H-8,dt.getUTCDate()+" "+["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][dt.getUTCMonth()],"middle","ax")); } });
+  [[ac,"var(--bar)"],[nw,"var(--gold)"]].forEach(function(sr,si){ var pts=days.map(function(d,i){ return [X0(i),Y0(sr[0][d]||0)]; });
+    if(si===0) s.appendChild(svgE("path",{d:"M"+pts.map(function(p){return p.join(",")}).join(" L")+" L"+pts[pts.length-1][0]+","+Y0(0)+" L"+pts[0][0]+","+Y0(0)+" Z"},"fill:var(--bar);opacity:.10"));
+    s.appendChild(svgE("path",{d:"M"+pts.map(function(p){return p.join(",")}).join(" L")},"fill:none;stroke:"+sr[1]+";stroke-width:2;stroke-linejoin:round;stroke-linecap:round"));
+    pts.forEach(function(p){ s.appendChild(svgE("circle",{cx:p[0],cy:p[1],r:3},"fill:"+sr[1]+";stroke:var(--surface);stroke-width:2")); }); });
+  var cross=svgE("line",{y1:P.t,y2:H-P.b},"stroke:var(--ink-3);stroke-width:1;stroke-dasharray:3 3;display:none"); s.appendChild(cross);
+  days.forEach(function(d,i){ var w=(W-P.l-P.r)/(days.length-1), r=svgE("rect",{x:X0(i)-w/2,y:P.t,width:w,height:H-P.t-P.b},"fill:transparent;cursor:pointer");
+    r.addEventListener("mouseenter",function(){ cross.setAttribute("x1",X0(i)); cross.setAttribute("x2",X0(i)); cross.style.display=""; }); r.addEventListener("mouseleave",function(){ cross.style.display="none"; });
+    tipOn(r,dstr(d*1440)+": "+fmt(ac[d]||0)+" agent actions, "+fmt(nw[d]||0)+" new leads. Tap to open the day."); r.addEventListener("click",function(){ dyDay=d; go("daily"); daily(); }); s.appendChild(r); });
+  c.appendChild(s); }
+
+// 4. Follow-up backlog by agent (grouped bars)
+function chBacklog(){ if(!FU) FU=followup(); var iq=idx(X.feedback,"Qualified"), ina=idx(X.feedback,"No Answer"), ag=Object.keys(TARGETS).sort(function(a,b){ return (FU[b].na+FU[b].qs)-(FU[a].na+FU[a].qs); });
+  var c=chartCard("Follow-ups waiting, by agent","Leads that need a call back now. Tap a bar to list them."); c.appendChild(legendRow([["No Answer, 24h+","var(--warn)"],["Qualified, quiet 1 week","var(--royal)"]]));
+  var max=1; ag.forEach(function(a){ max=Math.max(max,FU[a].na,FU[a].qs); }); var box=el("div","gbars");
+  ag.forEach(function(a){ var row=el("div","gb"); var who=el("div","who"); who.appendChild(avatar(a)); who.appendChild(el("span",null,shortName(a))); row.appendChild(who); var bars=el("div","gbs");
+    [[FU[a].na,"var(--warn)",function(){ goLeads({agentName:a,feedback:ina,act:0,stale:1440}); },"No Answer 24h+"],[FU[a].qs,"var(--royal)",function(){ goLeads({agentName:a,feedback:iq,act:0,stale:10080}); },"Qualified quiet"]].forEach(function(b){ var ln=el("button","gbl"); ln.type="button"; var f=el("i"); f.style.width=Math.max(1,b[0]/max*100)+"%"; f.style.background=b[1]; ln.appendChild(f); ln.appendChild(el("span",null,fmt(b[0]))); ln.addEventListener("click",b[2]); tipOn(ln,shortName(a)+" · "+b[3]+": "+fmt(b[0])); bars.appendChild(ln); });
+    row.appendChild(bars); box.appendChild(row); }); c.appendChild(box); }
+
+// 5. Team target gauge + sales by month
+function chSales(){ if(!TCB) TCB=tcrBy(); var p=TEAM_TARGET?TCB.total/TEAM_TARGET:0, c=chartCard("Sales target","TCR sales volume (EGP) against the team target, and by contract month");
+  var wrap=el("div","salewrap"), S=180, s=svgE("svg",{viewBox:"0 0 "+S+" "+(S*0.62),role:"img","aria-label":Math.round(p*100)+"% of team target"}), cx=S/2, cy=S*0.56, r=70;
+  function arc(f,col,w){ var a0=Math.PI, a1=Math.PI+Math.PI*Math.min(1,f); return svgE("path",{d:"M"+(cx+r*Math.cos(a0))+","+(cy+r*Math.sin(a0))+" A"+r+","+r+" 0 0 1 "+(cx+r*Math.cos(a1))+","+(cy+r*Math.sin(a1))},"fill:none;stroke:"+col+";stroke-width:"+w+";stroke-linecap:round"); }
+  s.appendChild(arc(1,"var(--bar-track)",14)); if(p>0) s.appendChild(arc(p,"var(--gold)",14)); s.appendChild(txt(cx,cy-12,Math.round(p*100)+"%","middle","gauge-v")); s.appendChild(txt(cx,cy+6,"EGP "+money(TCB.total)+" of "+money(TEAM_TARGET),"middle","gauge-k")); wrap.appendChild(s);
+  var m={}, none=0; if(TC) TC.rows.forEach(function(t){ if(!t[T.date]){ none+=t[T.vol]; return; } var d=new Date(t[T.date]*60000), k=d.getUTCFullYear()*12+d.getUTCMonth(); m[k]=(m[k]||0)+t[T.vol]; });
+  var ks=Object.keys(m).map(Number).sort(function(a,b){return a-b}).slice(-8), mx=1; ks.forEach(function(k){ mx=Math.max(mx,m[k]); }); mx=Math.max(mx,none);
+  var cols=el("div","mcols"); ks.map(function(k){ return [["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][k%12],m[k],false]; }).concat(none?[["No date",none,true]]:[]).forEach(function(b){ var col=el("button","mc"); col.type="button"; var v=el("span","mv",money(b[1])); var bar=el("i"); bar.style.height=Math.max(2,b[1]/mx*100)+"%"; if(b[2]) bar.style.background="var(--s-other)"; col.appendChild(v); col.appendChild(bar); col.appendChild(el("span","ml",b[0])); tipOn(col,b[0]+": EGP "+fmt(Math.round(b[1]))+(b[2]?" (contract date not confirmed yet)":"")); col.addEventListener("click",function(){ go("tcrs"); }); cols.appendChild(col); }); wrap.appendChild(cols); c.appendChild(wrap); }
+
+// 6. Top projects (qualified vs all)
+function chProjects(){ var iq=idx(X.feedback,"Qualified"), np=idx(X.project,"No project"), m={}; R.forEach(function(r){ if(r[C.project]===np) return; var o=m[r[C.project]]||(m[r[C.project]]={n:0,q:0}); o.n++; if(r[C.feedback]===iq) o.q++; });
+  var arr=Object.keys(m).map(function(k){return [+k,m[k]]}).sort(function(a,b){return b[1].q-a[1].q||b[1].n-a[1].n}).slice(0,7), max=arr.length?Math.max.apply(null,arr.map(function(x){return x[1].n})):1;
+  var c=chartCard("Top projects by qualified leads","Light bar: all leads. Dark bar: qualified. Tap a project to see its leads."); c.appendChild(legendRow([["All leads","var(--accent-soft)"],["Qualified","var(--royal)"]]));
+  var box=el("div","pbars"); arr.forEach(function(x){ var o=x[1], row=el("button","pb"); row.type="button"; row.appendChild(el("span","lab",X.project[x[0]])); var tr=el("span","ptr"), a=el("i","all"), q=el("i","q"); a.style.width=(o.n/max*100)+"%"; q.style.width=(o.q/max*100)+"%"; tr.appendChild(a); tr.appendChild(q); row.appendChild(tr); row.appendChild(el("span","num",fmt(o.q)+" / "+fmt(o.n))); tipOn(row,X.project[x[0]]+": "+fmt(o.q)+" qualified of "+fmt(o.n)+" leads"); row.addEventListener("click",function(){ goLeads({project:x[0]}); }); box.appendChild(row); }); c.appendChild(box); }
+
+// 7. Lead sources
+function chSources(){ var m={}; R.forEach(function(r){ m[r[C.source]]=(m[r[C.source]]||0)+1; }); var arr=Object.keys(m).map(function(k){return [X.source[k]||"(blank)",m[k],+k]}).sort(function(a,b){return b[1]-a[1]}).slice(0,6);
+  var c=chartCard("Where leads come from","Lead source in CloudBlue, top 6"); var bx=el("div","bars"); c.appendChild(bx); bx.id="td-src"; simpleBars("td-src",arr,null); }
+
+function homeCharts(){ var box=$("td-charts"); box.textContent=""; chFunnel(); chDonut(); chBacklog(); chActivity(); chSales(); chProjects(); chSources(); }
+
+// ---------- Team app: log feedback on a client, show what was logged in the app ----------
+function appDrawer(e,b){ var A=window.CB_APP; if(!A) return;
+  var l0=e.leads[0], s0=e.sheets[0], agentName=l0?X.agent[l0[C.agent]]:(s0&&SH?SH.dict.agent[s0[S.agent]]:"");
+  var f=el("div","logf dsec"); f.appendChild(el("h4",null,"Log feedback"));
+  var row=el("div","row2"), sel=el("select"); sel.setAttribute("aria-label","Feedback"); A.FB_OPTIONS.forEach(function(o){ sel.appendChild(el("option",null,o)); });
+  var nx=el("input"); nx.type="date"; nx.setAttribute("aria-label","Next follow-up date"); nx.title="Next follow-up (optional)"; row.appendChild(sel); row.appendChild(nx); f.appendChild(row);
+  var note=el("textarea"); note.placeholder="Note: what the client said, what's next"; note.setAttribute("aria-label","Note"); note.maxLength=1990; f.appendChild(note);
+  var acts=el("div","acts"), save=el("button","btn primary","Save"); save.type="button"; var st=el("span"); st.setAttribute("role","status"); acts.appendChild(save); acts.appendChild(st); f.appendChild(acts);
+  save.addEventListener("click",function(){ save.disabled=true; st.className=""; st.textContent="Saving…";
+    A.logFeedback({ak:A.AK_OF[agentName]||"", lead:l0?l0[C.id]:"", client:e.name, phone:e.number||"", feedback:sel.value, note:note.value.trim(), next:nx.value})
+      .then(function(){ st.className="ok"; st.textContent="Saved. Also log it in CloudBlue."; note.value=""; save.disabled=false; setTimeout(function(){ openClient(e); },900); })
+      .catch(function(err){ st.className="bad"; st.textContent="Not saved ("+((err&&err.code)||"error")+")"; save.disabled=false; }); });
+  b.appendChild(f);
+  var ups=A.updatesFor(pkeys(e.number), e.leads.map(function(l){ return l[C.id]; }));
+  if(ups.length){ var sec=el("div","dsec"); sec.appendChild(el("h4",null,"Logged in the app ("+ups.length+")"));
+    ups.forEach(function(u){ var t=u.at&&u.at.toDate?u.at.toDate():new Date(); sec.appendChild(recBox(t.toLocaleString("en-GB",{day:"numeric",month:"short",hour:"numeric",minute:"2-digit"}),u.feedback,fbClass(u.feedback)+(u.done?"":""),[["By",u.by],["Next follow-up",u.next],["Note",u.note],["Copied to CloudBlue",u.done?"Yes":"Not yet"]])); });
+    b.appendChild(sec); } }
+
+function render(){
+  var c=$("count"); c.textContent=""; c.appendChild(el("b",null,fmt(view.length))); c.appendChild(document.createTextNode(" of "+fmt(R.length)+" leads"+(state.stale?" · no activity for "+(state.stale>=1440?Math.round(state.stale/1440)+" days":Math.round(state.stale/60)+" hours")+" or more":"")));
+  tiles(); bars("c-feedback",C.feedback,X.feedback,"feedback"); bars("c-status",C.status,X.status,"status"); months(); bars("c-project",C.project,X.project,"project",10);
+  chips(); team(); projects(); leads(); shState.page=0; sheets(); tcrs(); chState.page=0; changes(); clState.page=0; clients(); reports(); projCharts(); performance(); daily();
+}
+
+var VIEW=null;
+function go(v){ VIEW=v; try{ if(location.hash!=="#"+v) history.replaceState(null,"","#"+v); }catch(e){} route(); try{ window.scrollTo(0,0); }catch(e){} }
+function route(){ var h=VIEW||(location.hash||"#today").slice(1); if(ALLVIEWS.indexOf(h)<0) h="today"; var sec=SECOF[h]; LASTV[sec]=h;
+  ALLVIEWS.forEach(function(v){ $("v-"+v).classList.toggle("on",v===h); });
+  [$("tabs"),$("botnav")].forEach(function(nav){ Array.prototype.forEach.call(nav.querySelectorAll("button"),function(b){ if(b.dataset.sec===sec) b.setAttribute("aria-current","page"); else b.removeAttribute("aria-current"); }); });
+  var sn=$("subnav"); sn.textContent=""; var S0=SECTIONS.filter(function(s){return s.id===sec})[0]; if(S0&&S0.views.length>1) S0.views.forEach(function(v){ var b=el("button",null,v[1]); b.type="button"; b.setAttribute("role","tab"); if(v[0]===h){ b.setAttribute("aria-current","page"); b.setAttribute("aria-selected","true"); } else b.setAttribute("aria-selected","false"); b.addEventListener("click",function(){ go(v[0]); }); sn.appendChild(b); });
+  $("filters").classList.toggle("off",!!NOFILTER[h]); }
+
+// init
+var sub=$("sub"); if(D.updated){ sub.appendChild(document.createTextNode("Updated ")); sub.appendChild(el("b",null,D.updated)); sub.appendChild(el("br"));
+  if(D.sources){ var sh=function(t){ return (t||"—").replace(/^(\d+ \w{3}) \d{4},? ?/,"$1 "); }; sub.appendChild(document.createTextNode("CloudBlue "+sh(D.sources.cb)+(D.sources.cb_mode==="quick"?" (quick)":"")+" · Sheets "+sh(D.sources.sh)+" · TCRs "+sh(D.sources.tcr))); sub.appendChild(el("br")); } sub.appendChild(document.createTextNode(fmt(R.length)+" leads · "+(X.agent||[]).length+" agents · "+(X.project||[]).length+" projects"+(window.EXTRA&&EXTRA.sheets?" · "+fmt(EXTRA.sheets.rows.length)+" sheet clients":""))); }
+else sub.textContent="No data loaded yet";
+$("foot").textContent="Sources: CloudBlue (leads), MyCB (Prime TCRs) and the agents' Google Sheets. Includes client contact details: keep this page private. Figures reflect the last daily copy, not live data.";
+fillSelect("f-agent",X.agent||[],"All agents"); fillSelect("f-project",X.project||[],"All projects"); fillSelect("f-status",X.status||[],"All statuses"); fillSelect("f-feedback",X.feedback||[],"All feedback"); (function(){ var o=el("option",null,"No feedback yet (pending or blank)"); o.value="-2"; $("f-feedback").insertBefore(o,$("f-feedback").children[1]); })();
+$("f-act").addEventListener("change",function(e){ state.act=+e.target.value; state.stale=0; apply(); });
+["agent","project","status","feedback"].forEach(function(k){ $("f-"+k).addEventListener("change",function(e){ state[k]=+e.target.value; apply(); }); });
+$("f-from").addEventListener("change",function(e){state.from=e.target.value;apply();}); $("f-to").addEventListener("change",function(e){state.to=e.target.value;apply();});
+var qt; $("f-q").addEventListener("input",function(e){ clearTimeout(qt); var v=e.target.value; qt=setTimeout(function(){state.q=v;apply();},180); });
+$("f-reset").addEventListener("click",function(){ shState.tab=shState.fb=-1; shState.match="all"; $("sh-f-tab").value=$("sh-f-fb").value="-1"; $("sh-f-match").value="all"; state.stale=0; state.act=0; $("f-act").value="0"; state.agent=state.project=state.status=state.feedback=-1; state.from=state.to=state.q=""; ["agent","project","status","feedback"].forEach(function(k){$("f-"+k).value="-1"}); $("f-from").value=$("f-to").value=$("f-q").value=""; apply(); });
+$("pg-prev").addEventListener("click",function(){ state.page--; leads(); }); $("pg-next").addEventListener("click",function(){ state.page++; leads(); });
+if(SH){ var sd=SH.dict; (function(){ var s=$("sh-f-tab"); var o=el("option",null,"All tabs"); o.value="-1"; s.appendChild(o); sd.tab.forEach(function(n,i){var o2=el("option",null,n); o2.value=String(i); s.appendChild(o2)}); var f=$("sh-f-fb"); var o3=el("option",null,"All feedback"); o3.value="-1"; f.appendChild(o3); sd.feedback.map(function(n,i){return [n,i]}).sort(function(a,b){return a[0].localeCompare(b[0])}).forEach(function(x){var o4=el("option",null,x[0]); o4.value=String(x[1]); f.appendChild(o4)}); })(); }
+$("sh-f-tab").addEventListener("change",function(e){shState.tab=+e.target.value;shState.page=0;sheets();}); $("sh-f-fb").addEventListener("change",function(e){shState.fb=+e.target.value;shState.page=0;sheets();}); $("sh-f-match").addEventListener("change",function(e){shState.match=e.target.value;shState.page=0;sheets();});
+$("sh-prev").addEventListener("click",function(){shState.page--;sheets();}); $("sh-next").addEventListener("click",function(){shState.page++;sheets();});
+$("pf-src").addEventListener("change",function(e){ pfSrc=e.target.value; performance(); });
+$("dy-date").addEventListener("change",function(e){ if(e.target.value){ var p=e.target.value.split("-"); dyDay=Math.floor(Date.UTC(+p[0],+p[1]-1,+p[2])/86400000); daily(); } });
+$("dy-prev").addEventListener("click",function(){ dyDay--; daily(); }); $("dy-next").addEventListener("click",function(){ dyDay++; daily(); });
+$("dy-copy").addEventListener("click",function(){ var done=function(ok){ $("dy-copied").textContent=ok?"Copied. Paste it into WhatsApp or email.":"Copy is blocked here. Select the table and copy it instead."; }; try{ navigator.clipboard.writeText(DYTXT.join("\n")).then(function(){done(true)},function(){done(false)}); }catch(e){ done(false); } });
+$("zm-link").value=zmLink; $("zm-text").value=zmText; $("zm-start").href=zmLink;
+$("wa-text").value=waText; $("wa-open").addEventListener("click",function(){ $("wa-box").classList.toggle("on"); });
+$("wa-save").addEventListener("click",function(){ waText=$("wa-text").value.trim()||WA_DEFAULT; zmLink=$("zm-link").value.trim()||ZM_LINK_DEFAULT; zmText=$("zm-text").value.trim()||ZM_DEFAULT; $("zm-start").href=zmLink; var ok=true; try{ localStorage.setItem("cbcode.wa",waText); localStorage.setItem("cbcode.zmlink",zmLink); localStorage.setItem("cbcode.zmtext",zmText); }catch(e){ ok=false; } $("wa-msg").textContent=ok?"Saved on this device.":"Saved for this visit only; this browser blocked storage."; render(); });
+$("wa-reset").addEventListener("click",function(){ waText=WA_DEFAULT; zmLink=ZM_LINK_DEFAULT; zmText=ZM_DEFAULT; $("wa-text").value=waText; $("zm-link").value=zmLink; $("zm-text").value=zmText; $("zm-start").href=zmLink; try{ localStorage.removeItem("cbcode.wa"); localStorage.removeItem("cbcode.zmlink"); localStorage.removeItem("cbcode.zmtext"); }catch(e){} $("wa-msg").textContent="Default messages restored."; render(); });
+$("cl-f-kind").addEventListener("change",function(e){clState.kind=e.target.value;clState.page=0;clients();}); $("cl-prev").addEventListener("click",function(){clState.page--;clients();}); $("cl-next").addEventListener("click",function(){clState.page++;clients();});
+$("rp-copy").addEventListener("click",function(){ var txt="CB Code CRM - Basel Algamal Team - "+(D.updated||"")+"\n"+RPT.join("\n"); var done=function(ok){ $("rp-copied").textContent=ok?"Copied. Paste it into WhatsApp, email or a sheet.":"Copy is blocked here. Select the table and copy it instead."; }; try{ navigator.clipboard.writeText(txt).then(function(){done(true)},function(){done(false)}); }catch(e){ done(false); } });
+$("ch-f-kind").addEventListener("change",function(e){chState.kind=e.target.value;chState.page=0;changes();}); $("ch-prev").addEventListener("click",function(){chState.page--;changes();}); $("ch-next").addEventListener("click",function(){chState.page++;changes();});
+window.addEventListener("hashchange",function(){ VIEW=null; route(); });
+buildNav();
+$("f-toggle").addEventListener("click",function(){ var p=$("f-panel"), on=!p.classList.contains("on"); p.classList.toggle("on",on); this.setAttribute("aria-expanded",on?"true":"false"); });
+(function(){ var root=document.documentElement; try{ var t=localStorage.getItem("cbcode.theme"); if(t) root.setAttribute("data-theme",t); }catch(e){}
+  $("theme").addEventListener("click",function(){ var cur=root.getAttribute("data-theme"), dark=cur?cur==="dark":(window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches); var nx=dark?"light":"dark"; root.setAttribute("data-theme",nx); try{ localStorage.setItem("cbcode.theme",nx); }catch(e){} }); })();
+$("dr-close").addEventListener("click",closeClient); $("scrim").addEventListener("click",closeClient); document.addEventListener("keydown",function(e){ if(e.key==="Escape"&&$("drawer").classList.contains("on")) closeClient(); });
+$("td-changes").addEventListener("click",function(){ go("changes"); });
+$("td-copy").addEventListener("click",function(){ var done=function(ok){ $("td-msg").textContent=ok?"Copied. Paste it into WhatsApp or email.":"Copy is blocked here."; }; try{ navigator.clipboard.writeText(TDTXT.join("\n")).then(function(){done(true)},function(){done(false)}); }catch(e){ done(false); } });
+if(window.CB_AGENT) $("zm-start").style.display="none";
+route(); apply(); today(); homeCharts(); agents(); heroTarget();
+};
+</script>
+<script type="module">
+// CB Code CRM team app: sign-in, per-person data from Firestore, feedback logging, and Basel's sync.
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult,
+  sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, query, where, orderBy, limit,
+  onSnapshot, serverTimestamp, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const CONFIG = {
+  apiKey: "AIzaSyABdZruPkTF87fJCmzYtDMwLQptHNgCHLk",
+  authDomain: "cb-code-crm.firebaseapp.com",
+  projectId: "cb-code-crm",
+  storageBucket: "cb-code-crm.firebasestorage.app",
+  messagingSenderId: "552062785839",
+  appId: "1:552062785839:web:e4b5be96eab54c1ba029da"
+};
+const ADMINS = ["basel.algamal@icloud.com", "basel.algamal88@gmail.com"];
+const BUNDLE_URL = "https://raw.githubusercontent.com/baselalgamal88-wq/cb-code-crm/data/bundle.bin";
+const AK_OF = { "Zeyad Samir Mohamedy Aly": "zeyad", "Morad Atef talaat Gwda Ahmed": "morad", "Omar Ahmed Abd El-fattah foda": "omar",
+  "Remonda Atef Hanna Nageb": "remonda", "Mohamed Emad Nagty Youssef Mohamed": "mohamed" };
+const FB_OPTIONS = ["No Answer", "Call Later", "Qualified", "UnQualified", "Low Budget", "Wrong Number", "Meeting Scheduled", "Meeting Done", "Showing", "Follow up", "Other"];
+
+const app = initializeApp(CONFIG);
+const auth = getAuth(app);
+const db = getFirestore(app);
+setPersistence(auth, browserLocalPersistence).catch(() => {});
+
+const $ = id => document.getElementById(id);
+const gate = $("gate"), gbody = $("gate-body");
+let ME = { email: "", admin: false, ak: "", name: "" }, UPDATES = [], started = false;
+
+function h(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+function msg(t, err) { gbody.textContent = ""; const p = h("p", "gate-msg" + (err ? " err" : ""), t); gbody.appendChild(p); return p; }
+const GLOGO = '<svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>';
+
+function showSignIn(note, err) {
+  gate.hidden = false; gbody.textContent = "";
+  gbody.appendChild(h("p", "gate-msg" + (err ? " err" : ""), note || "Sign in to see your leads, follow-ups and sales."));
+  const g = h("button", "gbtn google"); g.type = "button"; g.innerHTML = GLOGO + "<span>Sign in with Google</span>";
+  g.addEventListener("click", async () => {
+    g.disabled = true;
+    try { await signInWithPopup(auth, new GoogleAuthProvider()); }
+    catch (e) {
+      if (/popup-blocked|popup-closed|operation-not-supported|cancelled-popup/.test(e.code || "")) {
+        if ((e.code || "").includes("blocked") || (e.code || "").includes("not-supported")) { await signInWithRedirect(auth, new GoogleAuthProvider()); return; }
+      } else showSignIn("Google sign-in did not finish. Please try again.", true);
+      g.disabled = false;
+    }
+  });
+  gbody.appendChild(g);
+  gbody.appendChild(h("div", "gor", "or"));
+  const inp = h("input"); inp.type = "email"; inp.placeholder = "Your email (for a sign-in link)"; inp.autocomplete = "email"; inp.setAttribute("aria-label", "Email for a sign-in link");
+  const b = h("button", "gbtn ghost", "Email me a sign-in link"); b.type = "button";
+  b.addEventListener("click", async () => {
+    const em = inp.value.trim().toLowerCase(); if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) { inp.focus(); return; }
+    b.disabled = true;
+    try {
+      await sendSignInLinkToEmail(auth, em, { url: location.origin + location.pathname, handleCodeInApp: true });
+      try { localStorage.setItem("cb.emailForLink", em); } catch (x) {}
+      msg("We sent a sign-in link to " + em + ". Open it on this device to sign in. Check your junk folder if you don't see it.");
+    } catch (e) { b.disabled = false; showSignIn("Could not send the link (" + (e.code || "error") + ").", true); }
+  });
+  gbody.appendChild(inp); gbody.appendChild(b);
+  gbody.appendChild(h("div", "small", "Only Basel's team can open this app. Each person sees only their own data."));
+}
+
+async function finishEmailLink() {
+  if (!isSignInWithEmailLink(auth, location.href)) return;
+  let em = ""; try { em = localStorage.getItem("cb.emailForLink") || ""; } catch (x) {}
+  if (!em) em = (prompt("Confirm your email to finish signing in") || "").trim().toLowerCase();
+  if (!em) return;
+  try { await signInWithEmailLink(auth, em, location.href); try { localStorage.removeItem("cb.emailForLink"); } catch (x) {} }
+  catch (e) { showSignIn("That sign-in link has expired or was already used. Ask for a new one.", true); }
+  history.replaceState(null, "", location.pathname);
+}
+
+// ---------- data ----------
+function b64ToBytes(s) { const bin = atob(s); const a = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) a[i] = bin.charCodeAt(i); return a; }
+function bytesToB64(a) { let s = ""; const CH = 0x8000; for (let i = 0; i < a.length; i += CH) s += String.fromCharCode.apply(null, a.subarray(i, i + CH)); return btoa(s); }
+async function gunzip(bytes) { const ds = new DecompressionStream("gzip"); const out = new Response(new Blob([bytes]).stream().pipeThrough(ds)); return new Uint8Array(await out.arrayBuffer()); }
+async function gzip(bytes) { const cs = new CompressionStream("gzip"); const out = new Response(new Blob([bytes]).stream().pipeThrough(cs)); return new Uint8Array(await out.arrayBuffer()); }
+
+async function loadData(path) {
+  const snap = await getDocs(collection(db, path));
+  const parts = snap.docs.map(d => d.data()).filter(p => p && p.d != null);
+  if (!parts.length) return null;
+  const n = parts[0].n, ver = parts[0].ver;
+  const use = parts.filter(p => p.ver === ver).sort((a, b) => a.i - b.i);
+  if (use.length < n) throw new Error("data is being updated, try again in a minute");
+  const bytes = await gunzip(b64ToBytes(use.map(p => p.d).join("")));
+  return JSON.parse(new TextDecoder().decode(bytes));
+}
+
+function startDashboard(data) {
+  window.LEADS = data.LEADS; window.EXTRA = data.EXTRA; window.SNAP = data.SNAP; window.PREV = data.PREV; window.HIST = data.HIST;
+  window.CB_AGENT = ME.admin ? "" : ME.name; window.CB_NAME = ME.admin ? "Basel" : (ME.name || "").split(" ")[0];
+  window.CB_APP = { admin: ME.admin, email: ME.email, ak: ME.ak, logFeedback, updatesFor, FB_OPTIONS, AK_OF };
+  window.__startDashboard();
+  started = true;
+  gate.hidden = true;
+  $("app-bar").hidden = false;
+  $("app-who").textContent = (ME.admin ? "Basel (all data) · " : ME.name.split(" ").slice(0, 2).join(" ") + " · ") + ME.email;
+  watchUpdates();
+}
+
+// ---------- feedback logged in the app ----------
+async function logFeedback(rec) {
+  const ak = ME.admin ? (rec.ak || "basel") : ME.ak;
+  const docData = { ak, lead: String(rec.lead || ""), client: String(rec.client || "").slice(0, 200), phone: String(rec.phone || "").slice(0, 60),
+    feedback: String(rec.feedback || ""), note: String(rec.note || "").slice(0, 1990), next: String(rec.next || ""), at: serverTimestamp(), by: ME.email, src: "app" };
+  await addDoc(collection(db, "updates"), docData);
+}
+function updatesFor(phoneKeys, leadIds) {
+  const pk = new Set(phoneKeys || []), li = new Set((leadIds || []).map(String));
+  return UPDATES.filter(u => (u.lead && li.has(u.lead)) || (u.phone && pk.has(String(u.phone).replace(/\D/g, "").slice(-10))));
+}
+function watchUpdates() {
+  const q = ME.admin ? query(collection(db, "updates"), orderBy("at", "desc"), limit(400)) : query(collection(db, "updates"), where("ak", "==", ME.ak), limit(400));
+  onSnapshot(q, s => {
+    UPDATES = s.docs.map(d => Object.assign({ id: d.id }, d.data())).sort((a, b) => ((b.at && b.at.seconds) || 9e12) - ((a.at && a.at.seconds) || 9e12));
+    renderUpdates();
+  }, () => {});
+}
+function when(u) { const t = u.at && u.at.toDate ? u.at.toDate() : new Date(); return t.toLocaleString("en-GB", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }); }
+function renderUpdates() {
+  const box = $("app-updates"); if (!box) return; box.textContent = "";
+  const list = ME.admin ? UPDATES.filter(u => !u.done) : UPDATES.slice(0, 30);
+  $("app-upd-hint").textContent = ME.admin ? (list.length ? list.length + " update" + (list.length === 1 ? "" : "s") + " from the team to copy into CloudBlue. Mark each one when it's done." : "Nothing waiting: every update from the team is copied into CloudBlue.")
+    : (list.length ? "Your latest updates. Remember to log them in CloudBlue too." : "Feedback you log on a client (tap a client's name) appears here.");
+  list.forEach(u => {
+    const it = h("div", "upi" + (u.done ? " done" : ""));
+    const t = h("div"); t.appendChild(h("div", "t", (u.client || "Client") + " · " + (u.feedback || "")));
+    t.appendChild(h("div", "m", (ME.admin ? (u.by || "") + " · " : "") + when(u) + (u.next ? " · next follow-up " + u.next : "") + (u.phone ? " · " + u.phone : "")));
+    it.appendChild(t);
+    if (ME.admin) { const b = h("button", "btn", "Copied to CloudBlue ✓"); b.type = "button"; b.addEventListener("click", async () => { b.disabled = true; try { await updateDoc(doc(db, "updates", u.id), { done: true }); } catch (e) { b.disabled = false; } }); it.appendChild(b); }
+    else it.appendChild(h("span"));
+    if (u.note) it.appendChild(h("div", "n", u.note));
+    box.appendChild(it);
+  });
+}
+
+// ---------- Basel's sync: bundle from GitHub -> Firestore ----------
+async function writeParts(path, obj, ver) {
+  const gz = await gzip(new TextEncoder().encode(JSON.stringify(obj)));
+  const b64 = bytesToB64(gz), SIZE = 900000, n = Math.max(1, Math.ceil(b64.length / SIZE));
+  const old = await getDocs(collection(db, path));
+  for (let i = 0; i < n; i++) await setDoc(doc(db, path, "p" + i), { i, n, ver, d: b64.slice(i * SIZE, (i + 1) * SIZE) });
+  for (const d of old.docs) { const p = d.data(); if (!(p.ver === ver) && !(/^p\d+$/.test(d.id) && +d.id.slice(1) < n)) await deleteDoc(d.ref); }
+  return { n, bytes: gz.length };
+}
+window.cbSync = async function (keyB64) {
+  if (!ME.admin) throw new Error("only Basel can sync");
+  const res = await fetch(BUNDLE_URL + "?t=" + Date.now(), { cache: "no-store" });
+  if (!res.ok) throw new Error("bundle download failed: " + res.status);
+  const buf = new Uint8Array(await res.arrayBuffer());
+  const key = await crypto.subtle.importKey("raw", b64ToBytes(keyB64), "AES-GCM", false, ["decrypt"]);
+  const plain = new Uint8Array(await crypto.subtle.decrypt({ name: "AES-GCM", iv: buf.slice(0, 12) }, key, buf.slice(12)));
+  const B = JSON.parse(new TextDecoder().decode(await gunzip(plain)));
+  const ver = B.updated + " / " + Date.now(), out = { updated: B.updated };
+  out.admin = await writeParts("admin/data/parts", B.admin, ver);
+  for (const ak of Object.keys(B.agents)) out[ak] = await writeParts("agents/" + ak + "/parts", B.agents[ak], ver);
+  for (const em of Object.keys(B.access)) await setDoc(doc(db, "access", em), B.access[em]);
+  await setDoc(doc(db, "meta", "status"), { updated: B.updated, sources: B.sources || null, at: serverTimestamp() });
+  return out;
+};
+
+// ---------- boot ----------
+async function boot(user) {
+  if (!user) { if (!started) showSignIn(); else location.reload(); return; }
+  const email = (user.email || "").toLowerCase();
+  ME = { email, admin: ADMINS.includes(email), ak: "", name: "" };
+  msg("Loading your data…");
+  try {
+    if (!ME.admin) {
+      const a = await getDoc(doc(db, "access", email));
+      if (!a.exists()) { gate.hidden = false; gbody.textContent = ""; gbody.appendChild(h("p", "gate-msg err", email + " has no access to CB Code CRM. Ask Basel to add you."));
+        const o = h("button", "gbtn ghost", "Use another account"); o.type = "button"; o.addEventListener("click", () => signOut(auth)); gbody.appendChild(o); return; }
+      ME.ak = a.data().ak; ME.name = a.data().name || "";
+    }
+    const data = await loadData(ME.admin ? "admin/data/parts" : "agents/" + ME.ak + "/parts");
+    if (!data) { msg(ME.admin ? "Signed in as Basel. No data yet: run the first sync." : "Your data isn't ready yet. Try again later.");
+      const o = h("button", "gbtn ghost", "Sign out"); o.type = "button"; o.addEventListener("click", () => signOut(auth)); gbody.appendChild(o); return; }
+    startDashboard(data);
+  } catch (e) {
+    msg("Could not load the data (" + (e.message || e.code || "error") + ").", true);
+    const r = h("button", "gbtn gold", "Try again"); r.type = "button"; r.addEventListener("click", () => boot(auth.currentUser)); gbody.appendChild(r);
+    const o = h("button", "gbtn ghost", "Sign out"); o.type = "button"; o.style.marginTop = "8px"; o.addEventListener("click", () => signOut(auth)); gbody.appendChild(o);
+  }
+}
+$("app-out").addEventListener("click", () => signOut(auth));
+getRedirectResult(auth).catch(() => {});
+finishEmailLink().finally(() => onAuthStateChanged(auth, boot));
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+
+</script>
+</body>
+</html>

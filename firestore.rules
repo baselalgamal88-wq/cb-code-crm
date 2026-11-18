@@ -1,0 +1,45 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // who is signed in (Google or email link; the address must be verified)
+    function email() {
+      return request.auth != null && request.auth.token.email_verified == true ? request.auth.token.email.lower() : '';
+    }
+    // Basel: the only person who can see and change everything
+    function isAdmin() {
+      return email() in ['basel.algamal@icloud.com', 'basel.algamal88@gmail.com'];
+    }
+    // the agent key mapped to this email in /access (set by Basel), or '' if none
+    function myAgent() {
+      return email() != '' && exists(/databases/$(database)/documents/access/$(email()))
+        ? get(/databases/$(database)/documents/access/$(email())).data.ak : '';
+    }
+    match /access/{e} {
+      allow read: if isAdmin() || e == email();
+      allow write: if isAdmin();
+    }
+    // each agent's data, readable only by that agent and Basel
+    match /agents/{ak}/parts/{p} {
+      allow read: if isAdmin() || (myAgent() != '' && myAgent() == ak);
+      allow write: if isAdmin();
+    }
+    // the full team data, Basel only
+    match /admin/{doc=**} {
+      allow read, write: if isAdmin();
+    }
+    match /meta/{d} {
+      allow read: if isAdmin() || myAgent() != '';
+      allow write: if isAdmin();
+    }
+    // feedback agents log in the app
+    match /updates/{id} {
+      allow read: if isAdmin() || (myAgent() != '' && resource.data.ak == myAgent());
+      allow create: if isAdmin() || (myAgent() != ''
+        && request.resource.data.ak == myAgent()
+        && request.resource.data.by == email()
+        && request.resource.data.keys().hasOnly(['ak', 'lead', 'client', 'phone', 'feedback', 'note', 'next', 'at', 'by', 'src'])
+        && request.resource.data.note is string && request.resource.data.note.size() < 2000);
+      allow update, delete: if isAdmin();
+    }
+  }
+}
