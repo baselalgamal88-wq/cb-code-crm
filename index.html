@@ -1537,6 +1537,7 @@ async function logFeedback(rec) {
   const docData = { ak, lead: String(rec.lead || ""), client: String(rec.client || "").slice(0, 200), phone: String(rec.phone || "").slice(0, 60),
     feedback: String(rec.feedback || ""), kind: rec.kind === "new" ? "new" : "feedback", project: String(rec.project || "").slice(0, 120), source: String(rec.source || "").slice(0, 60), note: String(rec.note || "").slice(0, 1990), next: String(rec.next || ""), at: serverTimestamp(), by: ME.email, src: "app" };
   await addDoc(collection(db, "updates"), docData);
+  if (!LIVE.updates) pollUpdates();
 }
 function updatesFor(phoneKeys, leadIds) {
   const pk = new Set(phoneKeys || []), li = new Set((leadIds || []).map(String));
@@ -1545,6 +1546,7 @@ function updatesFor(phoneKeys, leadIds) {
 function watchUpdates() {
   const q = ME.admin ? query(collection(db, "updates"), orderBy("at", "desc"), limit(400)) : query(collection(db, "updates"), where("ak", "==", ME.ak), limit(400));
   onSnapshot(q, s => {
+    LIVE.updates = true;
     UPDATES = s.docs.map(d => Object.assign({ id: d.id }, d.data())).sort((a, b) => ((b.at && b.at.seconds) || 9e12) - ((a.at && a.at.seconds) || 9e12));
     renderUpdates();
     pushOverlay();
@@ -1561,7 +1563,7 @@ function renderUpdates() {
     const t = h("div"); t.appendChild(h("div", "t", (u.kind === "new" ? "New lead: " : "") + (u.client || "Client") + " · " + (u.feedback || "")));
     t.appendChild(h("div", "m", (ME.admin ? (u.by || "") + " · " : "") + when(u) + (u.next ? " · next follow-up " + u.next : "") + (u.phone ? " · " + u.phone : "")));
     it.appendChild(t);
-    if (ME.admin) { const b = h("button", "btn", "Copied to CloudBlue ✓"); b.type = "button"; b.addEventListener("click", async () => { b.disabled = true; try { await updateDoc(doc(db, "updates", u.id), { done: true }); } catch (e) { b.disabled = false; } }); it.appendChild(b); }
+    if (ME.admin) { const b = h("button", "btn", "Copied to CloudBlue ✓"); b.type = "button"; b.addEventListener("click", async () => { b.disabled = true; try { await updateDoc(doc(db, "updates", u.id), { done: true }); u.done = true; renderUpdates(); } catch (e) { b.disabled = false; } }); it.appendChild(b); }
     else it.appendChild(h("span"));
     if (u.note) it.appendChild(h("div", "n", u.note));
     box.appendChild(it);
@@ -1585,7 +1587,40 @@ function pushOverlay() {
 }
 function watchChanges() {
   const qs = ME.admin ? [collection(db, "changes")] : [query(collection(db, "changes"), where("ak", "==", ME.ak)), query(collection(db, "changes"), where("from", "==", ME.ak))];
-  qs.forEach(q => onSnapshot(q, s => { s.docChanges().forEach(ch => { if (ch.type === "removed") delete CHANGES[ch.doc.id]; else CHANGES[ch.doc.id] = Object.assign({ docId: ch.doc.id }, ch.doc.data()); }); pushOverlay(); }, () => {}));
+  qs.forEach(q => onSnapshot(q, s => { LIVE.changes = true; s.docChanges().forEach(ch => { if (ch.type === "removed") delete CHANGES[ch.doc.id]; else CHANGES[ch.doc.id] = Object.assign({ docId: ch.doc.id }, ch.doc.data()); }); pushOverlay(); }, () => {}));
+  // some browsers and blockers stop Firebase's live connection: check every 20 seconds instead
+  setTimeout(() => { if (!LIVE.changes) { pollChanges(); setInterval(pollChanges, ME.admin ? 15000 : 30000); } if (!LIVE.updates) { pollUpdates(); setInterval(pollUpdates, ME.admin ? 20000 : 120000); } }, 8000);
+}
+const LIVE = { changes: false, updates: false };
+let LAST_CH = null, LAST_UP = null;
+async function pollChanges() {
+  try {
+    if (ME.admin) { // only what changed since the last check, to keep reads low
+      const q = LAST_CH ? query(collection(db, "changes"), where("at", ">", LAST_CH), orderBy("at")) : collection(db, "changes");
+      (await getDocs(q)).docs.forEach(d => { const v = d.data(); CHANGES[d.id] = Object.assign({ docId: d.id }, v); if (v.at && (!LAST_CH || v.at.toMillis() > LAST_CH.toMillis())) LAST_CH = v.at; });
+    } else {
+      const next = {};
+      for (const q of [query(collection(db, "changes"), where("ak", "==", ME.ak)), query(collection(db, "changes"), where("from", "==", ME.ak))])
+        (await getDocs(q)).docs.forEach(d => { next[d.id] = Object.assign({ docId: d.id }, d.data()); });
+      CHANGES = next;
+    }
+    pushOverlay();
+  } catch (e) {}
+}
+async function pollUpdates() {
+  try {
+    if (ME.admin) {
+      const q = LAST_UP ? query(collection(db, "updates"), where("at", ">", LAST_UP), orderBy("at")) : query(collection(db, "updates"), orderBy("at", "desc"), limit(400));
+      const s = await getDocs(q), byId = {};
+      UPDATES.forEach(u => { byId[u.id] = u; });
+      s.docs.forEach(d => { const v = Object.assign({ id: d.id }, d.data()); byId[d.id] = v; if (v.at && (!LAST_UP || v.at.toMillis() > LAST_UP.toMillis())) LAST_UP = v.at; });
+      UPDATES = Object.values(byId);
+    } else {
+      UPDATES = (await getDocs(query(collection(db, "updates"), where("ak", "==", ME.ak), limit(200)))).docs.map(d => Object.assign({ id: d.id }, d.data()));
+    }
+    UPDATES.sort((a, b) => ((b.at && b.at.seconds) || 9e12) - ((a.at && a.at.seconds) || 9e12));
+    renderUpdates(); pushOverlay();
+  } catch (e) {}
 }
 
 // ---------- Basel's sync: bundle from GitHub -> Firestore ----------
