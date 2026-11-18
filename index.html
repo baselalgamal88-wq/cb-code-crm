@@ -1392,7 +1392,7 @@ window.__cbOverlay=function(list){
 var LISTS={rotation:[],cold:[]}, LQ={rotation:{q:"",ag:"",fb:""},cold:{q:"",ag:"",fb:""}}, LNAME={rotation:"Rotation",cold:"Cold calls"};
 window.__cbLists=function(L){ Object.keys(L).forEach(function(k){ LISTS[k]=L[k]||[]; renderList(k); }); };
 function telDigits(p){ var d=String(p||"").replace(/\D/g,""); if(/^1[0125]\d{8}$/.test(d)) d="0"+d; return d; }
-function waLink(p){ var d=telDigits(p); if(/^0\d{10}$/.test(d)) d="2"+d; return "https://wa.me/"+d; }
+function listWaUrl(p){ var d=telDigits(p); if(/^0\d{10}$/.test(d)) d="2"+d; return "https://wa.me/"+d; }
 function uniq(a){ var s={},o=[]; a.forEach(function(x){ if(!s[x]){ s[x]=1; o.push(x); } }); return o; }
 function noFb(r){ return !r.fb||r.fb==="New"; }
 function renderList(k){ var box=$("v-"+k); if(!box) return; var A=window.CB_APP||{}; box.textContent="";
@@ -1419,7 +1419,7 @@ function renderList(k){ var box=$("v-"+k); if(!box) return; var A=window.CB_APP|
     c.appendChild(el("div","lmeta",meta));
     if(r.note) c.appendChild(el("div","lnote",r.note));
     var acts=el("div","lacts"), call=el("a","btn sm","Call"); call.href="tel:"+telDigits(r.phone);
-    var wa=el("a","btn sm","WhatsApp"); wa.href=waLink(r.phone); wa.target="_blank"; wa.rel="noopener"; acts.appendChild(call); acts.appendChild(wa);
+    var wa=el("a","btn sm","WhatsApp"); wa.href=listWaUrl(r.phone); wa.target="_blank"; wa.rel="noopener"; acts.appendChild(call); acts.appendChild(wa);
     [call,wa].forEach(function(a){ a.addEventListener("click",function(ev){ ev.stopPropagation(); }); }); c.appendChild(acts);
     function open(){ openListItem(k,r); } c.addEventListener("click",open); c.addEventListener("keydown",function(ev){ if(ev.key==="Enter") open(); });
     list.appendChild(c); });
