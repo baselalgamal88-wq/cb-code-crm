@@ -49,6 +49,11 @@ service cloud.firestore {
       allow read: if isAdmin() || (myAgent() != '' && resource.data.ak == myAgent());
       allow write: if isAdmin();
     }
+    // leads reassigned to each agent ('all' = Basel)
+    match /reassigned/{d} {
+      allow read: if isAdmin() || (myAgent() != '' && d == myAgent());
+      allow write: if isAdmin();
+    }
     // feedback agents log in the app
     match /updates/{id} {
       allow read: if isAdmin() || (myAgent() != '' && resource.data.ak == myAgent());

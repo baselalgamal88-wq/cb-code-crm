@@ -585,6 +585,7 @@ svg .gauge-k{font-size:10.5px;fill:var(--ink-3);font-family:var(--font)}
     <div class="pager"><span id="cl-info"></span><button class="btn" id="cl-prev" type="button">Previous</button><button class="btn" id="cl-next" type="button">Next</button></div>
   </section>
 
+  <section class="view" id="v-reassigned"><div class="lcount">Loading…</div></section>
   <section class="view" id="v-rotation"><div class="lcount">Loading…</div></section>
   <section class="view" id="v-cold"><div class="lcount">Loading…</div></section>
 
@@ -1233,12 +1234,12 @@ var ICONS={today:"M12 3v2M12 19v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M3 12h2M19 12
   sales:"M3 3v18h18M7 15l4-4 3 3 6-6",
   projects:"M4 21V7l8-4 8 4v14M9 21v-6h6v6M8 10h.01M12 10h.01M16 10h.01"};
 var SECTIONS=[{id:"today",label:"Today",views:[["today","Today"],["daily","Daily report"],["changes","What changed"]]},
-  {id:"leads",label:"Leads",views:[["overview","Overview"],["leads","All leads"],["clients","Clients"],["rotation","Rotation"],["cold","Cold calls"]]},
+  {id:"leads",label:"Leads",views:[["overview","Overview"],["leads","All leads"],["clients","Clients"],["reassigned","Reassigned"],["rotation","Rotation"],["cold","Cold calls"]]},
   {id:"team",label:"Team",views:[["agents","Agents"],["team","Feedback mix"],["performance","Agent rates"],["sheets","Agent sheets"]]},
   {id:"sales",label:"Sales",views:[["tcrs","TCRs and targets"],["reports","Reports"]]},
   {id:"projects",label:"Projects",views:[["projects","Projects"]]}];
 var ALLVIEWS=[], SECOF={}, LASTV={}; SECTIONS.forEach(function(s){ LASTV[s.id]=s.views[0][0]; s.views.forEach(function(v){ ALLVIEWS.push(v[0]); SECOF[v[0]]=s.id; }); });
-var NOFILTER={today:1,agents:1,myleads:1,rotation:1,cold:1};
+var NOFILTER={today:1,agents:1,myleads:1,rotation:1,cold:1,reassigned:1};
 function icon(name){ var NS="http://www.w3.org/2000/svg", s=document.createElementNS(NS,"svg"); s.setAttribute("viewBox","0 0 24 24"); s.setAttribute("aria-hidden","true"); var p=document.createElementNS(NS,"path"); p.setAttribute("d",ICONS[name]); s.appendChild(p); return s; }
 function buildNav(){ [$("tabs"),$("botnav")].forEach(function(nav){ nav.textContent=""; SECTIONS.forEach(function(s){ var b=el("button"); b.type="button"; b.dataset.sec=s.id; b.appendChild(icon(s.id)); b.appendChild(el("span",null,s.label)); b.addEventListener("click",function(){ go(LASTV[s.id]); }); nav.appendChild(b); }); }); }
 
@@ -1443,6 +1444,50 @@ function openListItem(k,r){ var A=window.CB_APP; if(!A) return; lastFocus=docume
       .catch(function(err){ st.className="bad"; st.textContent="Not saved ("+((err&&err.code)||"error")+")"; save.disabled=false; }); });
   $("scrim").classList.add("on"); var dr=$("drawer"); dr.classList.add("on"); dr.setAttribute("aria-hidden","false"); }
 
+// ---------- Team app: Reassigned leads (moved to an agent from someone else) ----------
+var RZ_BASE=[], RZ_LIVE=[], RZQ={q:"",fb:"",from:"",to:""};
+window.__cbReassigned=function(rows){ RZ_BASE=rows||[]; rzRender(); };
+window.__cbReassignLive=function(list){ RZ_LIVE=(list||[]).filter(function(c){ return c.kind==="reassign"; }); rzRender(); };
+function rzNoFb(n){ return !n||/pending|no feedback/i.test(n); }
+function rzUniq(a){ var s={},o=[]; a.forEach(function(x){ if(x&&!s[x]){ s[x]=1; o.push(x); } }); return o.sort(); }
+function rzShort(n){ return String(n||"").split(" ").slice(0,2).join(" "); }
+function rzRows(){ var by={}, me=window.CB_AGENT;
+  RZ_BASE.forEach(function(x){ by[String(x[0])]={id:String(x[0]),to:x[1],from:x[2],day:x[3],how:x[4]||"Reassigned in CloudBlue"}; });
+  RZ_LIVE.forEach(function(c){ var at=c.at instanceof Date?c.at:(c.at&&c.at.toDate?c.at.toDate():null); by[String(c.id)]={id:String(c.id),to:c.agent,from:c.fromAgent||"",day:at?at.toISOString().slice(0,10):"",how:"Moved in Basel's sheet"}; });
+  var out=[]; Object.keys(by).forEach(function(id){ var x=by[id]; if(me&&x.to!==me) return; var l=leadById[id]||leadById[+id]; if(!l) return; x.lead=l; out.push(x); });
+  return out; }
+function rzRender(){ var box=$("v-reassigned"); if(!box) return; var A=window.CB_APP||{}; box.textContent="";
+  var all=rzRows(), st=RZQ;
+  var bar=el("div","lbar"), q=el("input"); q.type="search"; q.placeholder="Search name or number"; q.value=st.q; q.setAttribute("aria-label","Search reassigned leads"); bar.appendChild(q);
+  function sel(label,opts,val,on){ var s=el("select"); s.setAttribute("aria-label",label); opts.forEach(function(o){ var op=el("option",null,o[1]); op.value=o[0]; if(o[0]===val) op.selected=true; s.appendChild(op); }); s.addEventListener("change",function(){ on(s.value); rzRender(); }); bar.appendChild(s); return s; }
+  var fbs=rzUniq(all.map(function(x){ return X.feedback[x.lead[C.feedback]]; }));
+  sel("Feedback",[["","All feedback"],["__none","No feedback yet"]].concat(fbs.map(function(f){ return [f,f]; })),st.fb,function(v){ st.fb=v; });
+  sel("Moved from",[["","From anyone"]].concat(rzUniq(all.map(function(x){ return x.from; })).map(function(f){ return [f,"From "+rzShort(f)]; })),st.from,function(v){ st.from=v; });
+  if(A.admin) sel("Moved to",[["","To any agent"]].concat(rzUniq(all.map(function(x){ return x.to; })).map(function(f){ return [f,"To "+rzShort(f)]; })),st.to,function(v){ st.to=v; });
+  box.appendChild(bar);
+  var ql=st.q.toLowerCase(), qd=st.q.replace(/\D/g,"");
+  var rows=all.filter(function(x){ var l=x.lead, fb=X.feedback[l[C.feedback]];
+    if(st.from&&x.from!==st.from) return false; if(st.to&&x.to!==st.to) return false;
+    if(st.fb==="__none"&&!rzNoFb(fb)) return false; if(st.fb&&st.fb!=="__none"&&fb!==st.fb) return false;
+    if(ql&&String(l[C.client]).toLowerCase().indexOf(ql)<0&&!(qd.length>=3&&String(l[C.contact]).replace(/\D/g,"").indexOf(qd)>=0)) return false; return true; });
+  rows.sort(function(a,b){ var na=rzNoFb(X.feedback[a.lead[C.feedback]])?0:1, nb=rzNoFb(X.feedback[b.lead[C.feedback]])?0:1; if(na!==nb) return na-nb; return String(b.day).localeCompare(String(a.day)); });
+  var todo=all.filter(function(x){ return rzNoFb(X.feedback[x.lead[C.feedback]]); }).length;
+  box.appendChild(el("div","lcount",rows.length+" of "+all.length+" reassigned leads · "+todo+" still without feedback"));
+  if(!all.length) box.appendChild(el("div","card lempty",A.admin?"No reassigned leads yet.":"No leads have been reassigned to you."));
+  var list=el("div","llist");
+  rows.slice(0,300).forEach(function(x){ var l=x.lead, fb=X.feedback[l[C.feedback]], c=el("div","lrow"); c.tabIndex=0; c.setAttribute("role","button");
+    var top=el("div","ltop"); var nm=el("b",null,l[C.client]||"(no name)"); nm.dir="auto"; top.appendChild(nm); top.appendChild(el("span","chip "+fbClass(fb),fb||"No feedback")); c.appendChild(top);
+    c.appendChild(el("div","lmeta",[String(l[C.contact]||"").split(/[\/,;]/)[0].trim(),X.project[l[C.project]]].filter(Boolean).join(" · ")));
+    c.appendChild(el("div","lnote","From "+(rzShort(x.from)||"another agent")+(A.admin?" to "+rzShort(x.to):"")+(x.day?" on "+x.day:"")+" · "+x.how));
+    var ph=String(l[C.contact]||"").split(/[\/,;]/)[0].replace(/\D/g,""); if(/^1[0125]\d{8}$/.test(ph)) ph="0"+ph;
+    if(ph){ var acts=el("div","lacts"), call=el("a","btn sm","Call"); call.href="tel:"+ph; var wa=el("a","btn sm","WhatsApp"); wa.href="https://wa.me/"+(/^0\d{10}$/.test(ph)?"2"+ph:ph); wa.target="_blank"; wa.rel="noopener";
+      [call,wa].forEach(function(a){ a.addEventListener("click",function(ev){ ev.stopPropagation(); }); acts.appendChild(a); }); c.appendChild(acts); }
+    function open(){ openClient(clientOfLead(l)); } c.addEventListener("click",open); c.addEventListener("keydown",function(ev){ if(ev.key==="Enter") open(); });
+    list.appendChild(c); });
+  if(rows.length>300) list.appendChild(el("div","lcount","Showing the first 300. Search or filter to find the rest."));
+  box.appendChild(list);
+  q.addEventListener("input",function(){ st.q=q.value; clearTimeout(q._t); q._t=setTimeout(function(){ rzRender(); var n=$("v-reassigned").querySelector("input"); if(n){ n.focus(); n.setSelectionRange(n.value.length,n.value.length); } },250); }); }
+
 function render(){
   var c=$("count"); c.textContent=""; c.appendChild(el("b",null,fmt(view.length))); c.appendChild(document.createTextNode(" of "+fmt(R.length)+" leads"+(state.stale?" · no activity for "+(state.stale>=1440?Math.round(state.stale/1440)+" days":Math.round(state.stale/60)+" hours")+" or more":"")));
   tiles(); bars("c-feedback",C.feedback,X.feedback,"feedback"); bars("c-status",C.status,X.status,"status"); months(); bars("c-project",C.project,X.project,"project",10);
@@ -1603,6 +1648,11 @@ function startDashboard(data) {
   watchChanges();
   setupBell();
   watchLists();
+  watchReassigned();
+}
+async function watchReassigned() {
+  const load = async () => { try { const d = await getDoc(doc(db, "reassigned", ME.admin ? "all" : ME.ak)); if (d.exists() && window.__cbReassigned) window.__cbReassigned(JSON.parse(d.data().d || "[]")); else if (window.__cbReassigned) window.__cbReassigned([]); } catch (e) {} };
+  load(); setInterval(load, 10 * 60 * 1000);
 }
 
 // ---------- Rotation and Cold calls (tabs in Basel's sheet) ----------
@@ -1717,6 +1767,7 @@ function pushOverlay() {
       project: u.project, source: u.source || "Added in the app", feedback: u.feedback, note: u.note, at: u.at }));
     list.forEach(c => { if (c.at && c.at.toDate) c.at = c.at.toDate(); });
     try { window.__cbOverlay(list); } catch (e) { console.error(e); }
+    try { if (window.__cbReassignLive) window.__cbReassignLive(list); } catch (e) { console.error(e); }
   }, 250);
 }
 function watchChanges() {
