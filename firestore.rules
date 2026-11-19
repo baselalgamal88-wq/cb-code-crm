@@ -54,6 +54,15 @@ service cloud.firestore {
       allow read: if isAdmin() || (myAgent() != '' && d == myAgent());
       allow write: if isAdmin();
     }
+    // each person's own settings (their WhatsApp greeting)
+    match /prefs/{e} {
+      allow read, write: if email() != '' && e == email();
+    }
+    // Basel's app settings (whether agents see sales); everyone signed in reads them
+    match /settings/{d} {
+      allow read: if isAdmin() || myAgent() != '';
+      allow write: if isAdmin();
+    }
     // feedback agents log in the app
     match /updates/{id} {
       allow read: if isAdmin() || (myAgent() != '' && resource.data.ak == myAgent());

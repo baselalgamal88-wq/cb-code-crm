@@ -428,6 +428,18 @@ svg .gauge-k{font-size:10.5px;fill:var(--ink-3);font-family:var(--font)}
 .ltop{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}.ltop b{font-size:15px}
 .lmeta{font-size:12.5px;color:var(--ink-3);margin-top:4px}.lnote{font-size:13px;color:var(--ink-2);margin-top:6px;white-space:pre-wrap;max-height:3.9em;overflow:hidden}
 .lacts{display:flex;gap:8px;margin-top:10px}.btn.sm{padding:6px 12px;font-size:12.5px;min-height:32px;text-decoration:none}
+.secgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin:6px 0 18px}
+.seccard{text-align:left;background:var(--card,#fff);border:1px solid var(--line,#e3e7ee);border-radius:14px;padding:14px;cursor:pointer;font:inherit;color:inherit}
+.seccard:hover,.seccard:focus-visible{border-color:var(--gold,#c9a54a);outline:none}.seccard .k{font-size:12.5px;color:var(--ink-3)}.seccard .v{font-size:26px;font-weight:700;margin:4px 0}.seccard .n{font-size:12px;color:var(--ink-3)}
+.seccard.attn .v{color:#b54708}.seccard.gold .v{color:#a8842c}
+.secph{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.secph input{flex:1 1 200px;min-height:38px}
+.projchips{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 20px}.pchip{display:inline-flex;gap:8px;align-items:center;border:1px solid var(--line,#e3e7ee);background:var(--card,#fff);border-radius:999px;padding:7px 12px;cursor:pointer;font:inherit;color:inherit}.pchip b{font-size:12px;color:var(--ink-3)}.pchip:hover{border-color:var(--gold,#c9a54a)}
+.mvcell{white-space:nowrap}.mvcell select{max-width:130px;min-height:30px}.mvcell .btn{margin-left:4px}
+.lastfb{background:rgba(201,165,74,.08);border-left:3px solid var(--gold,#c9a54a);padding:10px 12px;border-radius:8px}.lastfb p{margin:4px 0;white-space:pre-wrap}
+.lnote.lastline{color:var(--ink-1,#1d2939);font-style:normal}
+.salesw{display:flex;gap:8px;align-items:center;margin:10px 0;font-size:13.5px}
+body.nosales .acard .tg,body.nosales .acard .ring,body.nosales [data-sec="sales"],body.nosales #hero-target{display:none!important}
+tr.click{cursor:pointer}
 
 </style>
 </head>
@@ -474,6 +486,7 @@ svg .gauge-k{font-size:10.5px;fill:var(--ink-3);font-family:var(--font)}
     <input id="zm-link" type="url" style="width:100%;height:34px;border:1px solid var(--line);border-radius:7px;padding:0 9px;background:var(--surface);color:inherit;font:inherit">
     <label for="zm-text" class="note" style="display:block;margin:8px 0 4px">Invitation message</label>
     <textarea id="zm-text" dir="auto"></textarea>
+    <label class="salesw" id="sales-sw" hidden><input type="checkbox" id="sales-show"> Agents can see their sales volume and target achievement</label>
     <div class="row"><button class="btn" id="wa-save" type="button">Save messages</button><button class="btn" id="wa-reset" type="button">Restore default</button><span class="note" id="wa-msg" style="margin:0"></span></div>
   </div>
   <nav class="secnav" id="tabs" aria-label="Sections"></nav>
@@ -585,6 +598,7 @@ svg .gauge-k{font-size:10.5px;fill:var(--ink-3);font-family:var(--font)}
     <div class="pager"><span id="cl-info"></span><button class="btn" id="cl-prev" type="button">Previous</button><button class="btn" id="cl-next" type="button">Next</button></div>
   </section>
 
+  <section class="view" id="v-sections"></section>
   <section class="view" id="v-reassigned"><div class="lcount">Loading…</div></section>
   <section class="view" id="v-rotation"><div class="lcount">Loading…</div></section>
   <section class="view" id="v-cold"><div class="lcount">Loading…</div></section>
@@ -792,7 +806,7 @@ function projects(){
   t.appendChild(tb);
 }
 
-var LCOLS=[["Lead ID",C.id],["Client",C.client],["Contact",C.contact],["Project",C.project],["Agent",C.agent],["Status",C.status],["Last feedback",C.feedback],["Created",C.created],["Last activity",C.lastAct],["Source",C.source],["Feedback comment",C.comment]];
+var LCOLS=[["Lead ID",C.id],["Client",C.client],["Contact",C.contact],["Project",C.project],["Agent",C.agent],["Status",C.status],["Last feedback",C.feedback],["Created",C.created],["Last activity",C.lastAct],["Source",C.source],["Latest feedback",C.comment]].concat(window.CB_APP&&window.CB_APP.admin?[["Move",C.id]]:[]);
 function leads(){
   var col=state.sort, dir=state.dir; var dictFor={}; dictFor[C.project]=X.project; dictFor[C.agent]=X.agent; dictFor[C.status]=X.status; dictFor[C.feedback]=X.feedback; dictFor[C.source]=X.source;
   var v=view.slice().sort(function(a,b){ var x=a[col], y=b[col]; if(dictFor[col]){x=dictFor[col][x]||"";y=dictFor[col][y]||"";} if(typeof x==="string") return x.localeCompare(y)*dir; return (x-y)*dir; });
@@ -805,7 +819,7 @@ function leads(){
     tr.appendChild(el("td",null,X.project[r[C.project]]||"")); tr.appendChild(el("td",null,X.agent[r[C.agent]]||"")); tr.appendChild(el("td",null,X.status[r[C.status]]||""));
     var f=el("td"); var fn=X.feedback[r[C.feedback]]||""; f.appendChild(el("span","pill "+fbClass(fn),fn)); tr.appendChild(f);
     tr.appendChild(el("td",null,dstr(r[C.created]))); tr.lastChild.title=dtstr(r[C.created]); tr.appendChild(el("td",null,dstr(r[C.lastAct]))); if(r[C.lastAct]) tr.lastChild.title=dtstr(r[C.lastAct]);
-    tr.appendChild(el("td",null,X.source[r[C.source]]||"")); var cm=el("td","wrapc",r[C.comment]||""); cm.dir="auto"; if(r[C.comment]){cm.title="Click to show the full comment"; cm.addEventListener("click",function(){cm.classList.toggle("open");});} tr.appendChild(cm); tb.appendChild(tr); });
+    tr.appendChild(el("td",null,X.source[r[C.source]]||"")); var LN=window.__lastNote?window.__lastNote(r):{text:r[C.comment]||"",meta:""}; var cm=el("td","wrapc",LN.text||""); cm.dir="auto"; if(LN.text){ cm.title=(LN.meta?LN.meta+". ":"")+"Click to show it all"; cm.addEventListener("click",function(ev){ ev.stopPropagation(); cm.classList.toggle("open"); }); } tr.appendChild(cm); if(window.CB_APP&&window.CB_APP.admin&&window.__moveCell) tr.appendChild(window.__moveCell(r)); tr.classList.add("click"); tr.addEventListener("click",function(ev){ if(ev.target.closest&&ev.target.closest("a,button,select,input")) return; openClient(clientOfLead(r)); }); tb.appendChild(tr); });
   t.appendChild(tb);
   $("pg-info").textContent=v.length? (fmt(start+1)+" to "+fmt(start+slice.length)+" of "+fmt(v.length)) : "0 leads"; $("pg-prev").disabled=state.page<=0; $("pg-next").disabled=state.page>=pages-1;
 }
@@ -981,7 +995,7 @@ function projCharts(){ var iq=idx(X.feedback,"Qualified"), q={}, w={}; view.forE
 
 // ---------- WhatsApp ----------
 var WA_DEFAULT="Hello {name}, this is Basel Algamal from Coldwell Banker. I hope you are doing well. I am following up on your interest in {project}. When would be a good time for a quick call?";
-var waText=WA_DEFAULT; try{ var sv=localStorage.getItem("cbcode.wa"); if(sv) waText=sv; }catch(e){}
+if(window.CB_AGENT) WA_DEFAULT=WA_DEFAULT.replace("Basel Algamal",String(window.CB_NAME||"").split(" ").slice(0,2).join(" ")||"your Coldwell Banker advisor"); var WAKEY="cbcode.wa."+((window.CB_APP&&window.CB_APP.email)||""); var waText=WA_DEFAULT; try{ var sv=localStorage.getItem(WAKEY); if(sv) waText=sv; }catch(e){} window.__setWa=function(t){ waText=t; try{ localStorage.setItem(WAKEY,t); }catch(e){} var w=$("wa-text"); if(w) w.value=t; try{ render(); }catch(e){} };
 function waNumber(s){ var part=(s||"").split(/[,;\/\n]| - /).filter(function(p){return p.indexOf("@")<0&&p.replace(/\D/g,"").length>=9})[0]; if(!part) return ""; var d=part.replace(/\D/g,"");
   if(d.indexOf("00")===0) d=d.slice(2); if(d.indexOf("200")===0) d="20"+d.slice(3); else if(d.length===11&&d.indexOf("01")===0) d="20"+d.slice(1); else if(d.length===10&&d.charAt(0)==="1") d="20"+d;
   return (d.length>=11&&d.length<=15)? d:""; }
@@ -1142,7 +1156,7 @@ function today(){ if(!FU) FU=followup(); if(!TCB) TCB=tcrBy(); var H=histLatest(
   tileIn(t,"Unhandled clients",fmt(tot.u),"no feedback in CloudBlue or the sheets",tot.u>0,function(){ goLeads({feedback:-2,act:1}); });
   tileIn(t,"No Answer over 24h",fmt(tot.na),"not tried again since",tot.na>0,function(){ goLeads({feedback:ina,act:0,stale:1440}); });
   tileIn(t,"Qualified, quiet 1 week",fmt(tot.qs),"qualified with no activity for 7 days",tot.qs>0,function(){ goLeads({feedback:iq,act:0,stale:10080}); });
-  tileIn(t,window.CB_AGENT?"Your sales":"Team sales",pctT+"%","EGP "+money(TCB.total)+" of "+money(TEAM_TARGET),false,function(){ go("tcrs"); }); t.lastChild.classList.add("gold");
+  if(!window.__NOSALES) tileIn(t,window.CB_AGENT?"Your sales":"Team sales",pctT+"%","EGP "+money(TCB.total)+" of "+money(TEAM_TARGET),false,function(){ go("tcrs"); }); if(!window.__NOSALES) t.lastChild.classList.add("gold");
   // needs attention
   var tb=$("td-attn"); tb.textContent=""; var th=el("thead"), h1=el("tr"); ["Agent","Fresh","Unhandled","No Answer 24h+","Qualified quiet",""].forEach(function(x,i){ h1.appendChild(el("th",i&&i<5?"num":"",x)); }); th.appendChild(h1); tb.appendChild(th); var body=el("tbody");
   rows.sort(function(x,y){ return (y.o.na+y.o.qs+y.o.u)-(x.o.na+x.o.qs+x.o.u); });
@@ -1223,7 +1237,7 @@ function chips(){ var c=$("f-chips"); c.textContent=""; var list=[];
   var bd=$("f-badge"); bd.textContent=list.length?String(list.length):""; bd.classList.toggle("on",list.length>0); }
 
 // ---------- Header target ----------
-function heroTarget(){ if(!TCB) TCB=tcrBy(); var box=$("hero-target"); box.textContent=""; if(!TEAM_TARGET) return; var p=TCB.total/TEAM_TARGET;
+function heroTarget(){ if(!TCB) TCB=tcrBy(); var box=$("hero-target"); box.textContent=""; if(window.__NOSALES) return; if(!TEAM_TARGET) return; var p=TCB.total/TEAM_TARGET;
   box.appendChild(el("div","tl",window.CB_AGENT?"Your sales target":"Team sales target")); var tt=el("div","tt"), i=el("i"); i.style.width=Math.min(100,p*100)+"%"; tt.appendChild(i); tt.setAttribute("role","img"); tt.setAttribute("aria-label",Math.round(p*100)+"% of the team target reached"); box.appendChild(tt);
   var tv=el("div","tv"); tv.appendChild(el("b",null,Math.round(p*100)+"%")); tv.appendChild(document.createTextNode("EGP "+money(TCB.total)+" of "+money(TEAM_TARGET))); box.appendChild(tv); }
 
@@ -1234,7 +1248,7 @@ var ICONS={today:"M12 3v2M12 19v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M3 12h2M19 12
   sales:"M3 3v18h18M7 15l4-4 3 3 6-6",
   projects:"M4 21V7l8-4 8 4v14M9 21v-6h6v6M8 10h.01M12 10h.01M16 10h.01"};
 var SECTIONS=[{id:"today",label:"Today",views:[["today","Today"],["daily","Daily report"],["changes","What changed"]]},
-  {id:"leads",label:"Leads",views:[["overview","Overview"],["leads","All leads"],["clients","Clients"],["reassigned","Reassigned"],["rotation","Rotation"],["cold","Cold calls"]]},
+  {id:"leads",label:"Leads",views:[["sections","Sections"],["overview","Overview"],["leads","All leads"],["clients","Clients"],["reassigned","Reassigned"],["rotation","Rotation"],["cold","Cold calls"]]},
   {id:"team",label:"Team",views:[["agents","Agents"],["team","Feedback mix"],["performance","Agent rates"],["sheets","Agent sheets"]]},
   {id:"sales",label:"Sales",views:[["tcrs","TCRs and targets"],["reports","Reports"]]},
   {id:"projects",label:"Projects",views:[["projects","Projects"]]}];
@@ -1306,7 +1320,7 @@ function chBacklog(){ if(!FU) FU=followup(); var iq=idx(X.feedback,"Qualified"),
     row.appendChild(bars); box.appendChild(row); }); c.appendChild(box); }
 
 // 5. Team target gauge + sales by month
-function chSales(){ if(!TCB) TCB=tcrBy(); var p=TEAM_TARGET?TCB.total/TEAM_TARGET:0, c=chartCard("Sales target","TCR sales volume (EGP) against the team target, and by contract month");
+function chSales(){ if(window.__NOSALES) return; if(!TCB) TCB=tcrBy(); var p=TEAM_TARGET?TCB.total/TEAM_TARGET:0, c=chartCard("Sales target","TCR sales volume (EGP) against the team target, and by contract month");
   var wrap=el("div","salewrap"), S=180, s=svgE("svg",{viewBox:"0 0 "+S+" "+(S*0.62),role:"img","aria-label":Math.round(p*100)+"% of team target"}), cx=S/2, cy=S*0.56, r=70;
   function arc(f,col,w){ var a0=Math.PI, a1=Math.PI+Math.PI*Math.min(1,f); return svgE("path",{d:"M"+(cx+r*Math.cos(a0))+","+(cy+r*Math.sin(a0))+" A"+r+","+r+" 0 0 1 "+(cx+r*Math.cos(a1))+","+(cy+r*Math.sin(a1))},"fill:none;stroke:"+col+";stroke-width:"+w+";stroke-linecap:round"); }
   s.appendChild(arc(1,"var(--bar-track)",14)); if(p>0) s.appendChild(arc(p,"var(--gold)",14)); s.appendChild(txt(cx,cy-12,Math.round(p*100)+"%","middle","gauge-v")); s.appendChild(txt(cx,cy+6,"EGP "+money(TCB.total)+" of "+money(TEAM_TARGET),"middle","gauge-k")); wrap.appendChild(s);
@@ -1329,14 +1343,15 @@ function homeCharts(){ var box=$("td-charts"); box.textContent=""; chFunnel(); c
 // ---------- Team app: log feedback on a client, show what was logged in the app ----------
 function appDrawer(e,b){ var A=window.CB_APP; if(!A) return;
   var l0=e.leads[0], s0=e.sheets[0], agentName=l0?X.agent[l0[C.agent]]:(s0&&SH?SH.dict.agent[s0[S.agent]]:"");
+  if(l0){ var LN=window.__lastNote(l0); if(LN.text){ var lb=el("div","lastfb dsec"); lb.appendChild(el("h4",null,"Latest feedback")); var lt=el("p",null,LN.text); lt.dir="auto"; lb.appendChild(lt); lb.appendChild(el("div","hint",LN.meta)); b.appendChild(lb); } }
   var f=el("div","logf dsec"); f.appendChild(el("h4",null,"Log feedback"));
   var row=el("div","row2"), sel=el("select"); sel.setAttribute("aria-label","Feedback"); A.FB_OPTIONS.forEach(function(o){ sel.appendChild(el("option",null,o)); });
   var nx=el("input"); nx.type="date"; nx.setAttribute("aria-label","Next follow-up date"); nx.title="Next follow-up (optional)"; row.appendChild(sel); row.appendChild(nx); f.appendChild(row);
-  var note=el("textarea"); note.placeholder="Note: what the client said, what's next"; note.setAttribute("aria-label","Note"); note.maxLength=1990; f.appendChild(note);
+  var note=el("textarea"); note.placeholder="What happened with the client: what they said, what they want, what you agreed next"; note.setAttribute("aria-label","What happened with the client"); note.maxLength=1990; note.rows=4; f.appendChild(note);
   var acts=el("div","acts"), save=el("button","btn primary","Save"); save.type="button"; var st=el("span"); st.setAttribute("role","status"); acts.appendChild(save); acts.appendChild(st); f.appendChild(acts);
   save.addEventListener("click",function(){ save.disabled=true; st.className=""; st.textContent="Saving…";
     A.logFeedback({ak:A.AK_OF[agentName]||"", lead:l0?l0[C.id]:"", client:e.name, phone:e.number||"", feedback:sel.value, note:note.value.trim(), next:nx.value})
-      .then(function(){ st.className="ok"; st.textContent="Saved. Also log it in CloudBlue."; note.value=""; save.disabled=false; setTimeout(function(){ openClient(e); },900); })
+      .then(function(){ st.className="ok"; st.textContent="Saved. It goes to Basel's sheet within a minute."; note.value=""; save.disabled=false; setTimeout(function(){ openClient(e); },900); })
       .catch(function(err){ st.className="bad"; st.textContent="Not saved ("+((err&&err.code)||"error")+")"; save.disabled=false; }); });
   b.appendChild(f);
   if(A.admin&&l0&&A.reassign){ var rs=el("div","logf dsec"); rs.appendChild(el("h4",null,"Reassign this lead"));
@@ -1347,7 +1362,7 @@ function appDrawer(e,b){ var A=window.CB_APP; if(!A) return;
     rs.appendChild(el("div","hint","Now with "+(agentName||"no agent")+". The lead moves in the app at once; your sheet's Agent column and the Reassigned tab update within a minute, and both agents get an alert. CloudBlue is not changed."));
     mv.addEventListener("click",function(){ if(to.value===agentName){ st2.className="bad"; st2.textContent="The lead is already with this agent."; return; }
       mv.disabled=true; st2.className=""; st2.textContent="Moving…";
-      A.reassign({id:String(l0[C.id]), agent:to.value, fromAgent:agentName||"", client:e.name, phone:e.number||"", project:X.project[l0[C.project]]||"", source:X.source[l0[C.source]]||"", feedback:X.feedback[l0[C.feedback]]||"", status:X.status[l0[C.status]]||""})
+      A.reassign({id:String(l0[C.id]), agent:to.value, fromAgent:agentName||"", client:e.name, phone:e.number||"", project:X.project[l0[C.project]]||"", source:X.source[l0[C.source]]||"", feedback:(window.__lastNote(l0).fb||X.feedback[l0[C.feedback]]||""), status:X.status[l0[C.status]]||"", note:window.__lastNote(l0).note||"", noteBy:window.__lastNote(l0).by||"", noteAt:window.__lastNote(l0).when||""})
         .then(function(){ st2.className="ok"; st2.textContent="Moved to "+to.value.split(" ").slice(0,2).join(" ")+"."; mv.disabled=false; })
         .catch(function(err){ st2.className="bad"; st2.textContent="Not moved ("+((err&&err.code)||"error")+")"; mv.disabled=false; }); });
     b.appendChild(rs); }
@@ -1364,7 +1379,7 @@ function appAddLead(){ var A=window.CB_APP; if(!A) return; lastFocus=document.ac
   var nm=field("Client name *",el("input")); nm.maxLength=150; nm.autocomplete="off";
   var ph=field("Mobile number *",el("input")); ph.type="tel"; ph.maxLength=40; ph.placeholder="01xxxxxxxxx";
   var pr=field("Project",el("input")); pr.maxLength=100; pr.setAttribute("list","app-projects"); var dl=el("datalist"); dl.id="app-projects"; X.project.slice().sort().forEach(function(p){ if(p&&p!=="No project"){ var o=el("option"); o.value=p; dl.appendChild(o); } }); f.appendChild(dl);
-  var so=field("Lead source",el("select")); ["Facebook","Instagram","TikTok","Website","Referral","Walk-in","Cold call","Event","Other"].forEach(function(s){ so.appendChild(el("option",null,s)); });
+  var so=field("Lead source",el("select")); ["Personal","Facebook","Instagram","TikTok","Website","Referral","Walk-in","Cold call","Event","Other"].forEach(function(s){ so.appendChild(el("option",null,s)); });
   var ag=null; if(A.admin){ ag=field("Agent",el("select")); Object.keys(A.AK_OF).forEach(function(n){ var o=el("option",null,n.split(" ").slice(0,2).join(" ")); o.value=A.AK_OF[n]; ag.appendChild(o); }); }
   var fb=field("Feedback",el("select")); ["New, not contacted yet"].concat(A.FB_OPTIONS).forEach(function(o){ fb.appendChild(el("option",null,o)); });
   var nx=field("Next follow-up",el("input")); nx.type="date";
@@ -1396,10 +1411,14 @@ window.__cbOverlay=function(list){
     if(m){ if(me&&m.agent!==me) return; r=r.slice(); r[C.agent]=__agIdx(m.agent); } out.push(r); });
   Object.keys(moved).forEach(function(id){ var m=moved[id]; if(del[id]||__baseIds[id]) return; if(adds.some(function(a){ return String(a.id)===id; })) return; if(!me||m.agent===me) out.push(__row(m,m.agent)); });
   var seen={}; adds.forEach(function(c){ var id=String(c.id); if(del[id]||seen[id]) return; seen[id]=1; var m=moved[id], ag=m?m.agent:c.agent; if(me&&ag!==me) return; out.push(__row(c,ag)); });
+  window.__MOVED=moved;
+  var ups=(window.CB_APP&&CB_APP.allUpdates)?CB_APP.allUpdates():[], latest={};
+  ups.forEach(function(u){ if(!u.feedback||!u.lead) return; var t=__tsMs(u.at)||9e12, k=String(u.lead); if(!latest[k]||t>latest[k].t) latest[k]={t:t,fb:u.feedback}; });
+  out=out.map(function(r){ var L=latest[String(r[C.id])]; if(!L) return r; var fi=__fbIdx(L.fb); if(fi===r[C.feedback]) return r; r=r.slice(); r[C.feedback]=fi; return r; });
   R.length=0; Array.prototype.push.apply(R,out);
   leadById={}; for(var i=0;i<R.length;i++) leadById[R[i][C.id]]=R[i];
   FU=null; TCB=null; CL=null; CLMAP={}; NAMEMAP={};
-  apply(); today(); homeCharts(); agents(); heroTarget(); };
+  apply(); today(); homeCharts(); agents(); heroTarget(); try{ secRender(); rzRender(); }catch(e){} };
 
 // ---------- Team app: Rotation and Cold calls (tabs in Basel's sheet) ----------
 var LISTS={rotation:[],cold:[]}, LQ={rotation:{q:"",ag:"",fb:""},cold:{q:"",ag:"",fb:""}}, LNAME={rotation:"Rotation",cold:"Cold calls"};
@@ -1457,15 +1476,15 @@ function openListItem(k,r){ var A=window.CB_APP; if(!A) return; lastFocus=docume
   $("scrim").classList.add("on"); var dr=$("drawer"); dr.classList.add("on"); dr.setAttribute("aria-hidden","false"); }
 
 // ---------- Team app: Reassigned leads (moved to an agent from someone else) ----------
-var RZ_BASE=[], RZ_LIVE=[], RZQ={q:"",fb:"",from:"",to:""};
+var RZ_BASE=[], RZ_LIVE=[], RZQ={q:"",fb:"",from:"",to:"",how:""};
 window.__cbReassigned=function(rows){ RZ_BASE=rows||[]; rzRender(); };
 window.__cbReassignLive=function(list){ RZ_LIVE=(list||[]).filter(function(c){ return c.kind==="reassign"; }); rzRender(); };
 function rzNoFb(n){ return !n||/pending|no feedback/i.test(n); }
 function rzUniq(a){ var s={},o=[]; a.forEach(function(x){ if(x&&!s[x]){ s[x]=1; o.push(x); } }); return o.sort(); }
 function rzShort(n){ return String(n||"").split(" ").slice(0,2).join(" "); }
 function rzRows(){ var by={}, me=window.CB_AGENT;
-  RZ_BASE.forEach(function(x){ by[String(x[0])]={id:String(x[0]),to:x[1],from:x[2],day:x[3],how:x[4]||"Reassigned in CloudBlue"}; });
-  RZ_LIVE.forEach(function(c){ var at=c.at instanceof Date?c.at:(c.at&&c.at.toDate?c.at.toDate():null); by[String(c.id)]={id:String(c.id),to:c.agent,from:c.fromAgent||"",day:at?at.toISOString().slice(0,10):"",how:c.by==="sheet"?"Moved in Basel's sheet":"Moved by Basel in the app"}; });
+  RZ_BASE.forEach(function(x){ by[String(x[0])]={id:String(x[0]),to:x[1],from:x[2],day:x[3],how:x[4]||"Reassigned in CloudBlue",grp:"batch"}; });
+  RZ_LIVE.forEach(function(c){ var at=c.at instanceof Date?c.at:(c.at&&c.at.toDate?c.at.toDate():null); by[String(c.id)]={id:String(c.id),to:c.agent,from:c.fromAgent||"",day:at?at.toISOString().slice(0,10):"",how:c.by==="sheet"?"Moved in Basel's sheet":"Moved by Basel in the app",grp:"live",t:__tsMs(c.at)}; });
   var out=[]; Object.keys(by).forEach(function(id){ var x=by[id]; if(me&&x.to!==me) return; var l=leadById[id]||leadById[+id]; if(!l) return; x.lead=l; out.push(x); });
   return out; }
 function rzRender(){ var box=$("v-reassigned"); if(!box) return; var A=window.CB_APP||{}; box.textContent="";
@@ -1475,14 +1494,15 @@ function rzRender(){ var box=$("v-reassigned"); if(!box) return; var A=window.CB
   var fbs=rzUniq(all.map(function(x){ return X.feedback[x.lead[C.feedback]]; }));
   sel("Feedback",[["","All feedback"],["__none","No feedback yet"]].concat(fbs.map(function(f){ return [f,f]; })),st.fb,function(v){ st.fb=v; });
   sel("Moved from",[["","From anyone"]].concat(rzUniq(all.map(function(x){ return x.from; })).map(function(f){ return [f,"From "+rzShort(f)]; })),st.from,function(v){ st.from=v; });
+  sel("Which moves",[["","All moves"],["live","Moved by Basel or the admin"],["batch","16 Nov CloudBlue batch"]],st.how,function(v){ st.how=v; });
   if(A.admin) sel("Moved to",[["","To any agent"]].concat(rzUniq(all.map(function(x){ return x.to; })).map(function(f){ return [f,"To "+rzShort(f)]; })),st.to,function(v){ st.to=v; });
   box.appendChild(bar);
   var ql=st.q.toLowerCase(), qd=st.q.replace(/\D/g,"");
   var rows=all.filter(function(x){ var l=x.lead, fb=X.feedback[l[C.feedback]];
-    if(st.from&&x.from!==st.from) return false; if(st.to&&x.to!==st.to) return false;
+    if(st.from&&x.from!==st.from) return false; if(st.to&&x.to!==st.to) return false; if(st.how&&x.grp!==st.how) return false;
     if(st.fb==="__none"&&!rzNoFb(fb)) return false; if(st.fb&&st.fb!=="__none"&&fb!==st.fb) return false;
     if(ql&&String(l[C.client]).toLowerCase().indexOf(ql)<0&&!(qd.length>=3&&String(l[C.contact]).replace(/\D/g,"").indexOf(qd)>=0)) return false; return true; });
-  rows.sort(function(a,b){ var na=rzNoFb(X.feedback[a.lead[C.feedback]])?0:1, nb=rzNoFb(X.feedback[b.lead[C.feedback]])?0:1; if(na!==nb) return na-nb; return String(b.day).localeCompare(String(a.day)); });
+  rows.sort(function(a,b){ return ((b.t||0)-(a.t||0))||String(b.day).localeCompare(String(a.day)); });
   var todo=all.filter(function(x){ return rzNoFb(X.feedback[x.lead[C.feedback]]); }).length;
   box.appendChild(el("div","lcount",rows.length+" of "+all.length+" reassigned leads · "+todo+" still without feedback"));
   if(!all.length) box.appendChild(el("div","card lempty",A.admin?"No reassigned leads yet.":"No leads have been reassigned to you."));
@@ -1490,7 +1510,7 @@ function rzRender(){ var box=$("v-reassigned"); if(!box) return; var A=window.CB
   rows.slice(0,300).forEach(function(x){ var l=x.lead, fb=X.feedback[l[C.feedback]], c=el("div","lrow"); c.tabIndex=0; c.setAttribute("role","button");
     var top=el("div","ltop"); var nm=el("b",null,l[C.client]||"(no name)"); nm.dir="auto"; top.appendChild(nm); top.appendChild(el("span","chip "+fbClass(fb),fb||"No feedback")); c.appendChild(top);
     c.appendChild(el("div","lmeta",[String(l[C.contact]||"").split(/[\/,;]/)[0].trim(),X.project[l[C.project]]].filter(Boolean).join(" · ")));
-    c.appendChild(el("div","lnote","From "+(rzShort(x.from)||"another agent")+(A.admin?" to "+rzShort(x.to):"")+(x.day?" on "+x.day:"")+" · "+x.how));
+    c.appendChild(el("div","lnote","From "+(rzShort(x.from)||"another agent")+(A.admin?" to "+rzShort(x.to):"")+(x.day?" on "+x.day:"")+" · "+x.how)); var LN2=window.__lastNote(l); if(LN2.text){ var lf=el("div","lnote lastline",LN2.text); lf.dir="auto"; lf.title=LN2.meta; c.appendChild(lf); }
     var ph=String(l[C.contact]||"").split(/[\/,;]/)[0].replace(/\D/g,""); if(/^1[0125]\d{8}$/.test(ph)) ph="0"+ph;
     if(ph){ var acts=el("div","lacts"), call=el("a","btn sm","Call"); call.href="tel:"+ph; var wa=el("a","btn sm","WhatsApp"); wa.href="https://wa.me/"+(/^0\d{10}$/.test(ph)?"2"+ph:ph); wa.target="_blank"; wa.rel="noopener";
       [call,wa].forEach(function(a){ a.addEventListener("click",function(ev){ ev.stopPropagation(); }); acts.appendChild(a); }); c.appendChild(acts); }
@@ -1499,6 +1519,65 @@ function rzRender(){ var box=$("v-reassigned"); if(!box) return; var A=window.CB
   if(rows.length>300) list.appendChild(el("div","lcount","Showing the first 300. Search or filter to find the rest."));
   box.appendChild(list);
   q.addEventListener("input",function(){ st.q=q.value; clearTimeout(q._t); q._t=setTimeout(function(){ rzRender(); var n=$("v-reassigned").querySelector("input"); if(n){ n.focus(); n.setSelectionRange(n.value.length,n.value.length); } },250); }); }
+
+// ---------- Team app v2: latest feedback everywhere, move any lead, sections, sales on/off ----------
+var __SHBYLEAD=null;
+function __fbIdx(name){ var n=String(name||"").toLowerCase().replace(/[^a-z]/g,""); for(var i=0;i<X.feedback.length;i++) if(String(X.feedback[i]).toLowerCase().replace(/[^a-z]/g,"")===n) return i; X.feedback.push(name); return X.feedback.length-1; }
+function __tsMs(t){ if(!t) return 0; if(t.seconds) return t.seconds*1000; if(t.getTime) return t.getTime(); var d=new Date(t); return isNaN(d)?0:d.getTime(); }
+// newest feedback written about a lead: app (agent or Basel), carried over on a move, agent's own sheet, CloudBlue comment
+window.__lastNote=function(r){ var A=window.CB_APP||{}, id=String(r[C.id]), best=null;
+  function cand(t,txt,by,src,fb){ txt=String(txt||"").trim(); if(!txt&&!fb) return; if(!best||t>best.t) best={t:t,text:txt,by:by||"",src:src,fb:fb||""}; }
+  try{ (A.updatesFor?A.updatesFor(pkeys(r[C.contact]||""),[id]):[]).forEach(function(u){ if(u.kind==="new"&&!u.note) return; cand(__tsMs(u.at)||9e12, u.note, (u.by==="sheet"?"Basel's sheet":String(u.by||"").split("@")[0]), u.src==="sheet"?"Sheet":"App", u.feedback); }); }catch(e){}
+  var m=(window.__MOVED||{})[id]; if(m&&(m.note||m.feedback)) cand(__tsMs(m.noteAt)||(__tsMs(m.at)-1), m.note, m.noteBy||m.fromAgent, "Before the move", m.feedback);
+  if(SH){ if(!__SHBYLEAD){ __SHBYLEAD={}; SH.rows.forEach(function(s){ if(s[S.lead]) (__SHBYLEAD[String(s[S.lead])]=__SHBYLEAD[String(s[S.lead])]||[]).push(s); }); }
+    (__SHBYLEAD[id]||[]).forEach(function(s){ cand(s[S.date]?s[S.date]*60000:2, s[S.notes], SH.dict.agent[s[S.agent]], "Agent sheet", SH.dict.feedback[s[S.fb]]); }); }
+  if(r[C.comment]) cand(r[C.lastAct]?r[C.lastAct]*60000:3, r[C.comment], "", "CloudBlue", "");
+  if(!best) return {text:"",meta:""};
+  var when=best.t>1e11&&best.t<8e12?new Date(best.t).toLocaleString("en-GB",{day:"numeric",month:"short",hour:"numeric",minute:"2-digit"}):"";
+  return {text:(best.fb&&best.fb.toLowerCase()!==best.text.toLowerCase()?best.fb+(best.text?": ":""):"")+best.text, meta:[best.src,best.by,when].filter(Boolean).join(" · "), src:best.src, fb:best.fb, by:best.by, when:when, note:best.text};
+};
+// Basel: "Move" next to every lead in the lists
+window.__moveCell=function(r){ var A=window.CB_APP||{}, td=el("td","mvcell"); if(!A.admin||!A.reassign) return td;
+  var b=el("button","btn sm","Move"); b.type="button"; b.title="Reassign this lead to another agent"; td.appendChild(b);
+  b.addEventListener("click",function(ev){ ev.stopPropagation(); td.textContent=""; var cur=X.agent[r[C.agent]]||"", s=el("select"); s.setAttribute("aria-label","Move to agent");
+    Object.keys(A.AK_OF).forEach(function(n){ var o=el("option",null,n.split(" ").slice(0,2).join(" ")); o.value=n; if(n===cur) o.selected=true; s.appendChild(o); });
+    var ok=el("button","btn sm primary","Move"), no=el("button","btn sm","Cancel"); ok.type=no.type="button"; [s,ok,no].forEach(function(x){ x.addEventListener("click",function(e2){ e2.stopPropagation(); }); td.appendChild(x); });
+    no.addEventListener("click",function(){ td.replaceWith(window.__moveCell(r)); });
+    ok.addEventListener("click",function(){ if(s.value===cur){ td.replaceWith(window.__moveCell(r)); return; } ok.disabled=true; ok.textContent="…";
+      var ln=window.__lastNote(r);
+      A.reassign({id:String(r[C.id]), agent:s.value, fromAgent:cur, client:r[C.client], phone:r[C.contact]||"", project:X.project[r[C.project]]||"", source:X.source[r[C.source]]||"", feedback:ln.fb||X.feedback[r[C.feedback]]||"", status:X.status[r[C.status]]||"", note:ln.note||"", noteBy:ln.by||"", noteAt:ln.when||""})
+        .catch(function(err){ alert("Not moved ("+((err&&err.code)||err.message||"error")+")"); td.replaceWith(window.__moveCell(r)); }); }); });
+  return td; };
+// Sections: quick lists of leads
+function __best(re){ var bi=-1,bn=-1,cnt={}; R.forEach(function(r){ cnt[r[C.feedback]]=(cnt[r[C.feedback]]||0)+1; }); X.feedback.forEach(function(n,i){ if(re.test(n)&&(cnt[i]||0)>bn){ bn=cnt[i]||0; bi=i; } }); return bi; }
+function __ymd(d){ return d.toISOString().slice(0,10); }
+function secRender(){ var box=$("v-sections"); if(!box) return; box.textContent=""; var A=window.CB_APP||{};
+  var cnt={}; R.forEach(function(r){ cnt[r[C.feedback]]=(cnt[r[C.feedback]]||0)+1; });
+  var wk=new Date(Date.now()-7*86400000), nw=0, nofb=0; R.forEach(function(r){ if(r[C.created]*60000>=wk.getTime()) nw++; if(r[C.feedback]===I_PENDING||r[C.feedback]===I_NONE) nofb++; });
+  var ina=__best(/no ?answer/i), iun=__best(/un ?qualif|not qualif/i), iq=__best(/^qualified$/i), icl=__best(/call ?later/i);
+  function reset(){ var b=$("f-reset"); if(b) b.click(); }
+  var grid=el("div","secgrid");
+  function card(title,num,note,onclick,cls){ var c=el("button","seccard"+(cls?" "+cls:"")); c.type="button"; c.appendChild(el("div","k",title)); c.appendChild(el("div","v",fmt(num))); c.appendChild(el("div","n",note)); c.addEventListener("click",onclick); grid.appendChild(c); }
+  card("New leads",nw,"created in the last 7 days",function(){ reset(); goLeads({from:__ymd(wk)}); },"gold");
+  card("No feedback yet",nofb,"pending or blank",function(){ reset(); goLeads({feedback:-2}); },"attn");
+  if(ina>=0) card(X.feedback[ina],cnt[ina]||0,"call them again",function(){ reset(); goLeads({feedback:ina}); });
+  if(iun>=0) card(X.feedback[iun],cnt[iun]||0,"marked unqualified",function(){ reset(); goLeads({feedback:iun}); });
+  if(iq>=0) card(X.feedback[iq],cnt[iq]||0,"keep them warm",function(){ reset(); goLeads({feedback:iq}); });
+  if(icl>=0) card(X.feedback[icl],cnt[icl]||0,"follow up when agreed",function(){ reset(); goLeads({feedback:icl}); });
+  var rz=(typeof rzRows==="function")?rzRows().length:0; card("Reassigned",rz,"moved to "+(A.admin?"an agent":"you"),function(){ go("reassigned"); });
+  card("Rotation",(LISTS.rotation||[]).length,"from Basel's sheet",function(){ go("rotation"); }); card("Cold calls",(LISTS.cold||[]).length,"from Basel's sheet",function(){ go("cold"); });
+  box.appendChild(el("h3","sect","Sections")); box.appendChild(grid);
+  var pc={}; R.forEach(function(r){ pc[r[C.project]]=(pc[r[C.project]]||0)+1; });
+  var pl=Object.keys(pc).map(Number).sort(function(a,b){ return pc[b]-pc[a]; });
+  var ph=el("div","secph"); ph.appendChild(el("h3","sect","Projects")); var pq=el("input"); pq.type="search"; pq.placeholder="Find a project"; pq.setAttribute("aria-label","Find a project"); ph.appendChild(pq); box.appendChild(ph);
+  var pg=el("div","projchips"); box.appendChild(pg);
+  function fill(){ pg.textContent=""; var q=pq.value.trim().toLowerCase(); pl.filter(function(i){ return !q||String(X.project[i]||"").toLowerCase().indexOf(q)>=0; }).forEach(function(i){ var b=el("button","pchip"); b.type="button"; b.appendChild(el("span",null,X.project[i]||"No project")); b.appendChild(el("b",null,fmt(pc[i]))); b.addEventListener("click",function(){ reset(); goLeads({project:i}); }); pg.appendChild(b); }); }
+  pq.addEventListener("input",fill); fill(); }
+// sales and achievement: Basel decides whether agents see them
+window.__applySales=function(show){ window.__NOSALES=!!(window.CB_AGENT&&!show); document.body.classList.toggle("nosales",window.__NOSALES); try{ heroTarget(); today(); homeCharts(); agents(); }catch(e){} };
+NOFILTER.sections=1;
+window.__salesToggle=function(show){ var l=$("sales-sw"), c=$("sales-show"); if(!l||!c||!(window.CB_APP&&window.CB_APP.admin)) return; l.hidden=false; c.checked=!!show; };
+(function(){ var c=$("sales-show"); if(c) c.addEventListener("change",function(){ if(window.CB_APP&&window.CB_APP.setShowSales) window.CB_APP.setShowSales(c.checked).then(function(){ var m=$("wa-msg"); if(m) m.textContent=c.checked?"Agents now see their sales.":"Sales are now hidden from agents."; }).catch(function(e){ alert("Not saved ("+(e.code||e.message)+")"); }); }); })();
 
 function render(){
   var c=$("count"); c.textContent=""; c.appendChild(el("b",null,fmt(view.length))); c.appendChild(document.createTextNode(" of "+fmt(R.length)+" leads"+(state.stale?" · no activity for "+(state.stale>=1440?Math.round(state.stale/1440)+" days":Math.round(state.stale/60)+" hours")+" or more":"")));
@@ -1512,7 +1591,7 @@ function route(){ var h=VIEW||(location.hash||"#today").slice(1); if(ALLVIEWS.in
   ALLVIEWS.forEach(function(v){ $("v-"+v).classList.toggle("on",v===h); });
   [$("tabs"),$("botnav")].forEach(function(nav){ Array.prototype.forEach.call(nav.querySelectorAll("button"),function(b){ if(b.dataset.sec===sec) b.setAttribute("aria-current","page"); else b.removeAttribute("aria-current"); }); });
   var sn=$("subnav"); sn.textContent=""; var S0=SECTIONS.filter(function(s){return s.id===sec})[0]; if(S0&&S0.views.length>1) S0.views.forEach(function(v){ var b=el("button",null,v[1]); b.type="button"; b.setAttribute("role","tab"); if(v[0]===h){ b.setAttribute("aria-current","page"); b.setAttribute("aria-selected","true"); } else b.setAttribute("aria-selected","false"); b.addEventListener("click",function(){ go(v[0]); }); sn.appendChild(b); });
-  $("filters").classList.toggle("off",!!NOFILTER[h]); }
+  $("filters").classList.toggle("off",!!NOFILTER[h]); if(h==="sections"&&typeof secRender==="function") secRender(); }
 
 // init
 var sub=$("sub"); if(D.updated){ sub.appendChild(document.createTextNode("Updated ")); sub.appendChild(el("b",null,D.updated)); sub.appendChild(el("br"));
@@ -1535,8 +1614,8 @@ $("dy-prev").addEventListener("click",function(){ dyDay--; daily(); }); $("dy-ne
 $("dy-copy").addEventListener("click",function(){ var done=function(ok){ $("dy-copied").textContent=ok?"Copied. Paste it into WhatsApp or email.":"Copy is blocked here. Select the table and copy it instead."; }; try{ navigator.clipboard.writeText(DYTXT.join("\n")).then(function(){done(true)},function(){done(false)}); }catch(e){ done(false); } });
 $("zm-link").value=zmLink; $("zm-text").value=zmText; $("zm-start").href=zmLink;
 $("wa-text").value=waText; $("wa-open").addEventListener("click",function(){ $("wa-box").classList.toggle("on"); });
-$("wa-save").addEventListener("click",function(){ waText=$("wa-text").value.trim()||WA_DEFAULT; zmLink=$("zm-link").value.trim()||ZM_LINK_DEFAULT; zmText=$("zm-text").value.trim()||ZM_DEFAULT; $("zm-start").href=zmLink; var ok=true; try{ localStorage.setItem("cbcode.wa",waText); localStorage.setItem("cbcode.zmlink",zmLink); localStorage.setItem("cbcode.zmtext",zmText); }catch(e){ ok=false; } $("wa-msg").textContent=ok?"Saved on this device.":"Saved for this visit only; this browser blocked storage."; render(); });
-$("wa-reset").addEventListener("click",function(){ waText=WA_DEFAULT; zmLink=ZM_LINK_DEFAULT; zmText=ZM_DEFAULT; $("wa-text").value=waText; $("zm-link").value=zmLink; $("zm-text").value=zmText; $("zm-start").href=zmLink; try{ localStorage.removeItem("cbcode.wa"); localStorage.removeItem("cbcode.zmlink"); localStorage.removeItem("cbcode.zmtext"); }catch(e){} $("wa-msg").textContent="Default messages restored."; render(); });
+$("wa-save").addEventListener("click",function(){ waText=$("wa-text").value.trim()||WA_DEFAULT; zmLink=$("zm-link").value.trim()||ZM_LINK_DEFAULT; zmText=$("zm-text").value.trim()||ZM_DEFAULT; $("zm-start").href=zmLink; var ok=true; try{ localStorage.setItem(WAKEY,waText); if(window.CB_APP&&window.CB_APP.saveWa) window.CB_APP.saveWa(waText).catch(function(){}); localStorage.setItem("cbcode.zmlink",zmLink); localStorage.setItem("cbcode.zmtext",zmText); }catch(e){ ok=false; } $("wa-msg").textContent=ok?"Saved to your account, on all your devices.":"Saved for this visit only; this browser blocked storage."; render(); });
+$("wa-reset").addEventListener("click",function(){ waText=WA_DEFAULT; zmLink=ZM_LINK_DEFAULT; zmText=ZM_DEFAULT; $("wa-text").value=waText; $("zm-link").value=zmLink; $("zm-text").value=zmText; $("zm-start").href=zmLink; try{ localStorage.removeItem(WAKEY); if(window.CB_APP&&window.CB_APP.saveWa) window.CB_APP.saveWa("").catch(function(){}); localStorage.removeItem("cbcode.zmlink"); localStorage.removeItem("cbcode.zmtext"); }catch(e){} $("wa-msg").textContent="Default messages restored."; render(); });
 $("cl-f-kind").addEventListener("change",function(e){clState.kind=e.target.value;clState.page=0;clients();}); $("cl-prev").addEventListener("click",function(){clState.page--;clients();}); $("cl-next").addEventListener("click",function(){clState.page++;clients();});
 $("rp-copy").addEventListener("click",function(){ var txt="CB Code CRM - Basel Algamal Team - "+(D.updated||"")+"\n"+RPT.join("\n"); var done=function(ok){ $("rp-copied").textContent=ok?"Copied. Paste it into WhatsApp, email or a sheet.":"Copy is blocked here. Select the table and copy it instead."; }; try{ navigator.clipboard.writeText(txt).then(function(){done(true)},function(){done(false)}); }catch(e){ done(false); } });
 $("ch-f-kind").addEventListener("change",function(e){chState.kind=e.target.value;chState.page=0;changes();}); $("ch-prev").addEventListener("click",function(){chState.page--;changes();}); $("ch-next").addEventListener("click",function(){chState.page++;changes();});
@@ -1650,7 +1729,7 @@ async function loadData(path) {
 function startDashboard(data) {
   window.LEADS = data.LEADS; window.EXTRA = data.EXTRA; window.SNAP = data.SNAP; window.PREV = data.PREV; window.HIST = data.HIST;
   window.CB_AGENT = ME.admin ? "" : ME.name; window.CB_NAME = ME.admin ? "Basel" : (ME.name || "").split(" ")[0];
-  window.CB_APP = { admin: ME.admin, email: ME.email, ak: ME.ak, name: ME.name, logFeedback, updatesFor, FB_OPTIONS, AK_OF, reassign: ME.admin ? reassignLead : null };
+  window.CB_APP = { admin: ME.admin, email: ME.email, ak: ME.ak, name: ME.name, logFeedback, updatesFor, FB_OPTIONS, AK_OF, reassign: ME.admin ? reassignLead : null, allUpdates: () => UPDATES, saveWa, setShowSales: ME.admin ? setShowSales : null };
   window.__startDashboard();
   started = true;
   gate.hidden = true;
@@ -1661,7 +1740,20 @@ function startDashboard(data) {
   setupBell();
   watchLists();
   watchReassigned();
+  loadPrefs();
+  watchSettings();
 }
+// each person's own WhatsApp greeting, kept with their account
+async function loadPrefs() { try { const d = await getDoc(doc(db, "prefs", ME.email)); if (d.exists() && d.data().wa && window.__setWa) window.__setWa(d.data().wa); } catch (e) {} }
+async function saveWa(text) { await setDoc(doc(db, "prefs", ME.email), { wa: String(text || "").slice(0, 1500), at: serverTimestamp() }); }
+// Basel's switch: do agents see their sales volume and achievement?
+function watchSettings() {
+  const apply = d => { const show = !d || d.showSales !== false; if (window.__applySales) window.__applySales(show); if (window.__salesToggle) window.__salesToggle(show); };
+  const ref = doc(db, "settings", "app");
+  getDoc(ref).then(s => apply(s.exists() ? s.data() : null)).catch(() => apply(null));
+  setInterval(() => getDoc(ref).then(s => apply(s.exists() ? s.data() : null)).catch(() => {}), 120000);
+}
+async function setShowSales(show) { await setDoc(doc(db, "settings", "app"), { showSales: !!show, at: serverTimestamp() }); if (window.__applySales) window.__applySales(!!show); }
 async function watchReassigned() {
   const load = async () => { try { const d = await getDoc(doc(db, "reassigned", ME.admin ? "all" : ME.ak)); if (d.exists() && window.__cbReassigned) window.__cbReassigned(JSON.parse(d.data().d || "[]")); else if (window.__cbReassigned) window.__cbReassigned([]); } catch (e) {} };
   load(); setInterval(load, 10 * 60 * 1000);
@@ -1733,7 +1825,7 @@ async function reassignLead(r) {
   const id = String(r.id), key = "reassign_" + id;
   const data = { kind: "reassign", id, ak: AK_OF[r.agent] || "", agent: r.agent, from: AK_OF[r.fromAgent] || "", fromAgent: r.fromAgent || "",
     client: String(r.client || "").slice(0, 200), phone: String(r.phone || "").slice(0, 60), project: r.project || "", source: r.source || "",
-    feedback: r.feedback || "", note: "", status: r.status || "", at: serverTimestamp(), by: ME.email };
+    feedback: r.feedback || "", note: String(r.note || "").slice(0, 1990), noteBy: r.noteBy || "", noteAt: r.noteAt || "", status: r.status || "", at: serverTimestamp(), by: ME.email };
   await setDoc(doc(db, "changes", key), data);
   CHANGES[key] = Object.assign({ docId: key }, data, { at: new Date() });
   pushOverlay();
