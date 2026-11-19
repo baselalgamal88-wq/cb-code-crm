@@ -1712,7 +1712,7 @@ var MAP_PROJ_AREA=(function(){ var m={}, g={
   redsea:"Ras Soma|Shams soma|Soma Bay|Makadi Heights|Red Sea Projects"
 };
   Object.keys(g).forEach(function(a){ g[a].split("|").forEach(function(p){ var k=p.split(":"); if(!m[k[0]]) m[k[0]]=k[1]||a; }); }); return m; })();
-var MAP_REG={cairo:{n:"Greater Cairo",c:[30.05,31.22],z:9,a:["zayed","october","newcairo","east","capital","nasr"]},coast:{n:"North Coast",c:[31.0,28.4],z:8,a:["hekma","sahel","matrouh"]},sokhna:{n:"Ain Sokhna & Galala",c:[29.57,32.33],z:11,a:["sokhna"]},redsea:{n:"Red Sea",c:[26.9,33.9],z:10,a:["redsea"]}};
+var MAP_REG={cairo:{n:"Greater Cairo",c:[30.30,30.95],z:9,a:["zayed","october","newcairo","east","capital","nasr"]},coast:{n:"North Coast",c:[31.0,28.4],z:8,a:["hekma","sahel","matrouh"]},sokhna:{n:"Ain Sokhna & Galala",c:[29.57,32.33],z:11,a:["sokhna"]},redsea:{n:"Red Sea",c:[26.9,33.9],z:10,a:["redsea"]}};
 /* Developer of each compound (editable by Basel/admin in the project page) */
 var MAP_DEV=(function(){ var m={}, g={
   "Mountain View":"Mountain View Chill Out Park|Mountain View iCity 6 October|Mountain View October Park|Mountain View iCity|Mountain View Hyde park|Mountain View 1.1|Mountain View 2|Mountain View 4|Mountain View Ras Elhikma",
@@ -1777,7 +1777,8 @@ function mapRender(){ var box=$("v-map"); if(!box) return;
 function mapInit(){ if(MAP.map) return; var cv=$("map-canvas"); cv.textContent="";
   var m=L.map(cv,{zoomControl:true,minZoom:5,maxZoom:19}).setView([29.9,30.6],6); MAP.map=m;
   MAP.layers.sat=L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,maxNativeZoom:18,attribution:"Imagery © Esri, Maxar, Earthstar Geographics"}).addTo(m);
-  MAP.layers.lbl=L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,maxNativeZoom:18,pane:"overlayPane"}).addTo(m);
+  m.createPane("labels"); m.getPane("labels").style.zIndex=250; m.getPane("labels").style.pointerEvents="none";
+  MAP.layers.lbl=L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,maxNativeZoom:18,pane:"labels"}).addTo(m);
   MAP.layers.osm=L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap contributors"});
   MAP.regLayer=L.layerGroup().addTo(m); MAP.areaLayer=L.layerGroup(); MAP.projLayer=L.layerGroup(); MAP.planLayer=L.layerGroup().addTo(m);
   m.on("zoomend moveend",function(){ mapLevel(); mapSide(); });
