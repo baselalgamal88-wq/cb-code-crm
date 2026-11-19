@@ -1808,7 +1808,7 @@ function mapLevel(){ var z=MAP.map.getZoom(), lv=z<8?0:(z<11?1:2);
   $("map-canvas").classList.toggle("deep",z>=15);
   if(z>=14) mapPlans(); else if(!MAP.edit){ MAP.planLayer.clearLayers(); MAP.plans={}; } }
 function mapPlans(){ var P=(window.__GEO||{}).plans||{}, b=MAP.map.getBounds().pad(0.5);
-  Object.keys(P).forEach(function(name){ if(MAP.edit&&MAP.edit.name===name) return; var p=P[name]; if(!p.b) return; var bb=L.latLngBounds(p.b); if(!b.intersects(bb)) return;
+  Object.keys(P).forEach(function(name){ if(MAP.edit&&MAP.edit.name===name) return; var p=P[name]; if(!p.b) return; var bb=L.latLngBounds(mapB(p.b)); if(!b.intersects(bb)) return;
     if(MAP.plans[name]&&MAP.plans[name].v===p.v) return; if(MAP.plans[name]&&MAP.plans[name].ov) MAP.planLayer.removeLayer(MAP.plans[name].ov);
     var rec={v:p.v,ov:null}; MAP.plans[name]=rec;
     window.CB_APP.loadPlan(name).then(function(url){ if(!url||MAP.plans[name]!==rec) return; rec.ov=L.imageOverlay(url,bb,{opacity:p.op||0.85,interactive:false}).addTo(MAP.planLayer); }).catch(function(){}); }); }
@@ -1830,6 +1830,7 @@ function mapSide(){ var s=MAP.list; if(!s||!MAP.st) return; s.textContent=""; va
       un.forEach(function(n){ var c=mapCard(n,true); c.addEventListener("click",function(){ mapPlace(n); }); s.appendChild(c); }); } } }
 function reset2(){ var b=$("f-reset"); if(b) b.click(); }
 function mapFocus(n){ var o=MAP.st[n]; if(!o||!o.pos) return; MAP.map.flyTo(o.pos.ll,Math.max(MAP.map.getZoom(),15)); setTimeout(function(){ mapSheet(n); },700); }
+function mapB(b){ return Array.isArray(b)?b:[[b.s,b.w],[b.n,b.e]]; }
 function mapEsc(s){ return String(s).replace(/[&<>"']/g,function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
 function mapWaText(n){ var I=mapInfo(n), a=MAP_AREAS[I.area]; var L1=[n+(I.dev?" by "+I.dev:"")+(a?" — "+a.n:"")];
   if(I.price) L1.push("Starting from "+fmt(+I.price)+" "+(I.cur||"EGP")); var pp=[]; if(I.down) pp.push(I.down+"% down payment"); if(I.years) pp.push("installments over "+I.years+" years"); if(pp.length) L1.push(pp.join(", "));
@@ -1845,7 +1846,7 @@ function mapSheet(name){ var o=MAP.st[name]; if(!o) return; var I=o.info, A=wind
   if(I.desc){ var ds=el("p","mdesc",I.desc); ds.dir="auto"; d.appendChild(ds); }
   var acts=el("div","macts");
   var hasPlan=!!(((window.__GEO||{}).plans||{})[name]);
-  if(hasPlan){ var vp=el("button","btn sm primary","View master plan"); vp.type="button"; vp.addEventListener("click",function(){ var P=((window.__GEO||{}).plans||{})[name]; MAP.map.flyToBounds(L.latLngBounds(P.b).pad(0.1)); d.remove(); }); acts.appendChild(vp); }
+  if(hasPlan){ var vp=el("button","btn sm primary","View master plan"); vp.type="button"; vp.addEventListener("click",function(){ var P=((window.__GEO||{}).plans||{})[name]; MAP.map.flyToBounds(L.latLngBounds(mapB(P.b)).pad(0.1)); d.remove(); }); acts.appendChild(vp); }
   else if(o.pos){ var zz=el("button","btn sm primary","Zoom to compound"); zz.type="button"; zz.addEventListener("click",function(){ MAP.map.flyTo(o.pos.ll,16); d.remove(); }); acts.appendChild(zz); }
   var wa=el("a","btn sm","Send on WhatsApp"); wa.href="https://wa.me/?text="+encodeURIComponent(mapWaText(name)); wa.target="_blank"; wa.rel="noopener"; acts.appendChild(wa);
   if(I.link){ var br=el("a","btn sm","Brochure"); br.href=I.link; br.target="_blank"; br.rel="noopener"; acts.appendChild(br); }
@@ -1898,7 +1899,7 @@ function mapEditPlan(name,fresh){ var A=window.CB_APP, P=((window.__GEO||{}).pla
         A.savePlan(name,url,bb2,0.85).then(function(){ if(!mk||!((window.__GEO||{}).pins||{})[name]) return A.setPin(name,b.getCenter().lat,b.getCenter().lng); }).then(done).catch(function(e){ alert("Could not save: "+e.message); ev.target.disabled=false; ev.target.textContent="Save"; }); },1],
       ["Cancel",done]]); };
   if(fresh){ var w=0.009, h=w/fresh.ar*Math.cos(c.lat*Math.PI/180); go(fresh.url,L.latLngBounds([c.lat-h/2,c.lng-w/2],[c.lat+h/2,c.lng+w/2]),0.7); }
-  else if(P){ A.loadPlan(name).then(function(url){ go(url,L.latLngBounds(P.b),0.7); }); } }
+  else if(P){ A.loadPlan(name).then(function(url){ go(url,L.latLngBounds(mapB(P.b)),0.7); }); } }
 
 function render(){
   var c=$("count"); c.textContent=""; c.appendChild(el("b",null,fmt(view.length))); c.appendChild(document.createTextNode(" of "+fmt(R.length)+" leads"+(state.stale?" · no activity for "+(state.stale>=1440?Math.round(state.stale/1440)+" days":Math.round(state.stale/60)+" hours")+" or more":"")));
@@ -2078,7 +2079,7 @@ async function savePlan(name, dataUrl, bounds, op) {
   const key = planKey(name), CH = 900000, n = Math.ceil(dataUrl.length / CH);
   if (n > 6) throw new Error("Image too large");
   for (let i = 0; i < n; i++) await setDoc(doc(db, "settings", key + "_" + i), { d: dataUrl.slice(i * CH, (i + 1) * CH), i, n });
-  await setDoc(doc(db, "settings", "geo"), { plans: { [name]: { key, n, b: bounds, op: op || 0.85, v: Date.now() } }, at: serverTimestamp() }, { merge: true });
+  await setDoc(doc(db, "settings", "geo"), { plans: { [name]: { key, n, b: { s: bounds[0][0], w: bounds[0][1], n: bounds[1][0], e: bounds[1][1] }, op: op || 0.85, v: Date.now() } }, at: serverTimestamp() }, { merge: true });
 }
 async function setInfo(name, info) {
   await setDoc(doc(db, "settings", "geo"), { info: { [name]: info }, at: serverTimestamp() }, { merge: true });
