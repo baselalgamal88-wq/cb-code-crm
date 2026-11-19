@@ -1712,7 +1712,7 @@ var MAP_PROJ_AREA=(function(){ var m={}, g={
   redsea:"Ras Soma|Shams soma|Soma Bay|Makadi Heights|Red Sea Projects"
 };
   Object.keys(g).forEach(function(a){ g[a].split("|").forEach(function(p){ var k=p.split(":"); if(!m[k[0]]) m[k[0]]=k[1]||a; }); }); return m; })();
-var MAP_REG={cairo:{n:"Greater Cairo",c:[30.30,30.95],z:9,a:["zayed","october","newcairo","east","capital","nasr"]},coast:{n:"North Coast",c:[31.0,28.4],z:8,a:["hekma","sahel","matrouh"]},sokhna:{n:"Ain Sokhna & Galala",c:[29.57,32.33],z:11,a:["sokhna"]},redsea:{n:"Red Sea",c:[26.9,33.9],z:10,a:["redsea"]}};
+var MAP_REG={cairo:{n:"Greater Cairo",c:[30.30,30.95],f:[30.05,31.25],z:10,a:["zayed","october","newcairo","east","capital","nasr"]},coast:{n:"North Coast",c:[31.0,28.4],z:8,a:["hekma","sahel","matrouh"]},sokhna:{n:"Ain Sokhna & Galala",c:[29.57,32.33],z:11,a:["sokhna"]},redsea:{n:"Red Sea",c:[26.9,33.9],z:10,a:["redsea"]}};
 /* Developer of each compound (editable by Basel/admin in the project page) */
 var MAP_DEV=(function(){ var m={}, g={
   "Mountain View":"Mountain View Chill Out Park|Mountain View iCity 6 October|Mountain View October Park|Mountain View iCity|Mountain View Hyde park|Mountain View 1.1|Mountain View 2|Mountain View 4|Mountain View Ras Elhikma",
@@ -1799,7 +1799,7 @@ function mapDraw(){ if(!MAP.map) return; var st=mapStats(); MAP.st=st; MAP.regLa
     L.marker(a.c,{icon:ic,title:a.n}).on("click",function(){ MAP.map.flyTo(a.c,13); }).addTo(MAP.areaLayer); });
   Object.keys(MAP_REG).forEach(function(rk){ var g=MAP_REG[rk], n=0; g.a.forEach(function(ak){ n+=byArea[ak]||0; }); if(!n) return;
     var ic=L.divIcon({className:"marea reg",html:"<div><b>"+mapEsc(g.n)+"</b><span>"+n+" compounds</span></div>",iconSize:null});
-    L.marker(g.c,{icon:ic,title:g.n}).on("click",function(){ MAP.map.flyTo(g.c,g.z); }).addTo(MAP.regLayer); });
+    L.marker(g.c,{icon:ic,title:g.n}).on("click",function(){ MAP.map.flyTo(g.f||g.c,g.z); }).addTo(MAP.regLayer); });
   mapLevel(); mapSide(); }
 function mapLevel(){ var z=MAP.map.getZoom(), lv=z<8?0:(z<11?1:2);
   [[MAP.regLayer,0],[MAP.areaLayer,1],[MAP.projLayer,2]].forEach(function(x){ var on=x[1]===lv||(x[1]===2&&MAP.edit); if(on&&!MAP.map.hasLayer(x[0])) x[0].addTo(MAP.map); if(!on&&MAP.map.hasLayer(x[0])) MAP.map.removeLayer(x[0]); });
