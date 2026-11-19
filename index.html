@@ -1679,7 +1679,7 @@ var MAP_PROJ_AREA=(function(){ var m={}, g={
   redsea:"Ras Soma|Shams soma|Soma Bay|Makadi Heights|Red Sea Projects"
 };
   Object.keys(g).forEach(function(a){ g[a].split("|").forEach(function(p){ var k=p.split(":"); if(!m[k[0]]) m[k[0]]=k[1]||a; }); }); return m; })();
-var MAP_REG={cairo:{n:"Greater Cairo",c:[30.05,31.22],z:9.3,a:["zayed","october","newcairo","east","capital","nasr"]},coast:{n:"North Coast",c:[31.0,28.4],z:8.4,a:["hekma","sahel","matrouh"]},sokhna:{n:"Ain Sokhna & Galala",c:[29.57,32.33],z:10.5,a:["sokhna"]},redsea:{n:"Red Sea",c:[26.9,33.9],z:10,a:["redsea"]}};
+var MAP_REG={cairo:{n:"Greater Cairo",c:[30.05,31.22],z:9,a:["zayed","october","newcairo","east","capital","nasr"]},coast:{n:"North Coast",c:[31.0,28.4],z:8,a:["hekma","sahel","matrouh"]},sokhna:{n:"Ain Sokhna & Galala",c:[29.57,32.33],z:11,a:["sokhna"]},redsea:{n:"Red Sea",c:[26.9,33.9],z:10,a:["redsea"]}};
 var MAP={ready:false,loading:false,map:null,layers:{},markers:{},plans:{},edit:null,agent:-1,list:null};
 function mapLoadLeaflet(cb){
   if(window.L) return cb(); if(MAP.loading){ MAP.wait=(MAP.wait||[]).concat(cb); return; } MAP.loading=true; MAP.wait=[cb];
@@ -1731,7 +1731,7 @@ function mapDraw(){ if(!MAP.map) return; var st=mapStats(); MAP.st=st; MAP.regLa
     var mk=L.marker(pos.ll,{icon:ic,draggable:false,title:name,riseOnHover:true}); mk.on("click",function(){ mapPopup(name); }); mk.addTo(MAP.projLayer); MAP.markers[name]=mk; });
   Object.keys(byArea).forEach(function(ak){ var a=MAP_AREAS[ak]; if(!a) return; var o=byArea[ak], sz=Math.round(44+Math.min(46,Math.sqrt(o.n)*0.9));
     var ic=L.divIcon({className:"marea",html:"<div style='width:"+sz+"px;height:"+sz+"px'><b>"+fmt(o.n)+"</b><span>"+o.p+" projects</span></div><em>"+mapEsc(a.n)+"</em>",iconSize:[sz,sz],iconAnchor:[sz/2,sz/2]});
-    L.marker(a.c,{icon:ic,title:a.n}).on("click",function(){ MAP.map.flyTo(a.c,12.5); }).addTo(MAP.areaLayer); });
+    L.marker(a.c,{icon:ic,title:a.n}).on("click",function(){ MAP.map.flyTo(a.c,13); }).addTo(MAP.areaLayer); });
   Object.keys(MAP_REG).forEach(function(rk){ var g=MAP_REG[rk], n=0, p=0; g.a.forEach(function(ak){ if(byArea[ak]){ n+=byArea[ak].n; p+=byArea[ak].p; } }); if(!n) return; var sz=Math.round(52+Math.min(50,Math.sqrt(n)*0.8));
     var ic=L.divIcon({className:"marea reg",html:"<div style='width:"+sz+"px;height:"+sz+"px'><b>"+fmt(n)+"</b><span>"+p+" projects</span></div><em>"+mapEsc(g.n)+"</em>",iconSize:[sz,sz],iconAnchor:[sz/2,sz/2]});
     L.marker(g.c,{icon:ic,title:g.n}).on("click",function(){ MAP.map.flyTo(g.c,g.z); }).addTo(MAP.regLayer); });
@@ -1760,7 +1760,7 @@ function mapFocus(n){ var o=MAP.st[n]; if(!o||!o.pos) return; MAP.map.flyTo(o.po
 function mapEsc(s){ return String(s).replace(/[&<>"']/g,function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
 function mapPopup(name){ var o=MAP.st[name]; if(!o) return; var A=window.CB_APP||{}, mk=MAP.markers[name]; var d=el("div","mpop");
   d.appendChild(el("h4",null,name)); d.appendChild(el("div","hint",(MAP_AREAS[o.area]?MAP_AREAS[o.area].n:"")+(o.pos&&!o.pos.exact?" · approximate spot":"")));
-  var big=el("div","mbig"); big.appendChild(el("b",null,fmt(o.n))); big.appendChild(el("span",null,"leads"+(o.fresh?" · "+fmt(o.fresh)+" never contacted":""))); d.appendChild(big);
+  var big=el("div","mbig"); big.appendChild(el("b",null,fmt(o.n))); big.appendChild(el("span",null,"leads"+(o.fresh?" · "+fmt(o.fresh)+" with no activity yet":""))); d.appendChild(big);
   var fl=el("div","mfb"); Object.keys(o.fb).sort(function(a,b){ return o.fb[b]-o.fb[a]; }).slice(0,6).forEach(function(f){ var ch=el("button","chip "+fbClass(f),f+" "+fmt(o.fb[f])); ch.type="button";
     ch.addEventListener("click",function(){ MAP.map.closePopup(); reset2(); var fi=X.feedback.indexOf(f); var flt={project:o.i}; if(fi>=0) flt.feedback=fi; if(MAP.agent>=0) flt.agent=MAP.agent; goLeads(flt); }); fl.appendChild(ch); }); d.appendChild(fl);
   var acts=el("div","macts"), open=el("button","btn sm primary","Open leads"); open.type="button";
