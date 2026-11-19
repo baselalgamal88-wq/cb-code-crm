@@ -1695,7 +1695,8 @@ var MAP_AREAS={
   capital:{n:"New Capital",c:[30.020,31.740]}, nasr:{n:"Nasr City & Heliopolis",c:[30.075,31.345]},
   hekma:{n:"North Coast · Ras El Hekma",c:[31.190,27.880]}, sahel:{n:"North Coast · Alamein & Sidi Abdel Rahman",c:[30.930,28.700]},
   matrouh:{n:"North Coast · Alam El Roum",c:[31.330,27.330]}, sokhna:{n:"Ain Sokhna & Galala",c:[29.570,32.330]},
-  redsea:{n:"Red Sea · Hurghada & Soma Bay",c:[26.900,33.900]}
+  redsea:{n:"Red Sea · Hurghada & Soma Bay",c:[26.900,33.900]},
+  makkah:{n:"Makkah · Masar",c:[21.4170,39.8080]}
 };
 /* Area of each project. Pins inside an area start at an approximate spot until Basel or the admin drags them to the exact one. */
 var MAP_PROJ_AREA=(function(){ var m={}, g={
@@ -1709,10 +1710,11 @@ var MAP_PROJ_AREA=(function(){ var m={}, g={
   sahel:"Marina 5|Hacienda Bay|Hacienda Bay-Le Sidi|Hacienda Waters|Lagoon- North coast|Katameya Coast|Stella De Mare:sokhna|GAIA|White Bay|Marsellia|Q Bay",
   matrouh:"Allam Alroum",
   sokhna:"IL Monte Galala|Ilmonto Marina|Stella De Mare|Stella Di Mare|Ain Sokhna|Telal Sokhna|Blumar ElSokhna",
+  makkah:"Masar",
   redsea:"Ras Soma|Shams soma|Soma Bay|Makadi Heights|Red Sea Projects"
 };
   Object.keys(g).forEach(function(a){ g[a].split("|").forEach(function(p){ var k=p.split(":"); if(!m[k[0]]) m[k[0]]=k[1]||a; }); }); return m; })();
-var MAP_REG={cairo:{n:"Greater Cairo",c:[30.30,30.95],f:[30.05,31.25],z:10,a:["zayed","october","newcairo","east","capital","nasr"]},coast:{n:"North Coast",c:[31.0,28.4],z:8,a:["hekma","sahel","matrouh"]},sokhna:{n:"Ain Sokhna & Galala",c:[29.57,32.33],z:11,a:["sokhna"]},redsea:{n:"Red Sea",c:[26.9,33.9],z:10,a:["redsea"]}};
+var MAP_REG={cairo:{n:"Greater Cairo",c:[30.30,30.95],f:[30.05,31.25],z:10,a:["zayed","october","newcairo","east","capital","nasr"]},coast:{n:"North Coast",c:[31.0,28.4],z:8,a:["hekma","sahel","matrouh"]},sokhna:{n:"Ain Sokhna & Galala",c:[29.57,32.33],z:11,a:["sokhna"]},redsea:{n:"Red Sea",c:[26.9,33.9],z:10,a:["redsea"]},makkah:{n:"Saudi Arabia · Makkah",c:[21.42,39.82],z:13,a:["makkah"]}};
 /* Developer of each compound (editable by Basel/admin in the project page) */
 var MAP_DEV=(function(){ var m={}, g={
   "Mountain View":"Mountain View Chill Out Park|Mountain View iCity 6 October|Mountain View October Park|Mountain View iCity|Mountain View Hyde park|Mountain View 1.1|Mountain View 2|Mountain View 4|Mountain View Ras Elhikma",
@@ -1745,7 +1747,7 @@ function mapStats(){ var per={}; R.forEach(function(r){ var p=X.project[r[C.proj
   Object.keys(((window.__GEO||{}).info)||{}).forEach(function(p){ if(!per[p]&&!MAP_SKIP[p]) per[p]={i:X.project.indexOf(p),n:0}; });
   Object.keys(per).forEach(function(p){ per[p].info=mapInfo(p); }); return per; }
 function mapPass(o){ var I=o.info, f=MAP.f;
-  if(f.price&&(!I.price||+I.price>f.price)) return false;
+  if(f.price&&(!I.price||(I.cur&&I.cur!=="EGP")||+I.price>f.price)) return false;
   if(f.dev&&I.dev!==f.dev) return false;
   if(f.type&&(I.types||[]).indexOf(f.type)<0) return false;
   if(f.del){ var d=String(I.delivery||""); if(f.del==="Ready"){ if(!/ready/i.test(d)) return false; } else if(d.indexOf(f.del)<0) return false; }
@@ -1763,7 +1765,7 @@ function mapRender(){ var box=$("v-map"); if(!box) return;
     fl.appendChild(mapSel("Property type",[["","Any type"]].concat(MAP_TYPES.map(function(t){ return [t,t]; })),"",function(v){ MAP.f.type=v; mapDraw(); }));
     MAP.devSel=el("span"); fl.appendChild(MAP.devSel);
     var lay=el("button","btn sm","Streets"); lay.type="button"; lay.addEventListener("click",function(){ var sat=MAP.map.hasLayer(MAP.layers.sat); if(sat){ MAP.map.removeLayer(MAP.layers.sat); MAP.map.removeLayer(MAP.layers.lbl); MAP.layers.osm.addTo(MAP.map); lay.textContent="Satellite"; } else { MAP.map.removeLayer(MAP.layers.osm); MAP.layers.sat.addTo(MAP.map); MAP.layers.lbl.addTo(MAP.map); lay.textContent="Streets"; } }); fl.appendChild(lay);
-    var home=el("button","btn sm","All Egypt"); home.type="button"; home.addEventListener("click",function(){ MAP.map.flyTo([29.9,30.6],6); }); fl.appendChild(home);
+    var home=el("button","btn sm","All areas"); home.type="button"; home.addEventListener("click",function(){ MAP.map.flyTo([27.0,33.5],5); }); fl.appendChild(home);
     if(A.admin){ var add=el("button","btn sm","Add compound"); add.type="button"; add.addEventListener("click",function(){ var n=prompt("Compound name"); if(!n) return; n=n.trim(); if(!n) return; mapEditInfo(n,true); }); fl.appendChild(add); }
     bar.appendChild(fl); box.appendChild(bar);
     var wrap=el("div","mapwrap"), cv=el("div","mapcv"); cv.id="map-canvas"; cv.textContent="Loading map…"; var side=el("div","mapside"); wrap.appendChild(cv); wrap.appendChild(side); box.appendChild(wrap);
@@ -1775,7 +1777,7 @@ function mapRender(){ var box=$("v-map"); if(!box) return;
   } else if(MAP.map){ setTimeout(function(){ MAP.map.invalidateSize(); },50); mapDraw(); }
 }
 function mapInit(){ if(MAP.map) return; var cv=$("map-canvas"); cv.textContent="";
-  var m=L.map(cv,{zoomControl:true,minZoom:5,maxZoom:19}).setView([29.9,30.6],6); MAP.map=m;
+  var m=L.map(cv,{zoomControl:true,minZoom:5,maxZoom:19}).setView([27.0,33.5],5); MAP.map=m;
   MAP.layers.sat=L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,maxNativeZoom:18,attribution:"Imagery © Esri, Maxar, Earthstar Geographics"}).addTo(m);
   m.createPane("labels"); m.getPane("labels").style.zIndex=250; m.getPane("labels").style.pointerEvents="none";
   MAP.layers.lbl=L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,maxNativeZoom:18,minZoom:11,pane:"labels"}).addTo(m);
@@ -1791,7 +1793,7 @@ function mapDraw(){ if(!MAP.map) return; var st=mapStats(); MAP.st=st; MAP.regLa
   var byArea={}, k={};
   Object.keys(st).sort().forEach(function(name){ var o=st[name], ak=o.info.area||"_"; k[ak]=k[ak]||0; var pos=mapPos(name,k[ak]++,ak); o.area=ak; o.pos=pos; o.show=mapPass(o); if(!pos||!o.show) return;
     byArea[ak]=(byArea[ak]||0)+1;
-    var hasPlan=!!(((window.__GEO||{}).plans||{})[name]), pr=mapPrice(o.info.price);
+    var hasPlan=!!(((window.__GEO||{}).plans||{})[name]), pr=mapPrice(o.info.price); if(pr&&o.info.cur&&o.info.cur!=="EGP") pr+=" "+o.info.cur;
     var ic=L.divIcon({className:"mpin"+(pos.exact?"":" approx")+(hasPlan?" plan":"")+(pr?"":" nop"),html:"<span>"+mapEsc(name)+"</span>"+(pr?"<b>"+pr+"</b>":""),iconSize:null,iconAnchor:[14,30]});
     var mk=L.marker(pos.ll,{icon:ic,title:name,riseOnHover:true}); mk.on("click",function(){ mapSheet(name); }); mk.addTo(MAP.projLayer); MAP.markers[name]=mk; });
   Object.keys(byArea).forEach(function(ak){ var a=MAP_AREAS[ak]; if(!a) return;
@@ -1813,7 +1815,7 @@ function mapPlans(){ var P=(window.__GEO||{}).plans||{}, b=MAP.map.getBounds().p
 function mapCard(n,un){ var o=MAP.st[n], I=o.info, c=el("button","mcard"+(un?" un":"")); c.type="button";
   var t=el("div","mct"); t.appendChild(el("b",null,n)); if(((window.__GEO||{}).plans||{})[n]) t.appendChild(el("span","mtag","Master plan")); c.appendChild(t);
   c.appendChild(el("div","mcs",[I.dev,MAP_AREAS[o.area]?MAP_AREAS[o.area].n:""].filter(Boolean).join(" · ")||"Details not added yet"));
-  var pr=el("div","mcp"); if(I.price){ pr.appendChild(el("small",null,"Start price ")); pr.appendChild(el("b",null,fmt(+I.price)+" EGP")); } else pr.appendChild(el("small",null,"Price not added yet")); c.appendChild(pr);
+  var pr=el("div","mcp"); if(I.price){ pr.appendChild(el("small",null,"Start price ")); pr.appendChild(el("b",null,fmt(+I.price)+" "+(I.cur||"EGP"))); } else pr.appendChild(el("small",null,"Price not added yet")); c.appendChild(pr);
   var bits=[]; if(I.delivery) bits.push("Delivery "+I.delivery); if(I.down) bits.push(I.down+"% down"); if(I.years) bits.push(I.years+" years"); if(bits.length) c.appendChild(el("div","mcs",bits.join(" · ")));
   if((I.types||[]).length){ var ty=el("div","mtypes"); I.types.slice(0,5).forEach(function(x){ ty.appendChild(el("span",null,x)); }); c.appendChild(ty); }
   return c; }
@@ -1830,14 +1832,14 @@ function reset2(){ var b=$("f-reset"); if(b) b.click(); }
 function mapFocus(n){ var o=MAP.st[n]; if(!o||!o.pos) return; MAP.map.flyTo(o.pos.ll,Math.max(MAP.map.getZoom(),15)); setTimeout(function(){ mapSheet(n); },700); }
 function mapEsc(s){ return String(s).replace(/[&<>"']/g,function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
 function mapWaText(n){ var I=mapInfo(n), a=MAP_AREAS[I.area]; var L1=[n+(I.dev?" by "+I.dev:"")+(a?" — "+a.n:"")];
-  if(I.price) L1.push("Starting from "+fmt(+I.price)+" EGP"); var pp=[]; if(I.down) pp.push(I.down+"% down payment"); if(I.years) pp.push("installments over "+I.years+" years"); if(pp.length) L1.push(pp.join(", "));
+  if(I.price) L1.push("Starting from "+fmt(+I.price)+" "+(I.cur||"EGP")); var pp=[]; if(I.down) pp.push(I.down+"% down payment"); if(I.years) pp.push("installments over "+I.years+" years"); if(pp.length) L1.push(pp.join(", "));
   if(I.delivery) L1.push("Delivery: "+I.delivery); if((I.types||[]).length) L1.push("Units: "+I.types.join(", ")); if(I.link) L1.push(I.link); return L1.join("\n"); }
 /* project page, like a compound page: details, master plan, share, our leads */
 function mapSheet(name){ var o=MAP.st[name]; if(!o) return; var I=o.info, A=window.CB_APP||{}; var old=$("map-sheet"); if(old) old.remove();
   var d=el("div","msheet"); d.id="map-sheet"; var x=el("button","msx","×"); x.type="button"; x.setAttribute("aria-label","Close"); x.addEventListener("click",function(){ d.remove(); }); d.appendChild(x);
   var a=MAP_AREAS[o.area]; d.appendChild(el("div","mloc",a?a.n:"Area not set"));
   d.appendChild(el("h4",null,name)); if(I.dev) d.appendChild(el("div","mdev",I.dev));
-  var pr=el("div","mbig"); if(I.price){ pr.appendChild(el("small",null,"Start price")); pr.appendChild(el("b",null,fmt(+I.price)+" EGP")); } else pr.appendChild(el("small",null,"Start price not added yet")); d.appendChild(pr);
+  var pr=el("div","mbig"); if(I.price){ pr.appendChild(el("small",null,"Start price")); pr.appendChild(el("b",null,fmt(+I.price)+" "+(I.cur||"EGP"))); } else pr.appendChild(el("small",null,"Start price not added yet")); d.appendChild(pr);
   var g=el("div","mgrid"); [["Down payment",I.down?I.down+"%":""],["Installments",I.years?I.years+" years":""],["Delivery",I.delivery||""],["Finishing",I.finish||""]].forEach(function(r){ if(!r[1]) return; var c=el("div"); c.appendChild(el("small",null,r[0])); c.appendChild(el("b",null,r[1])); g.appendChild(c); }); if(g.childNodes.length) d.appendChild(g);
   if((I.types||[]).length){ var ty=el("div","mtypes"); I.types.forEach(function(t){ ty.appendChild(el("span",null,t)); }); d.appendChild(ty); }
   if(I.desc){ var ds=el("p","mdesc",I.desc); ds.dir="auto"; d.appendChild(ds); }
@@ -1861,12 +1863,12 @@ function mapEditInfo(name,isNew){ var I=mapInfo(name), A=window.CB_APP; var old=
   function inp(k,label,type,val,ph){ var l=el("label"); l.appendChild(el("span",null,label)); var i=type==="area"?el("textarea"):el("input"); if(type!=="area") i.type=type; i.value=val==null?"":val; if(ph) i.placeholder=ph; l.appendChild(i); f.appendChild(l); F[k]=i; }
   inp("dev","Developer","text",I.dev,"e.g. SODIC");
   var la=el("label"); la.appendChild(el("span",null,"Area")); F.area=mapSel("Area",[["","Not set"]].concat(Object.keys(MAP_AREAS).map(function(k){ return [k,MAP_AREAS[k].n]; })),I.area||"",function(){}); la.appendChild(F.area); f.appendChild(la);
-  inp("price","Start price (EGP)","number",I.price,"e.g. 6400000"); inp("down","Down payment %","number",I.down,"e.g. 10"); inp("years","Installment years","number",I.years,"e.g. 8");
+  inp("price","Start price","number",I.price,"e.g. 6400000"); var lc=el("label"); lc.appendChild(el("span",null,"Currency")); F.cur=mapSel("Currency",[["EGP","EGP"],["USD","USD"],["SAR","SAR"],["AED","AED"]],I.cur||"EGP",function(){}); lc.appendChild(F.cur); f.appendChild(lc); inp("down","Down payment %","number",I.down,"e.g. 10"); inp("years","Installment years","number",I.years,"e.g. 8");
   inp("delivery","Delivery","text",I.delivery,"e.g. 2028 or Ready to move"); inp("finish","Finishing","text",I.finish,"e.g. Fully finished");
   var lt=el("div","mtypes pick"); MAP_TYPES.forEach(function(t){ var c=el("label"); var cb=el("input"); cb.type="checkbox"; cb.value=t; cb.checked=(I.types||[]).indexOf(t)>=0; c.appendChild(cb); c.appendChild(document.createTextNode(" "+t)); lt.appendChild(c); }); f.appendChild(el("span","mlab","Unit types")); f.appendChild(lt);
   inp("desc","About the compound","area",I.desc,""); inp("link","Brochure or website link","url",I.link,"https://");
   d.appendChild(f); var acts=el("div","macts"), sv=el("button","btn sm primary","Save"); sv.type="button";
-  sv.addEventListener("click",function(){ var o={dev:F.dev.value.trim(),area:F.area.value,price:+F.price.value||0,down:+F.down.value||0,years:+F.years.value||0,delivery:F.delivery.value.trim(),finish:F.finish.value.trim(),desc:F.desc.value.trim().slice(0,1500),link:/^https?:\/\//.test(F.link.value.trim())?F.link.value.trim():"",types:[].slice.call(lt.querySelectorAll("input:checked")).map(function(c){ return c.value; })};
+  sv.addEventListener("click",function(){ var o={cur:F.cur.value,dev:F.dev.value.trim(),area:F.area.value,price:+F.price.value||0,down:+F.down.value||0,years:+F.years.value||0,delivery:F.delivery.value.trim(),finish:F.finish.value.trim(),desc:F.desc.value.trim().slice(0,1500),link:/^https?:\/\//.test(F.link.value.trim())?F.link.value.trim():"",types:[].slice.call(lt.querySelectorAll("input:checked")).map(function(c){ return c.value; })};
     sv.disabled=true; sv.textContent="Saving…"; A.setInfo(name,o).then(function(){ d.remove(); setTimeout(function(){ if(MAP.st[name]) mapSheet(name); else if(isNew) mapPlace(name); },400); }).catch(function(e){ alert("Could not save: "+e.message); sv.disabled=false; sv.textContent="Save"; }); });
   var cc=el("button","btn sm","Cancel"); cc.type="button"; cc.addEventListener("click",function(){ d.remove(); }); acts.appendChild(sv); acts.appendChild(cc); d.appendChild(acts);
   $("map-canvas").parentNode.appendChild(d); }
