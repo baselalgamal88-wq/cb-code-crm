@@ -444,6 +444,9 @@ body.privsales #priv{background:rgba(230,201,125,.16);border-color:rgba(230,201,
 body.nosales .acard .tg,body.nosales .acard .ring,body.nosales [data-sec="sales"],body.nosales #hero-target{display:none!important}
 tr.click{cursor:pointer}
 
+.remind{margin:8px 0}.remind .rlab{font-size:12.5px;color:var(--ink-3);margin-bottom:4px}.remind input{min-height:40px;width:100%;max-width:260px}
+.rquick{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}.duebox{margin:4px 0 18px}
+
 </style>
 </head>
 <body>
@@ -1354,12 +1357,12 @@ function appDrawer(e,b){ var A=window.CB_APP; if(!A) return;
   if(l0){ var LN=window.__lastNote(l0); if(LN.text){ var lb=el("div","lastfb dsec"); lb.appendChild(el("h4",null,"Latest feedback")); var lt=el("p",null,LN.text); lt.dir="auto"; lb.appendChild(lt); lb.appendChild(el("div","hint",LN.meta)); b.appendChild(lb); } }
   var f=el("div","logf dsec"); f.appendChild(el("h4",null,"Log feedback"));
   var row=el("div","row2"), sel=el("select"); sel.setAttribute("aria-label","Feedback"); A.FB_OPTIONS.forEach(function(o){ sel.appendChild(el("option",null,o)); });
-  var nx=el("input"); nx.type="date"; nx.setAttribute("aria-label","Next follow-up date"); nx.title="Next follow-up (optional)"; row.appendChild(sel); row.appendChild(nx); f.appendChild(row);
+  var RF=remindField(sel), nx=RF.input; row.appendChild(sel); f.appendChild(row); f.appendChild(RF.wrap);
   var note=el("textarea"); note.placeholder="What happened with the client: what they said, what they want, what you agreed next"; note.setAttribute("aria-label","What happened with the client"); note.maxLength=1990; note.rows=4; f.appendChild(note);
   var acts=el("div","acts"), save=el("button","btn primary","Save"); save.type="button"; var st=el("span"); st.setAttribute("role","status"); acts.appendChild(save); acts.appendChild(st); f.appendChild(acts);
   save.addEventListener("click",function(){ save.disabled=true; st.className=""; st.textContent="Saving…";
     A.logFeedback({ak:A.AK_OF[agentName]||"", lead:l0?l0[C.id]:"", client:e.name, phone:e.number||"", feedback:sel.value, note:note.value.trim(), next:nx.value})
-      .then(function(){ st.className="ok"; st.textContent="Saved. It goes to Basel's sheet within a minute."; note.value=""; save.disabled=false; setTimeout(function(){ openClient(e); },900); })
+      .then(function(){ st.className="ok"; st.textContent="Saved"+(nx.value?". Reminder set for "+__niceDt(nx.value):"")+". It goes to Basel's sheet within a minute."; note.value=""; save.disabled=false; setTimeout(function(){ openClient(e); },900); })
       .catch(function(err){ st.className="bad"; st.textContent="Not saved ("+((err&&err.code)||"error")+")"; save.disabled=false; }); });
   b.appendChild(f);
   if(A.admin&&l0&&A.reassign){ var rs=el("div","logf dsec"); rs.appendChild(el("h4",null,"Reassign this lead"));
@@ -1390,7 +1393,7 @@ function appAddLead(){ var A=window.CB_APP; if(!A) return; lastFocus=document.ac
   var so=field("Lead source",el("select")); ["Personal","Facebook","Instagram","TikTok","Website","Referral","Walk-in","Cold call","Event","Other"].forEach(function(s){ so.appendChild(el("option",null,s)); });
   var ag=null; if(A.admin){ ag=field("Agent",el("select")); Object.keys(A.AK_OF).forEach(function(n){ var o=el("option",null,n.split(" ").slice(0,2).join(" ")); o.value=A.AK_OF[n]; ag.appendChild(o); }); }
   var fb=field("Feedback",el("select")); ["New, not contacted yet"].concat(A.FB_OPTIONS).forEach(function(o){ fb.appendChild(el("option",null,o)); });
-  var nx=field("Next follow-up",el("input")); nx.type="date";
+  var nx=field("Remind me (date and time)",el("input")); nx.type="datetime-local";
   var no=field("Note",el("textarea")); no.maxLength=1990; no.placeholder="What the client wants: budget, unit type, timing";
   var acts=el("div","acts"), save=el("button","btn primary","Add lead"); save.type="button"; var st=el("span"); st.setAttribute("role","status"); acts.appendChild(save); acts.appendChild(st); f.appendChild(acts); b.appendChild(f);
   save.addEventListener("click",function(){ var n=nm.value.trim(), p=ph.value.trim(); if(!n){ nm.focus(); st.className="bad"; st.textContent="Add the client's name"; return; } if(p.replace(/\D/g,"").length<8){ ph.focus(); st.className="bad"; st.textContent="Add a valid mobile number"; return; }
@@ -1474,7 +1477,7 @@ function openListItem(k,r){ var A=window.CB_APP; if(!A) return; lastFocus=docume
   b.appendChild(recBox(r.added||"",r.fb||"No feedback yet",fbClass(r.fb||"Pending Feedback"),[["Project",r.project],["Agent",r.agent],["Source",r.source],["Next follow-up",r.next],["Note",r.note],["Last update in the app",r.upAt?(r.upAt+" by "+r.upBy):""]]));
   var f=el("div","logf dsec"); f.appendChild(el("h4",null,"Log feedback"));
   var row=el("div","row2"), sel=el("select"); sel.setAttribute("aria-label","Feedback"); A.FB_OPTIONS.forEach(function(o){ var op=el("option",null,o); if(o===r.fb) op.selected=true; sel.appendChild(op); });
-  var nx=el("input"); nx.type="date"; nx.setAttribute("aria-label","Next follow-up date"); row.appendChild(sel); row.appendChild(nx); f.appendChild(row);
+  var RF=remindField(sel), nx=RF.input; row.appendChild(sel); f.appendChild(row); f.appendChild(RF.wrap);
   var note=el("textarea"); note.placeholder="Note: what the client said, what's next"; note.setAttribute("aria-label","Note"); note.maxLength=1990; f.appendChild(note);
   var acts=el("div","acts"), save=el("button","btn primary","Save"); save.type="button"; var st=el("span"); st.setAttribute("role","status"); acts.appendChild(save); acts.appendChild(st); f.appendChild(acts); b.appendChild(f);
   save.addEventListener("click",function(){ save.disabled=true; st.className=""; st.textContent="Saving…";
@@ -1566,6 +1569,7 @@ function secRender(){ var box=$("v-sections"); if(!box) return; box.textContent=
   function reset(){ var b=$("f-reset"); if(b) b.click(); }
   var grid=el("div","secgrid");
   function card(title,num,note,onclick,cls){ var c=el("button","seccard"+(cls?" "+cls:"")); c.type="button"; c.appendChild(el("div","k",title)); c.appendChild(el("div","v",fmt(num))); c.appendChild(el("div","n",note)); c.addEventListener("click",onclick); grid.appendChild(c); }
+  var due=dueFollowups(), dueBox=el("div","duebox"); card("Follow-ups due",due.length,due.filter(function(x){ return x.late; }).length+" overdue · reminders for today",function(){ dueBox.scrollIntoView({behavior:"smooth",block:"start"}); },due.length?"attn":"");
   card("New leads",nw,"created in the last 7 days",function(){ reset(); goLeads({from:__ymd(wk)}); },"gold");
   card("No feedback yet",nofb,"pending or blank",function(){ reset(); goLeads({feedback:-2}); },"attn");
   if(ina>=0) card(X.feedback[ina],cnt[ina]||0,"call them again",function(){ reset(); goLeads({feedback:ina}); });
@@ -1574,7 +1578,7 @@ function secRender(){ var box=$("v-sections"); if(!box) return; box.textContent=
   if(icl>=0) card(X.feedback[icl],cnt[icl]||0,"follow up when agreed",function(){ reset(); goLeads({feedback:icl}); });
   var rz=(typeof rzRows==="function")?rzRows().length:0; card("Reassigned",rz,"moved to "+(A.admin?"an agent":"you"),function(){ go("reassigned"); });
   card("Rotation",(LISTS.rotation||[]).length,"from Basel's sheet",function(){ go("rotation"); }); card("Cold calls",(LISTS.cold||[]).length,"from Basel's sheet",function(){ go("cold"); });
-  box.appendChild(el("h3","sect","Sections")); box.appendChild(grid);
+  box.appendChild(el("h3","sect","Sections")); box.appendChild(grid); dueRender(dueBox); box.appendChild(dueBox);
   var pc={}; R.forEach(function(r){ pc[r[C.project]]=(pc[r[C.project]]||0)+1; });
   var pl=Object.keys(pc).map(Number).sort(function(a,b){ return pc[b]-pc[a]; });
   var ph=el("div","secph"); ph.appendChild(el("h3","sect","Projects")); var pq=el("input"); pq.type="search"; pq.placeholder="Find a project"; pq.setAttribute("aria-label","Find a project"); ph.appendChild(pq); box.appendChild(ph);
@@ -1586,6 +1590,35 @@ window.__applySales=function(show){ window.__NOSALES=!!(window.CB_AGENT&&!show);
 NOFILTER.sections=1;
 window.__salesToggle=function(show){ var l=$("sales-sw"), c=$("sales-show"); if(!l||!c||!(window.CB_APP&&window.CB_APP.admin)) return; l.hidden=false; c.checked=!!show; };
 (function(){ var c=$("sales-show"); if(c) c.addEventListener("change",function(){ if(window.CB_APP&&window.CB_APP.setShowSales) window.CB_APP.setShowSales(c.checked).then(function(){ var m=$("wa-msg"); if(m) m.textContent=c.checked?"Agents now see their sales.":"Sales are now hidden from agents."; }).catch(function(e){ alert("Not saved ("+(e.code||e.message)+")"); }); }); })();
+
+// ---------- Reminders: the agent picks when to follow up; the phone alerts them then ----------
+function __p2(n){ return (n<10?"0":"")+n; }
+function __dtLocal(days,h){ var d=new Date(Date.now()+days*86400000); return d.getFullYear()+"-"+__p2(d.getMonth()+1)+"-"+__p2(d.getDate())+"T"+__p2(h==null?11:h)+":00"; }
+function __nowLocal(){ var d=new Date(); return d.getFullYear()+"-"+__p2(d.getMonth()+1)+"-"+__p2(d.getDate())+"T"+__p2(d.getHours())+":"+__p2(d.getMinutes()); }
+function __niceDt(v){ if(!v) return ""; var d=new Date(String(v).length<=10?v+"T09:00":v); if(isNaN(d)) return String(v); return d.toLocaleString("en-GB",{weekday:"short",day:"numeric",month:"short",hour:"numeric",minute:"2-digit"}); }
+var REMIND_DAYS={"Call Later":2,"Follow up":2,"Meeting Scheduled":1,"No Answer":1,"Showing":1,"Meeting Done":3};
+function remindField(sel){ var wrap=el("div","remind"); wrap.appendChild(el("div","rlab","Remind me"));
+  var nx=el("input"); nx.type="datetime-local"; nx.setAttribute("aria-label","Reminder date and time"); wrap.appendChild(nx);
+  var quick=el("div","rquick"); [["Tomorrow",1],["In 2 days",2],["In a week",7]].forEach(function(q){ var b=el("button","btn sm",q[0]); b.type="button"; b.addEventListener("click",function(){ nx.value=__dtLocal(q[1]); nx.dataset.auto=""; }); quick.appendChild(b); });
+  var clr=el("button","btn sm","No reminder"); clr.type="button"; clr.addEventListener("click",function(){ nx.value=""; nx.dataset.auto=""; }); quick.appendChild(clr); wrap.appendChild(quick);
+  wrap.appendChild(el("div","hint","Your phone will alert you at this time (turn on Alerts first)."));
+  function suggest(){ var d=REMIND_DAYS[sel.value]; if((!nx.value||nx.dataset.auto)&&d){ nx.value=__dtLocal(d); nx.dataset.auto="1"; } else if(nx.dataset.auto&&!d){ nx.value=""; nx.dataset.auto=""; } }
+  sel.addEventListener("change",suggest); nx.addEventListener("input",function(){ nx.dataset.auto=""; }); setTimeout(suggest,0);
+  return {wrap:wrap,input:nx}; }
+// follow-ups that are due: newest feedback per lead with a reminder time that has passed (or is today)
+function dueFollowups(){ var A=window.CB_APP||{}, ups=A.allUpdates?A.allUpdates():[], latest={};
+  ups.forEach(function(u){ var k=String(u.lead||u.phone||""); if(!k) return; var t=__tsMs(u.at)||9e12; if(!latest[k]||t>latest[k].t) latest[k]={t:t,u:u}; });
+  var end=__dtLocal(0,23).slice(0,11)+"23:59", out=[];
+  Object.keys(latest).forEach(function(k){ var u=latest[k].u; if(!u.next) return; var n=String(u.next).length<=10?u.next+"T09:00":String(u.next); if(n<=end) out.push({u:u,n:n,late:n<__nowLocal()}); });
+  return out.sort(function(a,b){ return a.n<b.n?-1:1; }); }
+function dueRender(box){ box.textContent=""; var list=dueFollowups(); box.appendChild(el("h3","sect","Follow-ups due ("+list.length+")"));
+  if(!list.length){ box.appendChild(el("div","card lempty","Nothing due today.")); return; }
+  var g=el("div","llist"); list.forEach(function(x){ var u=x.u, c=el("div","lrow"); c.tabIndex=0; c.setAttribute("role","button");
+    var top=el("div","ltop"); var nm=el("b",null,u.client||"(no name)"); nm.dir="auto"; top.appendChild(nm); top.appendChild(el("span","chip "+(x.late?"bad":"warn"),(x.late?"Due ":"Today ")+__niceDt(x.n))); c.appendChild(top);
+    c.appendChild(el("div","lmeta",[u.feedback,u.phone,u.project].filter(Boolean).join(" · "))); if(u.note){ var nt=el("div","lnote",u.note); nt.dir="auto"; c.appendChild(nt); }
+    function open(){ var l=leadById[u.lead]||leadById[+u.lead]; if(l) openClient(clientOfLead(l)); else if(/^R\d/.test(u.lead||"")) go("rotation"); else if(/^C\d/.test(u.lead||"")) go("cold"); }
+    c.addEventListener("click",open); c.addEventListener("keydown",function(ev){ if(ev.key==="Enter") open(); }); g.appendChild(c); });
+  box.appendChild(g); }
 
 function render(){
   var c=$("count"); c.textContent=""; c.appendChild(el("b",null,fmt(view.length))); c.appendChild(document.createTextNode(" of "+fmt(R.length)+" leads"+(state.stale?" · no activity for "+(state.stale>=1440?Math.round(state.stale/1440)+" days":Math.round(state.stale/60)+" hours")+" or more":"")));
