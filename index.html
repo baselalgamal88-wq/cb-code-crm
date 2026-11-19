@@ -374,6 +374,9 @@ svg .gauge-k{font-size:10.5px;fill:var(--ink-3);font-family:var(--font)}
 .pb .num{text-align:right;font-variant-numeric:tabular-nums;color:var(--ink-2);font-weight:600;font-size:12px}
 @media (max-width:760px){.charts{grid-template-columns:1fr}.donutwrap{grid-template-columns:1fr}.donutwrap svg{max-width:220px;margin:0 auto}.salewrap{grid-template-columns:1fr}.gb{grid-template-columns:110px 1fr}}
 
+/* Sales privacy: blur sales figures on this screen (office laptops) */
+body.privsales #hero-target .tt,body.privsales #hero-target .tv,body.privsales .privsales,body.privsales .tile.gold .v,body.privsales .tile.gold .n,body.privsales .acard .ring,body.privsales .acard .tg,body.privsales #v-tcrs .card,body.privsales #v-reports .card{filter:blur(9px);user-select:none;pointer-events:none}
+body.privsales #priv{background:rgba(230,201,125,.16);border-color:rgba(230,201,125,.55);color:#e6c97d}body.privsales #priv svg{stroke:#e6c97d}
 
 /* ---------- team app: sign-in screen, app bar, feedback logging ---------- */
 .gate{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:20px;background:
@@ -466,6 +469,7 @@ tr.click{cursor:pointer}
       <div class="hero-btns">
         <button class="herobtn" id="wa-open" type="button"><svg viewBox="0 0 24 24"><path d="M21 12a8.5 8.5 0 0 1-12.6 7.4L3 21l1.6-5.2A8.5 8.5 0 1 1 21 12z"/></svg>Messages</button>
         <a class="herobtn" id="zm-start" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3z"/></svg>Start Zoom</a>
+        <button class="herobtn" id="priv" type="button" aria-pressed="true"><svg viewBox="0 0 24 24"><path d="M3 3l18 18M10.6 10.6a2 2 0 0 0 2.8 2.8M9.9 5.1A9.8 9.8 0 0 1 12 5c5 0 9 4.5 10 7a12.8 12.8 0 0 1-3.2 4.3M6.6 6.6C4.4 8 2.8 10.2 2 12c1 2.5 5 7 10 7a9.6 9.6 0 0 0 4.4-1.1"/></svg><span>Sales hidden</span></button>
         <button class="herobtn" id="app-bell" type="button" hidden><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span>Alerts</span></button>
         <button class="herobtn" id="app-add" type="button" hidden><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Add lead</button>
         <button class="herobtn icon" id="theme" type="button" aria-label="Switch light or dark mode" title="Light or dark mode"><svg viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg></button>
@@ -1237,6 +1241,10 @@ function chips(){ var c=$("f-chips"); c.textContent=""; var list=[];
   var bd=$("f-badge"); bd.textContent=list.length?String(list.length):""; bd.classList.toggle("on",list.length>0); }
 
 // ---------- Header target ----------
+(function(){ var b=$("priv"); if(!b) return; var key="cbcode.privsales."+((window.CB_APP&&window.CB_APP.email)||"me"), on=true; try{ if(localStorage.getItem(key)==="0") on=false; }catch(e){}
+  var eyeOff=b.querySelector("svg").innerHTML, eyeOn='<path d="M2 12c1-2.5 5-7 10-7s9 4.5 10 7c-1 2.5-5 7-10 7S3 14.5 2 12z"/><circle cx="12" cy="12" r="3"/>';
+  function set(x){ on=x; document.body.classList.toggle("privsales",on); b.setAttribute("aria-pressed",on?"true":"false"); b.querySelector("span").textContent=on?"Sales hidden":"Sales shown"; b.querySelector("svg").innerHTML=on?eyeOff:eyeOn; b.title=on?"Sales figures are blurred on this screen. Tap to show them.":"Tap to hide the sales figures on this screen"; try{ localStorage.setItem(key,on?"1":"0"); }catch(e){} }
+  b.addEventListener("click",function(){ set(!on); }); set(on); })();
 function heroTarget(){ if(!TCB) TCB=tcrBy(); var box=$("hero-target"); box.textContent=""; if(window.__NOSALES) return; if(!TEAM_TARGET) return; var p=TCB.total/TEAM_TARGET;
   box.appendChild(el("div","tl",window.CB_AGENT?"Your sales target":"Team sales target")); var tt=el("div","tt"), i=el("i"); i.style.width=Math.min(100,p*100)+"%"; tt.appendChild(i); tt.setAttribute("role","img"); tt.setAttribute("aria-label",Math.round(p*100)+"% of the team target reached"); box.appendChild(tt);
   var tv=el("div","tv"); tv.appendChild(el("b",null,Math.round(p*100)+"%")); tv.appendChild(document.createTextNode("EGP "+money(TCB.total)+" of "+money(TEAM_TARGET))); box.appendChild(tv); }
@@ -1320,7 +1328,7 @@ function chBacklog(){ if(!FU) FU=followup(); var iq=idx(X.feedback,"Qualified"),
     row.appendChild(bars); box.appendChild(row); }); c.appendChild(box); }
 
 // 5. Team target gauge + sales by month
-function chSales(){ if(window.__NOSALES) return; if(!TCB) TCB=tcrBy(); var p=TEAM_TARGET?TCB.total/TEAM_TARGET:0, c=chartCard("Sales target","TCR sales volume (EGP) against the team target, and by contract month");
+function chSales(){ if(window.__NOSALES) return; if(!TCB) TCB=tcrBy(); var p=TEAM_TARGET?TCB.total/TEAM_TARGET:0, c=chartCard("Sales target","TCR sales volume (EGP) against the team target, and by contract month"); c.classList.add("privsales");
   var wrap=el("div","salewrap"), S=180, s=svgE("svg",{viewBox:"0 0 "+S+" "+(S*0.62),role:"img","aria-label":Math.round(p*100)+"% of team target"}), cx=S/2, cy=S*0.56, r=70;
   function arc(f,col,w){ var a0=Math.PI, a1=Math.PI+Math.PI*Math.min(1,f); return svgE("path",{d:"M"+(cx+r*Math.cos(a0))+","+(cy+r*Math.sin(a0))+" A"+r+","+r+" 0 0 1 "+(cx+r*Math.cos(a1))+","+(cy+r*Math.sin(a1))},"fill:none;stroke:"+col+";stroke-width:"+w+";stroke-linecap:round"); }
   s.appendChild(arc(1,"var(--bar-track)",14)); if(p>0) s.appendChild(arc(p,"var(--gold)",14)); s.appendChild(txt(cx,cy-12,Math.round(p*100)+"%","middle","gauge-v")); s.appendChild(txt(cx,cy+6,"EGP "+money(TCB.total)+" of "+money(TEAM_TARGET),"middle","gauge-k")); wrap.appendChild(s);
