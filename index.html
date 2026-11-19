@@ -479,6 +479,7 @@ tr.click{cursor:pointer}
 @media(max-width:820px){.mapedit{max-width:calc(100% - 24px);bottom:auto;top:calc(62vh - 70px)}}
 .mhandle{background:#e6c97d;border:2px solid #0a1f3d;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,.5)}
 .mhandle.mid{background:rgba(230,201,125,.55);border-style:dashed}
+.marea.reg div{background:rgba(201,165,76,.9);border-color:#fff;color:#0a1f3d}
 
 </style>
 </head>
@@ -1678,6 +1679,7 @@ var MAP_PROJ_AREA=(function(){ var m={}, g={
   redsea:"Ras Soma|Shams soma|Soma Bay|Makadi Heights|Red Sea Projects"
 };
   Object.keys(g).forEach(function(a){ g[a].split("|").forEach(function(p){ var k=p.split(":"); if(!m[k[0]]) m[k[0]]=k[1]||a; }); }); return m; })();
+var MAP_REG={cairo:{n:"Greater Cairo",c:[30.05,31.22],z:9.3,a:["zayed","october","newcairo","east","capital","nasr"]},coast:{n:"North Coast",c:[31.0,28.4],z:8.4,a:["hekma","sahel","matrouh"]},sokhna:{n:"Ain Sokhna & Galala",c:[29.57,32.33],z:10.5,a:["sokhna"]},redsea:{n:"Red Sea",c:[26.9,33.9],z:10,a:["redsea"]}};
 var MAP={ready:false,loading:false,map:null,layers:{},markers:{},plans:{},edit:null,agent:-1,list:null};
 function mapLoadLeaflet(cb){
   if(window.L) return cb(); if(MAP.loading){ MAP.wait=(MAP.wait||[]).concat(cb); return; } MAP.loading=true; MAP.wait=[cb];
@@ -1715,12 +1717,12 @@ function mapInit(){ if(MAP.map) return; var cv=$("map-canvas"); cv.textContent="
   MAP.layers.sat=L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,maxNativeZoom:18,attribution:"Imagery © Esri, Maxar, Earthstar Geographics"}).addTo(m);
   MAP.layers.lbl=L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,maxNativeZoom:18,pane:"overlayPane"}).addTo(m);
   MAP.layers.osm=L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap contributors"});
-  MAP.areaLayer=L.layerGroup().addTo(m); MAP.projLayer=L.layerGroup().addTo(m); MAP.planLayer=L.layerGroup().addTo(m);
+  MAP.regLayer=L.layerGroup().addTo(m); MAP.areaLayer=L.layerGroup(); MAP.projLayer=L.layerGroup().addTo(m); MAP.planLayer=L.layerGroup().addTo(m);
   m.on("zoomend moveend",function(){ mapLevel(); mapSide(); });
   window.__geoChanged=function(){ if(!MAP.edit) mapDraw(); };
   mapDraw(); setTimeout(function(){ m.invalidateSize(); },60);
 }
-function mapDraw(){ if(!MAP.map) return; var st=mapStats(); MAP.st=st; MAP.areaLayer.clearLayers(); MAP.projLayer.clearLayers(); MAP.markers={};
+function mapDraw(){ if(!MAP.map) return; var st=mapStats(); MAP.st=st; MAP.regLayer.clearLayers(); MAP.areaLayer.clearLayers(); MAP.projLayer.clearLayers(); MAP.markers={};
   var A=window.CB_APP||{}, byArea={}, k={};
   Object.keys(st).sort(function(a,b){ return st[b].n-st[a].n; }).forEach(function(name){ var ak=MAP_PROJ_AREA[name]||"_"; k[ak]=(k[ak]||0); var pos=mapPos(name,k[ak]++); var o=st[name]; o.area=ak; o.pos=pos; if(!pos) return;
     (byArea[ak]=byArea[ak]||{n:0,p:0}); byArea[ak].n+=o.n; byArea[ak].p++;
@@ -1730,10 +1732,12 @@ function mapDraw(){ if(!MAP.map) return; var st=mapStats(); MAP.st=st; MAP.areaL
   Object.keys(byArea).forEach(function(ak){ var a=MAP_AREAS[ak]; if(!a) return; var o=byArea[ak], sz=Math.round(44+Math.min(46,Math.sqrt(o.n)*0.9));
     var ic=L.divIcon({className:"marea",html:"<div style='width:"+sz+"px;height:"+sz+"px'><b>"+fmt(o.n)+"</b><span>"+o.p+" projects</span></div><em>"+mapEsc(a.n)+"</em>",iconSize:[sz,sz],iconAnchor:[sz/2,sz/2]});
     L.marker(a.c,{icon:ic,title:a.n}).on("click",function(){ MAP.map.flyTo(a.c,12.5); }).addTo(MAP.areaLayer); });
+  Object.keys(MAP_REG).forEach(function(rk){ var g=MAP_REG[rk], n=0, p=0; g.a.forEach(function(ak){ if(byArea[ak]){ n+=byArea[ak].n; p+=byArea[ak].p; } }); if(!n) return; var sz=Math.round(52+Math.min(50,Math.sqrt(n)*0.8));
+    var ic=L.divIcon({className:"marea reg",html:"<div style='width:"+sz+"px;height:"+sz+"px'><b>"+fmt(n)+"</b><span>"+p+" projects</span></div><em>"+mapEsc(g.n)+"</em>",iconSize:[sz,sz],iconAnchor:[sz/2,sz/2]});
+    L.marker(g.c,{icon:ic,title:g.n}).on("click",function(){ MAP.map.flyTo(g.c,g.z); }).addTo(MAP.regLayer); });
   mapLevel(); mapSide(); }
-function mapLevel(){ var z=MAP.map.getZoom(); var showA=z<10;
-  if(showA){ if(!MAP.map.hasLayer(MAP.areaLayer)) MAP.areaLayer.addTo(MAP.map); if(MAP.map.hasLayer(MAP.projLayer)&&!MAP.edit) MAP.map.removeLayer(MAP.projLayer); }
-  else { if(MAP.map.hasLayer(MAP.areaLayer)) MAP.map.removeLayer(MAP.areaLayer); if(!MAP.map.hasLayer(MAP.projLayer)) MAP.projLayer.addTo(MAP.map); }
+function mapLevel(){ var z=MAP.map.getZoom(), lv=z<8?0:(z<10?1:2);
+  [[MAP.regLayer,0],[MAP.areaLayer,1],[MAP.projLayer,2]].forEach(function(x){ var on=x[1]===lv||(x[1]===2&&MAP.edit); if(on&&!MAP.map.hasLayer(x[0])) x[0].addTo(MAP.map); if(!on&&MAP.map.hasLayer(x[0])) MAP.map.removeLayer(x[0]); });
   $("map-canvas").classList.toggle("deep",z>=15);
   if(z>=14) mapPlans(); else if(!MAP.edit){ MAP.planLayer.clearLayers(); MAP.plans={}; } }
 function mapPlans(){ var P=(window.__GEO||{}).plans||{}, b=MAP.map.getBounds().pad(0.5);
