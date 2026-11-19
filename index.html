@@ -1778,7 +1778,7 @@ function mapInit(){ if(MAP.map) return; var cv=$("map-canvas"); cv.textContent="
   var m=L.map(cv,{zoomControl:true,minZoom:5,maxZoom:19}).setView([29.9,30.6],6); MAP.map=m;
   MAP.layers.sat=L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,maxNativeZoom:18,attribution:"Imagery © Esri, Maxar, Earthstar Geographics"}).addTo(m);
   m.createPane("labels"); m.getPane("labels").style.zIndex=250; m.getPane("labels").style.pointerEvents="none";
-  MAP.layers.lbl=L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,maxNativeZoom:18,pane:"labels"}).addTo(m);
+  MAP.layers.lbl=L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/dark_only_labels/{z}/{x}/{y}{r}.png",{maxZoom:19,subdomains:"abcd",pane:"labels",attribution:"Labels © CARTO, © OpenStreetMap contributors"}).addTo(m);
   MAP.layers.osm=L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap contributors"});
   MAP.regLayer=L.layerGroup().addTo(m); MAP.areaLayer=L.layerGroup(); MAP.projLayer=L.layerGroup(); MAP.planLayer=L.layerGroup().addTo(m);
   m.on("zoomend moveend",function(){ mapLevel(); mapSide(); });
