@@ -446,6 +446,39 @@ tr.click{cursor:pointer}
 
 .remind{margin:8px 0}.remind .rlab{font-size:12.5px;color:var(--ink-3);margin-bottom:4px}.remind input{min-height:40px;width:100%;max-width:260px}
 .rquick{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}.duebox{margin:4px 0 18px}
+/* ---- Map ---- */
+.mapbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:4px 0 6px}
+.mapbar input[type=search]{flex:1 1 220px;min-width:0;padding:9px 12px;border-radius:10px;border:1px solid var(--line,#d6dbe3);background:var(--card,#fff);color:inherit;font:inherit}
+.mapbar select{padding:8px 10px;border-radius:10px;border:1px solid var(--line,#d6dbe3);background:var(--card,#fff);color:inherit;font:inherit}
+.maphint{margin:0 0 8px}
+.mapwrap{display:grid;grid-template-columns:1fr 280px;gap:10px;position:relative}
+.mapcv{height:calc(100vh - 250px);min-height:440px;border-radius:14px;overflow:hidden;background:#0d1b2e;color:#cfd8e3;display:flex;align-items:center;justify-content:center}
+.mapcv.leaflet-container{display:block}
+.mapside{max-height:calc(100vh - 250px);min-height:440px;overflow:auto;border:1px solid var(--line,#d6dbe3);border-radius:14px;padding:10px;background:var(--card,#fff)}
+.mapside h3{font-size:12px;text-transform:uppercase;letter-spacing:.05em;opacity:.7;margin:6px 4px 8px}
+.mitem{display:block;width:100%;text-align:left;border:0;background:transparent;color:inherit;padding:8px 8px;border-radius:10px;cursor:pointer;font:inherit}
+.mitem:hover{background:rgba(127,140,160,.12)}
+.mitem b{display:block;font-size:14px}.mitem span{font-size:12px;opacity:.7}
+.mitem.un b{opacity:.8}
+@media(max-width:820px){.mapwrap{grid-template-columns:1fr}.mapcv{height:62vh;min-height:360px}.mapside{max-height:none;min-height:0}}
+.marea{background:none;border:0}
+.marea div{border-radius:50%;background:rgba(10,31,61,.82);border:2px solid #e6c97d;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,.35);cursor:pointer}
+.marea div b{font-size:15px;line-height:1.1}.marea div span{font-size:10px;opacity:.85}
+.marea em{position:absolute;left:50%;top:100%;transform:translateX(-50%);margin-top:4px;white-space:nowrap;font-style:normal;font-weight:600;font-size:12px;color:#fff;text-shadow:0 1px 3px #000,0 0 6px #000}
+.mpin{background:none;border:0;width:auto!important;height:auto!important}
+.mpin{display:inline-flex!important;align-items:center;gap:6px;white-space:nowrap;background:#0a1f3d;color:#fff;border:1.5px solid #e6c97d;border-radius:999px;padding:4px 4px 4px 10px;font-size:12px;font-weight:600;box-shadow:0 3px 10px rgba(0,0,0,.35);cursor:pointer}
+.mpin b{background:#e6c97d;color:#0a1f3d;border-radius:999px;padding:1px 7px;font-size:11px}
+.mpin.approx{border-style:dashed;opacity:.92}
+.mpin.plan::before{content:"";width:8px;height:8px;border-radius:2px;background:#5fd08f;margin-left:-4px}
+.mapcv.deep .mpin{opacity:.85;transform-origin:left center}
+.mpopw .leaflet-popup-content{margin:12px 14px;min-width:230px}
+.mpop h4{margin:0 0 2px;font-size:16px}.mbig{display:flex;align-items:baseline;gap:6px;margin:8px 0}.mbig b{font-size:24px}.mbig span{opacity:.7;font-size:12px}
+.mfb{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px}.mfb .chip{cursor:pointer;border:0;font:inherit;font-size:11px}
+.macts{display:flex;flex-wrap:wrap;gap:6px}
+.mapedit{position:absolute;left:12px;bottom:12px;z-index:800;display:flex;flex-wrap:wrap;align-items:center;gap:8px;background:#0a1f3d;color:#fff;padding:10px 12px;border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,.4);max-width:calc(100% - 320px)}
+@media(max-width:820px){.mapedit{max-width:calc(100% - 24px);bottom:auto;top:calc(62vh - 70px)}}
+.mhandle{background:#e6c97d;border:2px solid #0a1f3d;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,.5)}
+.mhandle.mid{background:rgba(230,201,125,.55);border-style:dashed}
 
 </style>
 </head>
@@ -606,6 +639,7 @@ tr.click{cursor:pointer}
   </section>
 
   <section class="view" id="v-sections"></section>
+  <section class="view" id="v-map"></section>
   <section class="view" id="v-reassigned"><div class="lcount">Loading…</div></section>
   <section class="view" id="v-rotation"><div class="lcount">Loading…</div></section>
   <section class="view" id="v-cold"><div class="lcount">Loading…</div></section>
@@ -1259,12 +1293,12 @@ var ICONS={today:"M12 3v2M12 19v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M3 12h2M19 12
   sales:"M3 3v18h18M7 15l4-4 3 3 6-6",
   projects:"M4 21V7l8-4 8 4v14M9 21v-6h6v6M8 10h.01M12 10h.01M16 10h.01"};
 var SECTIONS=[{id:"today",label:"Today",views:[["today","Today"],["daily","Daily report"],["changes","What changed"]]},
-  {id:"leads",label:"Leads",views:[["sections","Sections"],["overview","Overview"],["leads","All leads"],["clients","Clients"],["reassigned","Reassigned"],["rotation","Rotation"],["cold","Cold calls"]]},
+  {id:"leads",label:"Leads",views:[["sections","Sections"],["map","Map"],["overview","Overview"],["leads","All leads"],["clients","Clients"],["reassigned","Reassigned"],["rotation","Rotation"],["cold","Cold calls"]]},
   {id:"team",label:"Team",views:[["agents","Agents"],["team","Feedback mix"],["performance","Agent rates"],["sheets","Agent sheets"]]},
   {id:"sales",label:"Sales",views:[["tcrs","TCRs and targets"],["reports","Reports"]]},
   {id:"projects",label:"Projects",views:[["projects","Projects"]]}];
 var ALLVIEWS=[], SECOF={}, LASTV={}; SECTIONS.forEach(function(s){ LASTV[s.id]=s.views[0][0]; s.views.forEach(function(v){ ALLVIEWS.push(v[0]); SECOF[v[0]]=s.id; }); });
-var NOFILTER={today:1,agents:1,myleads:1,rotation:1,cold:1,reassigned:1};
+var NOFILTER={today:1,agents:1,myleads:1,rotation:1,cold:1,reassigned:1,map:1};
 function icon(name){ var NS="http://www.w3.org/2000/svg", s=document.createElementNS(NS,"svg"); s.setAttribute("viewBox","0 0 24 24"); s.setAttribute("aria-hidden","true"); var p=document.createElementNS(NS,"path"); p.setAttribute("d",ICONS[name]); s.appendChild(p); return s; }
 function buildNav(){ [$("tabs"),$("botnav")].forEach(function(nav){ nav.textContent=""; SECTIONS.forEach(function(s){ var b=el("button"); b.type="button"; b.dataset.sec=s.id; b.appendChild(icon(s.id)); b.appendChild(el("span",null,s.label)); b.addEventListener("click",function(){ go(LASTV[s.id]); }); nav.appendChild(b); }); }); }
 
@@ -1620,6 +1654,147 @@ function dueRender(box){ box.textContent=""; var list=dueFollowups(); box.append
     c.addEventListener("click",open); c.addEventListener("keydown",function(ev){ if(ev.key==="Enter") open(); }); g.appendChild(c); });
   box.appendChild(g); }
 
+/* ---------- Map: destinations -> projects -> master plan (like a property-portal map, with our own leads) ---------- */
+var MAP_AREAS={
+  zayed:{n:"Sheikh Zayed",c:[30.040,30.985]}, october:{n:"6th of October",c:[29.960,30.930]},
+  newcairo:{n:"New Cairo",c:[30.020,31.470]}, east:{n:"Mostakbal City & Shorouk",c:[30.135,31.610]},
+  capital:{n:"New Capital",c:[30.020,31.740]}, nasr:{n:"Nasr City & Heliopolis",c:[30.075,31.345]},
+  hekma:{n:"North Coast · Ras El Hekma",c:[31.190,27.880]}, sahel:{n:"North Coast · Alamein & Sidi Abdel Rahman",c:[30.930,28.700]},
+  matrouh:{n:"North Coast · Alam El Roum",c:[31.330,27.330]}, sokhna:{n:"Ain Sokhna & Galala",c:[29.570,32.330]},
+  redsea:{n:"Red Sea · Hurghada & Soma Bay",c:[26.900,33.900]}
+};
+/* Area of each project. Pins inside an area start at an approximate spot until Basel or the admin drags them to the exact one. */
+var MAP_PROJ_AREA=(function(){ var m={}, g={
+  zayed:"West Leaves Commercial|West Leaves|205 Project|Villagio Gray|Vye Zayed|Solana West|Zed Project|Zed East:newcairo|Aeon|Dunes|Zayed Dunes|El Sheikh Zayed|Elkarma|Village West|Dorra Sheikh Zayed|Jeera|Karmell|Casa|Patterns West|patternes|West Mark|Giza Terraces",
+  october:"O west|Owest- October|Mountain View Chill Out Park|Mountain View iCity 6 October|Mountain View October Park|Other-Wahat|6th October Generic|Kingsway|Garden Lakes|Badya|Jirian|Belle Ville|Ashgar Heights|Palm Hills October|Sun Capital|October Plaza|Swanlake West|Family City",
+  newcairo:"Water Way|Water Way-NC|Mountain View iCity|Mountain View Hyde park|Mountain View 1.1|Mountain View 2|Mountain View 4|HydePark New Cairo|City Gate|District 5|Crescent Walk|Sodic Eastvale|Sodic Villette|Badya New Cairo|Palm Hills New Cairo|1st Settlement|Taj City|Moon Valley|Galleria Moon Valley|Katameya Forty|5th Square|Address East|Palm Hills Katameya|Eastown|New Cairo|Stone Park|Sarai|Zed East",
+  east:"Sodic East|Bloomfields|Il Bosco City|Al Burouj",
+  capital:"Capital Heights|Al Maqsad",
+  nasr:"Citystars Park St",
+  hekma:"Modon|Modon Ras Elhekma|Azha West|Azha North|SeaShore|June|June Ras Elhekma|Salt|La Vista Ras El Hekma|Lavista Riva|Mountain View Ras Elhikma|Marsa Baghoush|Marasa Baghush|Ogami|Ogami Sodic|Caesar|Sodic - North Coast|Cali Coast|Ora North Coast|Silversands|Swanlake West:october|North Coast - General Ad.",
+  sahel:"Marina 5|Hacienda Bay|Hacienda Bay-Le Sidi|Hacienda Waters|Lagoon- North coast|Katameya Coast|Stella De Mare:sokhna|GAIA|White Bay|Marsellia|Q Bay",
+  matrouh:"Allam Alroum",
+  sokhna:"IL Monte Galala|Ilmonto Marina|Stella De Mare|Stella Di Mare|Ain Sokhna|Telal Sokhna|Blumar ElSokhna",
+  redsea:"Ras Soma|Shams soma|Soma Bay|Makadi Heights|Red Sea Projects"
+};
+  Object.keys(g).forEach(function(a){ g[a].split("|").forEach(function(p){ var k=p.split(":"); if(!m[k[0]]) m[k[0]]=k[1]||a; }); }); return m; })();
+var MAP={ready:false,loading:false,map:null,layers:{},markers:{},plans:{},edit:null,agent:-1,list:null};
+function mapLoadLeaflet(cb){
+  if(window.L) return cb(); if(MAP.loading){ MAP.wait=(MAP.wait||[]).concat(cb); return; } MAP.loading=true; MAP.wait=[cb];
+  var css=document.createElement("link"); css.rel="stylesheet"; css.href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"; document.head.appendChild(css);
+  var s=document.createElement("script"); s.src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+  s.onload=function(){ (MAP.wait||[]).forEach(function(f){ f(); }); MAP.wait=[]; };
+  s.onerror=function(){ var b=$("map-canvas"); if(b) b.textContent="The map could not load. Check the internet connection and open Map again."; MAP.loading=false; };
+  document.head.appendChild(s);
+}
+function mapStats(){ var per={}; R.forEach(function(r){ if(MAP.agent>=0&&r[C.agent]!==MAP.agent) return; var p=X.project[r[C.project]]; if(!p||p==="No project"||p==="Other") return;
+  var o=per[p]||(per[p]={i:r[C.project],n:0,fb:{},fresh:0}); o.n++; var f=X.feedback[r[C.feedback]]||"No feedback"; o.fb[f]=(o.fb[f]||0)+1; if(!r[C.lastAct]) o.fresh++; }); return per; }
+function mapPos(name,k){ var G=(window.__GEO||{}).pins||{}; if(G[name]&&G[name].lat!=null) return {ll:[G[name].lat,G[name].lng],exact:true};
+  var a=MAP_AREAS[MAP_PROJ_AREA[name]]; if(!a) return null; var ang=k*2.39996, rr=0.010*Math.sqrt(k+0.5); return {ll:[a.c[0]+rr*Math.sin(ang),a.c[1]+rr*1.15*Math.cos(ang)],exact:false}; }
+function mapRender(){ var box=$("v-map"); if(!box) return;
+  if(!box.dataset.built){ box.dataset.built="1"; box.textContent="";
+    var A=window.CB_APP||{}, bar=el("div","mapbar");
+    var q=el("input"); q.type="search"; q.placeholder="Search a project or area"; q.setAttribute("aria-label","Search a project or area"); bar.appendChild(q);
+    if(A.admin||!window.CB_AGENT){ var ag=el("select"); ag.setAttribute("aria-label","Agent"); var o0=el("option",null,"All agents"); o0.value="-1"; ag.appendChild(o0);
+      X.agent.forEach(function(n,i){ var o=el("option",null,String(n).split(" ").slice(0,2).join(" ")); o.value=String(i); ag.appendChild(o); });
+      ag.addEventListener("change",function(){ MAP.agent=+ag.value; mapDraw(); }); bar.appendChild(ag); }
+    var lay=el("button","btn sm","Streets"); lay.type="button"; lay.addEventListener("click",function(){ var sat=MAP.map.hasLayer(MAP.layers.sat); if(sat){ MAP.map.removeLayer(MAP.layers.sat); MAP.map.removeLayer(MAP.layers.lbl); MAP.layers.osm.addTo(MAP.map); lay.textContent="Satellite"; } else { MAP.map.removeLayer(MAP.layers.osm); MAP.layers.sat.addTo(MAP.map); MAP.layers.lbl.addTo(MAP.map); lay.textContent="Streets"; } }); bar.appendChild(lay);
+    var home=el("button","btn sm","All Egypt"); home.type="button"; home.addEventListener("click",function(){ MAP.map.flyTo([29.9,30.6],6); }); bar.appendChild(home);
+    box.appendChild(bar);
+    var hint=el("div","hint maphint","Zoom in: areas → projects → master plan. Numbers are leads"+(window.CB_AGENT?" you own":"")+". Tap a project to open its leads."); box.appendChild(hint);
+    var wrap=el("div","mapwrap"), cv=el("div","mapcv"); cv.id="map-canvas"; cv.textContent="Loading map…"; var side=el("div","mapside"); wrap.appendChild(cv); wrap.appendChild(side); box.appendChild(wrap);
+    MAP.list=side; MAP.q=q; q.addEventListener("input",function(){ mapSide(); });
+    q.addEventListener("keydown",function(e){ if(e.key!=="Enter") return; var t=q.value.trim().toLowerCase(); if(!t) return;
+      var ak=Object.keys(MAP_AREAS).filter(function(k){ return MAP_AREAS[k].n.toLowerCase().indexOf(t)>=0; })[0]; if(ak){ MAP.map.flyTo(MAP_AREAS[ak].c,12); return; }
+      var hit=Object.keys(MAP.markers).filter(function(n){ return n.toLowerCase().indexOf(t)>=0; })[0]; if(hit) mapFocus(hit); });
+    mapLoadLeaflet(mapInit);
+  } else if(MAP.map){ setTimeout(function(){ MAP.map.invalidateSize(); },50); mapDraw(); }
+}
+function mapInit(){ if(MAP.map) return; var cv=$("map-canvas"); cv.textContent="";
+  var m=L.map(cv,{zoomControl:true,worldCopyJump:false,minZoom:5,maxZoom:19}).setView([29.9,30.6],6); MAP.map=m;
+  MAP.layers.sat=L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,maxNativeZoom:18,attribution:"Imagery © Esri, Maxar, Earthstar Geographics"}).addTo(m);
+  MAP.layers.lbl=L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,maxNativeZoom:18,pane:"overlayPane"}).addTo(m);
+  MAP.layers.osm=L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap contributors"});
+  MAP.areaLayer=L.layerGroup().addTo(m); MAP.projLayer=L.layerGroup().addTo(m); MAP.planLayer=L.layerGroup().addTo(m);
+  m.on("zoomend moveend",function(){ mapLevel(); mapSide(); });
+  window.__geoChanged=function(){ if(!MAP.edit) mapDraw(); };
+  mapDraw(); setTimeout(function(){ m.invalidateSize(); },60);
+}
+function mapDraw(){ if(!MAP.map) return; var st=mapStats(); MAP.st=st; MAP.areaLayer.clearLayers(); MAP.projLayer.clearLayers(); MAP.markers={};
+  var A=window.CB_APP||{}, byArea={}, k={};
+  Object.keys(st).sort(function(a,b){ return st[b].n-st[a].n; }).forEach(function(name){ var ak=MAP_PROJ_AREA[name]||"_"; k[ak]=(k[ak]||0); var pos=mapPos(name,k[ak]++); var o=st[name]; o.area=ak; o.pos=pos; if(!pos) return;
+    (byArea[ak]=byArea[ak]||{n:0,p:0}); byArea[ak].n+=o.n; byArea[ak].p++;
+    var hasPlan=!!(((window.__GEO||{}).plans||{})[name]);
+    var ic=L.divIcon({className:"mpin"+(pos.exact?"":" approx")+(hasPlan?" plan":""),html:"<span>"+mapEsc(name)+"</span><b>"+fmt(o.n)+"</b>",iconSize:null,iconAnchor:[14,30]});
+    var mk=L.marker(pos.ll,{icon:ic,draggable:false,title:name,riseOnHover:true}); mk.on("click",function(){ mapPopup(name); }); mk.addTo(MAP.projLayer); MAP.markers[name]=mk; });
+  Object.keys(byArea).forEach(function(ak){ var a=MAP_AREAS[ak]; if(!a) return; var o=byArea[ak], sz=Math.round(44+Math.min(46,Math.sqrt(o.n)*0.9));
+    var ic=L.divIcon({className:"marea",html:"<div style='width:"+sz+"px;height:"+sz+"px'><b>"+fmt(o.n)+"</b><span>"+o.p+" projects</span></div><em>"+mapEsc(a.n)+"</em>",iconSize:[sz,sz],iconAnchor:[sz/2,sz/2]});
+    L.marker(a.c,{icon:ic,title:a.n}).on("click",function(){ MAP.map.flyTo(a.c,12.5); }).addTo(MAP.areaLayer); });
+  mapLevel(); mapSide(); }
+function mapLevel(){ var z=MAP.map.getZoom(); var showA=z<10;
+  if(showA){ if(!MAP.map.hasLayer(MAP.areaLayer)) MAP.areaLayer.addTo(MAP.map); if(MAP.map.hasLayer(MAP.projLayer)&&!MAP.edit) MAP.map.removeLayer(MAP.projLayer); }
+  else { if(MAP.map.hasLayer(MAP.areaLayer)) MAP.map.removeLayer(MAP.areaLayer); if(!MAP.map.hasLayer(MAP.projLayer)) MAP.projLayer.addTo(MAP.map); }
+  $("map-canvas").classList.toggle("deep",z>=15);
+  if(z>=14) mapPlans(); else if(!MAP.edit){ MAP.planLayer.clearLayers(); MAP.plans={}; } }
+function mapPlans(){ var P=(window.__GEO||{}).plans||{}, b=MAP.map.getBounds().pad(0.5);
+  Object.keys(P).forEach(function(name){ if(MAP.edit&&MAP.edit.name===name) return; var p=P[name]; if(!p.b) return; var bb=L.latLngBounds(p.b); if(!b.intersects(bb)) return;
+    if(MAP.plans[name]&&MAP.plans[name].v===p.v) return; if(MAP.plans[name]) MAP.planLayer.removeLayer(MAP.plans[name].ov);
+    var rec={v:p.v,ov:null}; MAP.plans[name]=rec;
+    window.CB_APP.loadPlan(name).then(function(url){ if(!url||MAP.plans[name]!==rec) return; rec.ov=L.imageOverlay(url,bb,{opacity:p.op||0.85,interactive:false}).addTo(MAP.planLayer); }).catch(function(){}); }); }
+function mapSide(){ var s=MAP.list; if(!s||!MAP.st) return; s.textContent=""; var st=MAP.st, q=(MAP.q.value||"").trim().toLowerCase(), z=MAP.map?MAP.map.getZoom():6, bnd=MAP.map?MAP.map.getBounds():null;
+  var names=Object.keys(st).filter(function(n){ if(q) return n.toLowerCase().indexOf(q)>=0||(MAP_AREAS[st[n].area]&&MAP_AREAS[st[n].area].n.toLowerCase().indexOf(q)>=0); return st[n].pos&&bnd&&(z<10||bnd.contains(st[n].pos.ll)); }).sort(function(a,b){ return st[b].n-st[a].n; });
+  s.appendChild(el("h3",null,q?"Matching projects":(z<10?"All projects on the map":"Projects in view")+" · "+names.length));
+  names.slice(0,80).forEach(function(n){ var o=st[n], c=el("button","mitem"); c.type="button"; c.appendChild(el("b",null,n)); c.appendChild(el("span",null,fmt(o.n)+" leads"+(MAP_AREAS[o.area]?" · "+MAP_AREAS[o.area].n:"")+(o.pos&&!o.pos.exact?" · approx. spot":"")));
+    c.addEventListener("click",function(){ mapFocus(n); }); s.appendChild(c); });
+  var un=Object.keys(st).filter(function(n){ return !st[n].pos; }).sort(function(a,b){ return st[b].n-st[a].n; });
+  if(un.length&&!q){ s.appendChild(el("h3",null,"Not on the map yet · "+un.length)); var A=window.CB_APP||{};
+    if(A.admin) s.appendChild(el("div","hint","Tap one, then tap its spot on the map."));
+    un.forEach(function(n){ var c=el("button","mitem un"); c.type="button"; c.appendChild(el("b",null,n)); c.appendChild(el("span",null,fmt(st[n].n)+" leads"));
+      c.addEventListener("click",function(){ if(A.admin) mapPlace(n); else { reset2(); goLeads({project:st[n].i}); } }); s.appendChild(c); }); } }
+function reset2(){ var b=$("f-reset"); if(b) b.click(); }
+function mapFocus(n){ var o=MAP.st[n]; if(!o||!o.pos) return; MAP.map.flyTo(o.pos.ll,Math.max(MAP.map.getZoom(),15)); setTimeout(function(){ mapPopup(n); },700); }
+function mapEsc(s){ return String(s).replace(/[&<>"']/g,function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+function mapPopup(name){ var o=MAP.st[name]; if(!o) return; var A=window.CB_APP||{}, mk=MAP.markers[name]; var d=el("div","mpop");
+  d.appendChild(el("h4",null,name)); d.appendChild(el("div","hint",(MAP_AREAS[o.area]?MAP_AREAS[o.area].n:"")+(o.pos&&!o.pos.exact?" · approximate spot":"")));
+  var big=el("div","mbig"); big.appendChild(el("b",null,fmt(o.n))); big.appendChild(el("span",null,"leads"+(o.fresh?" · "+fmt(o.fresh)+" never contacted":""))); d.appendChild(big);
+  var fl=el("div","mfb"); Object.keys(o.fb).sort(function(a,b){ return o.fb[b]-o.fb[a]; }).slice(0,6).forEach(function(f){ var ch=el("button","chip "+fbClass(f),f+" "+fmt(o.fb[f])); ch.type="button";
+    ch.addEventListener("click",function(){ MAP.map.closePopup(); reset2(); var fi=X.feedback.indexOf(f); var flt={project:o.i}; if(fi>=0) flt.feedback=fi; if(MAP.agent>=0) flt.agent=MAP.agent; goLeads(flt); }); fl.appendChild(ch); }); d.appendChild(fl);
+  var acts=el("div","macts"), open=el("button","btn sm primary","Open leads"); open.type="button";
+  open.addEventListener("click",function(){ MAP.map.closePopup(); reset2(); var flt={project:o.i}; if(MAP.agent>=0) flt.agent=MAP.agent; goLeads(flt); }); acts.appendChild(open);
+  if(A.admin){ var mv=el("button","btn sm","Move pin"); mv.type="button"; mv.addEventListener("click",function(){ MAP.map.closePopup(); mapDragPin(name); }); acts.appendChild(mv);
+    var hasPlan=!!(((window.__GEO||{}).plans||{})[name]);
+    var pl=el("button","btn sm",hasPlan?"Replace master plan":"Add master plan"); pl.type="button"; pl.addEventListener("click",function(){ MAP.map.closePopup(); mapPickPlan(name); }); acts.appendChild(pl);
+    if(hasPlan){ var ad=el("button","btn sm","Adjust plan"); ad.type="button"; ad.addEventListener("click",function(){ MAP.map.closePopup(); mapEditPlan(name,null); }); acts.appendChild(ad);
+      var rm=el("button","btn sm","Remove plan"); rm.type="button"; rm.addEventListener("click",function(){ if(!confirm("Remove the master plan of "+name+"?")) return; MAP.map.closePopup(); A.removePlan(name).then(function(){ if(MAP.plans[name]&&MAP.plans[name].ov) MAP.planLayer.removeLayer(MAP.plans[name].ov); delete MAP.plans[name]; }); }); acts.appendChild(rm); } }
+  d.appendChild(acts); var ll=mk?mk.getLatLng():o.pos.ll; L.popup({maxWidth:320,className:"mpopw"}).setLatLng(ll).setContent(d).openOn(MAP.map); }
+function mapToast(t,actions){ var b=$("map-edit"); if(b) b.remove(); if(!t) return; b=el("div","mapedit"); b.id="map-edit"; b.appendChild(el("span",null,t)); (actions||[]).forEach(function(a){ var x=el("button","btn sm"+(a[2]?" primary":""),a[0]); x.type="button"; x.addEventListener("click",a[1]); b.appendChild(x); if(a[3]) a[3](x); }); $("map-canvas").parentNode.appendChild(b); }
+function mapDragPin(name){ var mk=MAP.markers[name]; if(!mk) return; MAP.edit={name:name}; mk.dragging.enable(); MAP.map.flyTo(mk.getLatLng(),Math.max(MAP.map.getZoom(),16));
+  var orig=mk.getLatLng();
+  mapToast("Drag "+name+" to its exact spot",[["Save",function(){ var p=mk.getLatLng(); mk.dragging.disable(); MAP.edit=null; mapToast(""); window.CB_APP.setPin(name,p.lat,p.lng).catch(function(e){ alert("Could not save: "+e.message); }); },1],
+    ["Cancel",function(){ mk.setLatLng(orig); mk.dragging.disable(); MAP.edit=null; mapToast(""); }]]); }
+function mapPlace(name){ MAP.edit={name:name}; mapToast("Tap the map where "+name+" is",[["Cancel",function(){ MAP.map.off("click",h); MAP.edit=null; mapToast(""); }]]);
+  function h(e){ MAP.map.off("click",h); MAP.edit=null; mapToast(""); window.CB_APP.setPin(name,e.latlng.lat,e.latlng.lng).then(function(){ MAP.map.flyTo(e.latlng,15); }).catch(function(er){ alert("Could not save: "+er.message); }); }
+  MAP.map.on("click",h); }
+function mapPickPlan(name){ var f=el("input"); f.type="file"; f.accept="image/*"; f.addEventListener("change",function(){ var file=f.files&&f.files[0]; if(!file) return;
+  var img=new Image(), u=URL.createObjectURL(file); img.onload=function(){ var max=2400, w=img.naturalWidth, h=img.naturalHeight, s=Math.min(1,max/Math.max(w,h)); var cv=document.createElement("canvas"); cv.width=Math.round(w*s); cv.height=Math.round(h*s);
+    var cx=cv.getContext("2d"); cx.drawImage(img,0,0,cv.width,cv.height); var q=0.85, url=cv.toDataURL("image/jpeg",q); while(url.length>5000000&&q>0.4){ q-=0.1; url=cv.toDataURL("image/jpeg",q); }
+    URL.revokeObjectURL(u); mapEditPlan(name,{url:url,ar:cv.width/cv.height}); }; img.src=u; }); f.click(); }
+function mapEditPlan(name,fresh){ var A=window.CB_APP, P=((window.__GEO||{}).plans||{})[name], mk=MAP.markers[name]; var c=mk?mk.getLatLng():L.latLng(MAP.st[name].pos.ll);
+  var go=function(url,bb,op){ MAP.edit={name:name}; if(MAP.plans[name]&&MAP.plans[name].ov) MAP.planLayer.removeLayer(MAP.plans[name].ov); delete MAP.plans[name];
+    var ov=L.imageOverlay(url,bb,{opacity:op,interactive:false}).addTo(MAP.map); MAP.map.fitBounds(bb.pad(0.3));
+    var hi=L.divIcon({className:"mhandle",iconSize:[22,22]}), sw=L.marker(bb.getSouthWest(),{icon:hi,draggable:true}).addTo(MAP.map), ne=L.marker(bb.getNorthEast(),{icon:hi,draggable:true}).addTo(MAP.map);
+    var mid=L.marker(bb.getCenter(),{icon:L.divIcon({className:"mhandle mid",iconSize:[30,30]}),draggable:true}).addTo(MAP.map), last=bb.getCenter();
+    function upd(){ var b=L.latLngBounds(sw.getLatLng(),ne.getLatLng()); ov.setBounds(b); mid.setLatLng(b.getCenter()); last=b.getCenter(); }
+    sw.on("drag",upd); ne.on("drag",upd); mid.on("drag",function(){ var p=mid.getLatLng(), dl=p.lat-last.lat, dg=p.lng-last.lng; last=p; sw.setLatLng([sw.getLatLng().lat+dl,sw.getLatLng().lng+dg]); ne.setLatLng([ne.getLatLng().lat+dl,ne.getLatLng().lng+dg]); ov.setBounds(L.latLngBounds(sw.getLatLng(),ne.getLatLng())); });
+    function done(){ [ov,sw,ne,mid].forEach(function(x){ MAP.map.removeLayer(x); }); MAP.edit=null; mapToast(""); mapLevel(); }
+    var opv=op; mapToast("Drag the corners and the centre to line the plan up with the roads",[
+      ["Fade",function(){ opv=opv>0.5?0.45:0.85; ov.setOpacity(opv); }],
+      ["Save",function(ev){ var b=L.latLngBounds(sw.getLatLng(),ne.getLatLng()), bb2=[[b.getSouth(),b.getWest()],[b.getNorth(),b.getEast()]]; ev.target.disabled=true; ev.target.textContent="Saving…";
+        A.savePlan(name,url,bb2,0.85).then(function(){ if(!mk||!((window.__GEO||{}).pins||{})[name]) return A.setPin(name,b.getCenter().lat,b.getCenter().lng); }).then(done).catch(function(e){ alert("Could not save: "+e.message); ev.target.disabled=false; ev.target.textContent="Save"; }); },1],
+      ["Cancel",done]]); };
+  if(fresh){ var w=0.009, h=w/fresh.ar*Math.cos(c.lat*Math.PI/180); go(fresh.url,L.latLngBounds([c.lat-h/2,c.lng-w/2],[c.lat+h/2,c.lng+w/2]),0.7); }
+  else if(P){ A.loadPlan(name).then(function(url){ go(url,L.latLngBounds(P.b),0.7); }); } }
+
 function render(){
   var c=$("count"); c.textContent=""; c.appendChild(el("b",null,fmt(view.length))); c.appendChild(document.createTextNode(" of "+fmt(R.length)+" leads"+(state.stale?" · no activity for "+(state.stale>=1440?Math.round(state.stale/1440)+" days":Math.round(state.stale/60)+" hours")+" or more":"")));
   tiles(); bars("c-feedback",C.feedback,X.feedback,"feedback"); bars("c-status",C.status,X.status,"status"); months(); bars("c-project",C.project,X.project,"project",10);
@@ -1632,7 +1807,7 @@ function route(){ var h=VIEW||(location.hash||"#today").slice(1); if(ALLVIEWS.in
   ALLVIEWS.forEach(function(v){ $("v-"+v).classList.toggle("on",v===h); });
   [$("tabs"),$("botnav")].forEach(function(nav){ Array.prototype.forEach.call(nav.querySelectorAll("button"),function(b){ if(b.dataset.sec===sec) b.setAttribute("aria-current","page"); else b.removeAttribute("aria-current"); }); });
   var sn=$("subnav"); sn.textContent=""; var S0=SECTIONS.filter(function(s){return s.id===sec})[0]; if(S0&&S0.views.length>1) S0.views.forEach(function(v){ var b=el("button",null,v[1]); b.type="button"; b.setAttribute("role","tab"); if(v[0]===h){ b.setAttribute("aria-current","page"); b.setAttribute("aria-selected","true"); } else b.setAttribute("aria-selected","false"); b.addEventListener("click",function(){ go(v[0]); }); sn.appendChild(b); });
-  $("filters").classList.toggle("off",!!NOFILTER[h]); if(h==="sections"&&typeof secRender==="function") secRender(); }
+  $("filters").classList.toggle("off",!!NOFILTER[h]); if(h==="sections"&&typeof secRender==="function") secRender(); if(h==="map"&&typeof mapRender==="function") mapRender(); }
 
 // init
 var sub=$("sub"); if(D.updated){ sub.appendChild(document.createTextNode("Updated ")); sub.appendChild(el("b",null,D.updated)); sub.appendChild(el("br"));
@@ -1678,7 +1853,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult,
   sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, query, where, orderBy, limit,
-  onSnapshot, serverTimestamp, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  onSnapshot, serverTimestamp, writeBatch, deleteField } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const CONFIG = {
   apiKey: "AIzaSyABdZruPkTF87fJCmzYtDMwLQptHNgCHLk",
@@ -1770,7 +1945,7 @@ async function loadData(path) {
 function startDashboard(data) {
   window.LEADS = data.LEADS; window.EXTRA = data.EXTRA; window.SNAP = data.SNAP; window.PREV = data.PREV; window.HIST = data.HIST;
   window.CB_AGENT = ME.admin ? "" : ME.name; window.CB_NAME = ME.admin ? "Basel" : (ME.name || "").split(" ")[0];
-  window.CB_APP = { admin: ME.admin, email: ME.email, ak: ME.ak, name: ME.name, logFeedback, updatesFor, FB_OPTIONS, AK_OF, reassign: ME.admin ? reassignLead : null, allUpdates: () => UPDATES, saveWa, setShowSales: ME.admin ? setShowSales : null };
+  window.CB_APP = { admin: ME.admin, email: ME.email, ak: ME.ak, name: ME.name, logFeedback, updatesFor, FB_OPTIONS, AK_OF, reassign: ME.admin ? reassignLead : null, allUpdates: () => UPDATES, saveWa, setShowSales: ME.admin ? setShowSales : null, setPin: ME.admin ? setPin : null, savePlan: ME.admin ? savePlan : null, removePlan: ME.admin ? removePlan : null, loadPlan };
   window.__startDashboard();
   started = true;
   gate.hidden = true;
@@ -1783,6 +1958,30 @@ function startDashboard(data) {
   watchReassigned();
   loadPrefs();
   watchSettings();
+  watchGeo();
+}
+// Map: where each project sits (Basel/admin places them) and its master plan image
+function planKey(name) { let h = 0; for (const c of String(name)) h = (h * 31 + c.codePointAt(0)) >>> 0; return "plan_" + h.toString(36); }
+function watchGeo() {
+  onSnapshot(doc(db, "settings", "geo"), s => { window.__GEO = s.exists() ? s.data() : { pins: {}, plans: {} }; if (window.__geoChanged) window.__geoChanged(); }, () => {});
+}
+async function setPin(name, lat, lng) {
+  const v = lat == null ? deleteField() : { lat: +lat.toFixed(6), lng: +lng.toFixed(6) };
+  await setDoc(doc(db, "settings", "geo"), { pins: { [name]: v }, at: serverTimestamp() }, { merge: true });
+}
+async function savePlan(name, dataUrl, bounds, op) {
+  const key = planKey(name), CH = 900000, n = Math.ceil(dataUrl.length / CH);
+  if (n > 6) throw new Error("Image too large");
+  for (let i = 0; i < n; i++) await setDoc(doc(db, "settings", key + "_" + i), { d: dataUrl.slice(i * CH, (i + 1) * CH), i, n });
+  await setDoc(doc(db, "settings", "geo"), { plans: { [name]: { key, n, b: bounds, op: op || 0.85, v: Date.now() } }, at: serverTimestamp() }, { merge: true });
+}
+async function removePlan(name) { await setDoc(doc(db, "settings", "geo"), { plans: { [name]: deleteField() } }, { merge: true }); }
+const PLANC = {};
+async function loadPlan(name) {
+  const p = ((window.__GEO || {}).plans || {})[name]; if (!p) return null;
+  const ck = p.key + p.v; if (PLANC[ck]) return PLANC[ck];
+  const parts = await Promise.all(Array.from({ length: p.n }, (_, i) => getDoc(doc(db, "settings", p.key + "_" + i))));
+  return (PLANC[ck] = parts.map(d => (d.exists() ? d.data().d : "")).join(""));
 }
 // each person's own WhatsApp greeting, kept with their account
 async function loadPrefs() { try { const d = await getDoc(doc(db, "prefs", ME.email)); if (d.exists() && d.data().wa && window.__setWa) window.__setWa(d.data().wa); } catch (e) {} }
