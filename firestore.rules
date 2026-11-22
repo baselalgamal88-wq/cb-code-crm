@@ -72,7 +72,11 @@ service cloud.firestore {
         && request.resource.data.keys().hasOnly(['ak', 'lead', 'client', 'phone', 'feedback', 'note', 'next', 'at', 'by', 'src', 'kind', 'project', 'source'])
         && request.resource.data.note is string && request.resource.data.note.size() < 2000
         && request.resource.data.client is string && request.resource.data.client.size() < 200);
-      allow update, delete: if isAdmin();
+      // agents can tick their own reminders done (or undo it), and change nothing else
+      allow update: if isAdmin() || (myAgent() != '' && resource.data.ak == myAgent() && resource.data.kind == 'reminder'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['done', 'doneAt', 'doneBy'])
+        && (!('doneBy' in request.resource.data) || request.resource.data.doneBy == email()));
+      allow delete: if isAdmin();
     }
   }
 }
