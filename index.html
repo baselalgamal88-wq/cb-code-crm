@@ -2560,7 +2560,7 @@ async function aiModel(opts) {
     const V = "https://www.gstatic.com/firebasejs/13.4.0/";
     const [fa, fc, fai] = await Promise.all([import(V + "firebase-app.js"), import(V + "firebase-app-check.js"), import(V + "firebase-ai.js")]);
     const a2 = fa.initializeApp(CONFIG, "cb-ai");
-    fc.initializeAppCheck(a2, { provider: new fc.ReCaptchaV3Provider(AI_SITE_KEY), isTokenAutoRefreshEnabled: true });
+    fc.initializeAppCheck(a2, { provider: new fc.ReCaptchaEnterpriseProvider(AI_SITE_KEY), isTokenAutoRefreshEnabled: true });
     AIMOD = { ai: fai.getAI(a2, { backend: new fai.GoogleAIBackend() }), lib: fai, model: null };
   }
   const list = AIMOD.model ? [AIMOD.model] : AI_MODELS;
