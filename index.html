@@ -1826,8 +1826,8 @@ var BK_T={en:{sel:"{n} selected",selAll:"Select all {n} matching the filters",cl
     none:"كل الليدز المتحددة مع {a} أصلاً.",fail:"ماتنقلوش ({e}). اتأكد من النت وجرّب تاني.",part:"اتنقل {d} من {n} ليد لـ {a}. الباقي ماتنقلش ({e})، لسه متحدد، جرّب تاني.",
     max:"ممكن تنقل لحد {m} ليد في المرة دلوقتي. شيل {x} عشان تكمل.",
     rowSel:"اختار الليد {id}",pageSel:"اختار كل ليدز الصفحة دي",hint:"علّم على الليدز في القايمة عشان تنقل كذا واحد مرة واحدة."}};
-// The sheet's script queues two phone alerts per moved lead in one Script Property (9 KB cap), so keep each move small.
-var BK_MAX=40;
+// Upper limit per move (the sheet's script sends one grouped alert per agent since 22 Nov 2026, so big moves are fine).
+var BK_MAX=500;
 window.__bk=(function(){
   var SEL={}, ST={to:"",ask:false,busy:"",msg:"",err:false};
   function lang(){ return (typeof TK!=="undefined"&&TK.lang==="ar")?"ar":"en"; }
