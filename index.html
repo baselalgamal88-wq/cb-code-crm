@@ -1109,7 +1109,7 @@ function changes(){ var note=$("ch-note"), tiles=$("ch-tiles"), t=$("ch-table");
 function pkeys(s){ return (s||"").split(/[,;\/\n]| - /).filter(function(p){return p.indexOf("@")<0}).map(function(p){return p.replace(/\D/g,"")}).filter(function(d){return d.length>=9}).map(function(d){return d.slice(-10)}); }
 var CL=null, clState={kind:"all",page:0};
 function buildClients(){ var m={}, list=[], i, k, e;
-  for(i=0;i<R.length;i++){ var r=R[i], ks=pkeys(r[C.contact]); k=ks.length?ks[0]:"L"+r[C.id]; e=m[k]; if(!e){ e=m[k]={name:r[C.client],number:(r[C.contact]||"").split(",")[0].trim(),leads:[],sheets:[]}; list.push(e); } e.leads.push(r); }
+  for(i=0;i<R.length;i++){ var r=R[i]; if(r[15]==="sheet") continue; var ks=pkeys(r[C.contact]); k=ks.length?ks[0]:"L"+r[C.id]; e=m[k]; if(!e){ e=m[k]={name:r[C.client],number:(r[C.contact]||"").split(",")[0].trim(),leads:[],sheets:[]}; list.push(e); } e.leads.push(r); }
   if(SH) for(i=0;i<SH.rows.length;i++){ var s=SH.rows[i], ss=pkeys(s[S.number]); k=ss.length?ss[0]:"S"+i; e=m[k]; if(!e){ e=m[k]={name:s[S.name],number:s[S.number],leads:[],sheets:[]}; list.push(e); } if(!e.name) e.name=s[S.name]; e.sheets.push(s); }
   list.forEach(function(e){ e.kind=e.leads.length&&e.sheets.length?"both":e.leads.length?"cb":"sheet"; var n=0; e.sheets.forEach(function(s){n+=(s[10]||1)}); e.records=e.leads.length+n; var ag={}; e.sheets.forEach(function(s){ag[s[S.agent]]=1}); e.multi=Object.keys(ag).length>1; });
   return list; }
@@ -1376,7 +1376,7 @@ function agents(){ if(!FU) FU=followup(); if(!TCB) TCB=tcrBy(); var H=histLatest
 var CLMAP={}, NAMEMAP={}, lastFocus=null;
 function normName(s){ return (s||"").toLowerCase().replace(/\s+/g," ").trim(); }
 function ensureClients(){ if(!CL) CL=buildClients(); if(!Object.keys(CLMAP).length){ CL.forEach(function(e){ e.leads.forEach(function(l){ var k=pkeys(l[C.contact])[0]||("L"+l[C.id]); CLMAP[k]=e; CLMAP["L"+l[C.id]]=e; }); e.sheets.forEach(function(s){ pkeys(s[S.number]).forEach(function(k){ CLMAP[k]=e; }); }); var nn=normName(e.name); if(nn&&!NAMEMAP[nn]) NAMEMAP[nn]=e; }); } }
-function clientOfLead(r){ ensureClients(); return CLMAP["L"+r[C.id]]||null; }
+function clientOfLead(r){ ensureClients(); return CLMAP["L"+r[C.id]]||(r[15]==="sheet"?CLMAP[pkeys(r[C.contact])[0]]:null)||null; }
 function clientOfSheet(r){ ensureClients(); var k=pkeys(r[S.number])[0]; if(k&&CLMAP[k]) return CLMAP[k]; for(var i=0;i<CL.length;i++) if(CL[i].sheets.indexOf(r)>=0) return CL[i]; return null; }
 function clientLink(name,entry){ if(!entry) { var s=el("span",null,name||""); s.dir="auto"; return s; } var b=el("button","clink",name||entry.name||"(no name)"); b.type="button"; b.dir="auto"; b.title="Open the client's profile"; b.addEventListener("click",function(e){ e.stopPropagation(); openClient(entry); }); return b; }
 function recBox(title,pillTxt,pillCls,pairs){ var r=el("div","rec"), tp=el("div","top"); tp.appendChild(el("b",null,title)); if(pillTxt) tp.appendChild(el("span","pill "+(pillCls||""),pillTxt)); r.appendChild(tp); var dl=el("dl"); pairs.forEach(function(p){ if(p[1]===undefined||p[1]===null||p[1]==="") return; dl.appendChild(el("dt",null,p[0])); var dd=el("dd",null,String(p[1])); dd.dir="auto"; dl.appendChild(dd); }); r.appendChild(dl); return r; }
@@ -1417,15 +1417,16 @@ function heroTarget(){ if(!TCB) TCB=tcrBy(); var box=$("hero-target"); box.textC
   var tv=el("div","tv"); tv.appendChild(el("b",null,Math.round(p*100)+"%")); tv.appendChild(document.createTextNode("EGP "+money(TCB.total)+" of "+money(TEAM_TARGET))); box.appendChild(tv); }
 
 // ---------- Sections and navigation ----------
-var ICONS={today:"M12 3v2M12 19v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M3 12h2M19 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z",
+var ICONS={map:"M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21zM12 7a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z",today:"M12 3v2M12 19v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M3 12h2M19 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z",
   leads:"M4 6h16M4 12h16M4 18h10",
   team:"M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21v-1a6 6 0 0 1 6-6h2a6 6 0 0 1 6 6v1M16 3.5a4 4 0 0 1 0 7M22 21v-1a6 6 0 0 0-4-5.6",
   sales:"M3 3v18h18M7 15l4-4 3 3 6-6",
   projects:"M4 21V7l8-4 8 4v14M9 21v-6h6v6M8 10h.01M12 10h.01M16 10h.01"};
 var SECTIONS=[{id:"today",label:"Today",views:[["today","Today"],["daily","Daily report"],["changes","What changed"]]},
-  {id:"leads",label:"Leads",views:[["sections","Sections"],["map","Map"],["overview","Overview"],["leads","All leads"],["clients","Clients"],["reassigned","Reassigned"],["rotation","Rotation"],["cold","Cold calls"]]},
+  {id:"leads",label:"Leads",views:[["sections","Sections"],["overview","Overview"],["leads","All leads"],["clients","Clients"],["reassigned","Reassigned"],["rotation","Rotation"],["cold","Cold calls"]]},
   {id:"team",label:"Team",views:[["agents","Agents"],["team","Feedback mix"],["performance","Agent rates"],["sheets","Agent sheets"]]},
   {id:"sales",label:"Sales",views:[["tcrs","TCRs and targets"],["reports","Reports"]]},
+  {id:"map",label:"Map",views:[["map","Map"]]},
   {id:"projects",label:"Projects",views:[["projects","Projects"]]}];
 var ALLVIEWS=[], SECOF={}, LASTV={}; SECTIONS.forEach(function(s){ LASTV[s.id]=s.views[0][0]; s.views.forEach(function(v){ ALLVIEWS.push(v[0]); SECOF[v[0]]=s.id; }); });
 var NOFILTER={today:1,agents:1,myleads:1,rotation:1,cold:1,reassigned:1,map:1};
@@ -1579,19 +1580,19 @@ window.__cbOverlay=function(list){
   if(!__base){ __base=R.slice(); __baseIds={}; __base.forEach(function(r){ __baseIds[String(r[C.id])]=1; }); }
   var me=window.CB_AGENT, del={}, moved={}, adds=[];
   list.slice().sort(function(a,b){ return ((a.at&&a.at.getTime&&a.at.getTime())||0)-((b.at&&b.at.getTime&&b.at.getTime())||0); }).forEach(function(c){
-    var id=String(c.id||""); if(!id) return;
+    var id=String(c.id||""); if(!id) return; id=(window.__DUPALIAS||{})[id]||id; if(id!==String(c.id)){ c=Object.assign({},c,{id:id}); }
     if(c.kind==="delete") del[id]=1; else if(c.kind==="reassign") moved[id]=c; else if(c.kind==="new"){ adds.push(c); delete del[id]; } });
   var out=[];
   __base.forEach(function(r){ var id=String(r[C.id]); if(del[id]) return; var m=moved[id];
     if(m){ if(me&&m.agent!==me) return; r=r.slice(); r[C.agent]=__agIdx(m.agent); } out.push(r); });
   Object.keys(moved).forEach(function(id){ var m=moved[id]; if(del[id]||__baseIds[id]) return; if(adds.some(function(a){ return String(a.id)===id; })) return; if(!me||m.agent===me) out.push(__row(m,m.agent)); });
-  var seen={}; adds.forEach(function(c){ var id=String(c.id); if(del[id]||seen[id]) return; seen[id]=1; var m=moved[id], ag=m?m.agent:c.agent; if(me&&ag!==me) return; out.push(__row(c,ag)); });
+  var seen={}; adds.forEach(function(c){ var id=String(c.id); if(del[id]||seen[id]) return; seen[id]=1; var pk=pkeys(c.phone||"")[0]; if(pk&&(window.__BASEPHONES||{})[pk]) return; if(pk) seen["P"+pk]=(seen["P"+pk]||0)+1; if(pk&&seen["P"+pk]>1) return; var m=moved[id], ag=m?m.agent:c.agent; if(me&&ag!==me) return; out.push(__row(c,ag)); });
   window.__MOVED=moved;
   var ups=(window.CB_APP&&CB_APP.allUpdates)?CB_APP.allUpdates():[], latest={};
-  ups.forEach(function(u){ if(!u.feedback||!u.lead) return; var t=__tsMs(u.at)||9e12, k=String(u.lead); if(!latest[k]||t>latest[k].t) latest[k]={t:t,fb:u.feedback}; });
+  ups.forEach(function(u){ if(!u.feedback||!u.lead) return; var t=__tsMs(u.at)||9e12, k=String(u.lead); k=(window.__DUPALIAS||{})[k]||k; if(!latest[k]||t>latest[k].t) latest[k]={t:t,fb:u.feedback}; });
   out=out.map(function(r){ var L=latest[String(r[C.id])]; if(!L) return r; var fi=__fbIdx(L.fb); if(fi===r[C.feedback]) return r; r=r.slice(); r[C.feedback]=fi; return r; });
   R.length=0; Array.prototype.push.apply(R,out);
-  leadById={}; for(var i=0;i<R.length;i++) leadById[R[i][C.id]]=R[i];
+  leadById={}; for(var i=0;i<R.length;i++) leadById[R[i][C.id]]=R[i]; Object.keys(window.__DUPALIAS||{}).forEach(function(a){ var p=leadById[window.__DUPALIAS[a]]; if(p) leadById[a]=p; });
   FU=null; TCB=null; CL=null; CLMAP={}; NAMEMAP={};
   apply(); today(); homeCharts(); agents(); heroTarget(); try{ secRender(); rzRender(); }catch(e){} };
 
@@ -1997,6 +1998,45 @@ function mapEditPlan(name,fresh){ var A=window.CB_APP, P=((window.__GEO||{}).pla
   if(fresh){ var w=0.009, h=w/fresh.ar*Math.cos(c.lat*Math.PI/180); go(fresh.url,L.latLngBounds([c.lat-h/2,c.lng-w/2],[c.lat+h/2,c.lng+w/2]),0.7); }
   else if(P){ A.loadPlan(name).then(function(url){ go(url,L.latLngBounds(mapB(P.b)),0.7); }); } }
 
+/* ---------- One lead per client: merge CloudBlue duplicates and add agent-sheet-only clients ---------- */
+window.__DUPALIAS={}; window.__BASEPHONES={};
+function ddSheetFb(t){ t=String(t||"").trim(); var s=t.toLowerCase(); if(!t||s===".") return "";
+  if(/wrong/.test(s)) return "Wrong Number";
+  if(/low budget/.test(s)) return "Low Budget";
+  if(/^unqualified|not interested|msh moht|^nq$|spam|مش مهتم|محصلش|مش مستفسر|لغينا|اشتري|ashtar|atwafa|sarft nzar|didn.t fill/.test(s)) return "UnQualified";
+  if(/^qualified|^interested|mohtam ba|\bbed\b|cash|^closed/.test(s)) return "Qualified";
+  if(/meeting|زوم|ميتينج/.test(s)) return "Meeting Scheduled";
+  if(/no answer|مردش|بيرد|voice ?mail|^na\b|^na -|^off$|busy|مشغول|معندوش|whats ?up|واتساب/.test(s)) return "No Answer";
+  if(/later|after|كلمني|تكلمني|بليل|الساعه|بكرة|bokra|postpon|posponed|مأجل|كلمي|a5r|follow/.test(s)) return "Call Later";
+  if(/pending|no feedback/.test(s)) return "";
+  return "Other"; }
+function ddPending(i){ return i===I_PENDING||i===I_NONE; }
+(function ddRun(){
+  var groups={}, order=[], i, r, k;
+  for(i=0;i<R.length;i++){ r=R[i]; k=pkeys(r[C.contact])[0]||("L"+r[C.id]); if(!groups[k]){ groups[k]=[]; order.push(k); } groups[k].push(r); }
+  var out=[], merged=0;
+  order.forEach(function(k){ var g=groups[k]; if(g.length===1){ out.push(g[0]); return; }
+    g.sort(function(a,b){ var pa=ddPending(a[C.feedback])?0:1, pb=ddPending(b[C.feedback])?0:1; if(pa!==pb) return pb-pa; return ((b[C.lastAct]||0)-(a[C.lastAct]||0))||((b[C.created]||0)-(a[C.created]||0)); });
+    var p=g[0].slice(), others=g.slice(1);
+    others.forEach(function(o){ window.__DUPALIAS[String(o[C.id])]=String(p[C.id]); if(!p[C.comment]&&o[C.comment]) p[C.comment]=o[C.comment]; if((o[C.created]||0)<(p[C.created]||9e15)) p[C.created]=o[C.created]; });
+    p[14]=others.map(function(o){ return String(o[C.id]); }); merged+=others.length; out.push(p); });
+  /* agent-sheet clients: match by phone (or the sheet's Lead ID); unmatched ones become leads too */
+  var byPhone={}; out.forEach(function(r,ix){ pkeys(r[C.contact]).forEach(function(k){ if(byPhone[k]==null) byPhone[k]=ix; }); window.__BASEPHONES[pkeys(r[C.contact])[0]||""]=1; });
+  var byId={}; out.forEach(function(r,ix){ byId[String(r[C.id])]=ix; });
+  var added=0, seenS={}, I_SH=__ix("source","Agent sheet"), I_SHST=__ix("status","Agent sheet");
+  if(SH&&SH.rows) SH.rows.forEach(function(s,si){ var ks=pkeys(s[S.number]), fbn=ddSheetFb(SH.dict.feedback[s[S.fb]]);
+    var ix=s[S.lead]&&byId[String(s[S.lead])]!=null?byId[String(s[S.lead])]:(window.__DUPALIAS[String(s[S.lead])]&&byId[window.__DUPALIAS[String(s[S.lead])]]!=null?byId[window.__DUPALIAS[String(s[S.lead])]]:null);
+    if(ix==null) for(var j=0;j<ks.length;j++) if(byPhone[ks[j]]!=null){ ix=byPhone[ks[j]]; break; }
+    if(ix!=null){ var t=out[ix]; if(fbn&&ddPending(t[C.feedback])){ t=out[ix]=t.slice(); t[C.feedback]=__fbIdx(fbn); if(s[S.date]&&!t[C.lastAct]) t[C.lastAct]=s[S.date]; } return; }
+    var key=ks[0]||("S"+si); if(seenS[key]!=null){ return; } seenS[key]=1;
+    var row=["S-"+(ks[0]||si), s[S.name]||"", 0, __ix("project",s[S.project]||"No project"), 0, __agIdx(SH.dict.agent[s[S.agent]]), I_SHST, s[S.date]||0, fbn?(s[S.date]||0):0, fbn?__fbIdx(fbn):I_PENDING, s[S.notes]||"", I_SH, 0, s[S.number]||""];
+    row[15]="sheet"; out.push(row); ks.forEach(function(k){ if(byPhone[k]==null) byPhone[k]=out.length-1; }); window.__BASEPHONES[key]=1; added++; });
+  R.length=0; Array.prototype.push.apply(R,out);
+  leadById={}; for(i=0;i<R.length;i++) leadById[R[i][C.id]]=R[i];
+  Object.keys(window.__DUPALIAS).forEach(function(a){ var p=leadById[window.__DUPALIAS[a]]; if(p) leadById[a]=p; });
+  window.__DEDUPE={merged:merged,sheetAdded:added,total:R.length};
+})();
+
 /* ---------- UI v3: sidebar, dashboard top, lead page (palette and layout inspired by a clean sales CRM) ---------- */
 var UI2_LISTS=[
   {k:"new",label:"New, not called",dot:"#2e9e5b",test:function(r){ return (r[C.feedback]===I_PENDING||r[C.feedback]===I_NONE)&&!r[C.lastAct]; },go:function(){ goLeads({feedback:-2,act:1}); }},
@@ -2026,7 +2066,7 @@ function ui2Side(){ var sb=$("ui2-side"); if(!sb){ sb=el("aside","ui2side"); sb.
   sb.appendChild(el("div","s2h","Lists"));
   var cs=ui2Counts(), ul=el("div","s2lists");
   UI2_LISTS.forEach(function(L){ var b=el("button","s2item sm"); b.type="button"; var d=el("i"); d.style.background=L.dot; b.appendChild(d); b.appendChild(el("span",null,L.label)); b.appendChild(el("em",null,fmt(cs[L.k]||0))); b.addEventListener("click",function(){ L.go(); ui2SideMark(); }); ul.appendChild(b); });
-  [["map","Map","#3f63c0"],["reassigned","Reassigned","#6250d6"],["rotation","Rotation","#0e8fa3"],["cold","Cold calls","#7a879b"]].forEach(function(v){ var b=el("button","s2item sm"); b.type="button"; var d=el("i"); d.style.background=v[2]; b.appendChild(d); b.appendChild(el("span",null,v[1])); b.addEventListener("click",function(){ go(v[0]); ui2SideMark(); }); ul.appendChild(b); });
+  [["reassigned","Reassigned","#6250d6"],["rotation","Rotation","#0e8fa3"],["cold","Cold calls","#7a879b"]].forEach(function(v){ var b=el("button","s2item sm"); b.type="button"; var d=el("i"); d.style.background=v[2]; b.appendChild(d); b.appendChild(el("span",null,v[1])); b.addEventListener("click",function(){ go(v[0]); ui2SideMark(); }); ul.appendChild(b); });
   sb.appendChild(ul);
   var ft=el("div","s2foot"); var add=el("button","s2btn","+ New lead"); add.type="button"; add.addEventListener("click",function(){ var a=$("app-add"); if(a) a.click(); }); ft.appendChild(add);
   ft.appendChild(el("div","s2sync","Synced live")); sb.appendChild(ft); ui2SideMark(); }
