@@ -668,6 +668,25 @@ body.as-on .as-fab{display:none}
 .tk-del{flex:none;border:0;background:none;color:var(--ink-3);font-size:20px;line-height:1;cursor:pointer;padding:2px 6px;border-radius:6px}.tk-del:hover{color:var(--bad);background:var(--bad-bg)}
 .tk-agent{display:flex;align-items:center;justify-content:space-between;margin:16px 0 6px;font-size:14px}.tk-count{font-size:12.5px;color:var(--ink-3);font-weight:600}
 .tk-empty{color:var(--ink-3);font-size:14px;padding:10px 0}
+/* Market brief & performance report */
+.mk-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}.mk-bar select{height:34px;border:1px solid var(--line-2);border-radius:9px;padding:0 8px;font:inherit;background:var(--surface);color:var(--ink)}
+.mk-bar .chip{cursor:default;height:28px;padding:0 12px;background:var(--info-bg);color:var(--info)}
+.mk-note{margin-top:12px}.mk-sec{margin-top:14px}.mk-sec h2{margin-bottom:8px}
+.mk-ul{margin:6px 0 0;padding-inline-start:20px;display:flex;flex-direction:column;gap:7px;line-height:1.5}
+.mk-tw{overflow-x:auto;margin-top:6px;-webkit-overflow-scrolling:touch}
+.mk-t{border-collapse:collapse;width:100%;font-size:13.5px;min-width:520px}.mk-t th{text-align:start;font-size:12px;color:var(--ink-3);font-weight:700;padding:8px 10px;border-bottom:1px solid var(--line-2);white-space:nowrap}
+.mk-t td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.45}
+.mk-after{color:var(--ink-2);font-size:13.5px;margin:10px 0 0}.mk-unv{display:inline-block;font-size:11.5px;font-weight:600;color:var(--warn);background:var(--warn-bg);border-radius:999px;padding:1px 8px}
+.mk-mgr-h{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.mk-mgr{border-color:var(--gold-2)}
+.mk-src{margin-top:14px}.mk-src summary{cursor:pointer;font-weight:600}.mk-src a{color:var(--accent)}
+.tk-ar .tile{text-align:start}
+.rp-tiles{margin-top:14px}.rp-bad .v{color:var(--bad)}.rp-warn .v{color:var(--warn)}.rp-alert{margin-top:12px;background:var(--warn-bg);color:var(--warn);border-radius:12px;padding:10px 14px}
+.rp-t td:first-child{font-weight:600;white-space:nowrap}.rp-t td.rp-hi{color:var(--bad);font-weight:700}.rp-t td.rp-mid{color:var(--warn);font-weight:700}
+.rp-coach{margin-top:12px}.rp-coach b{font-size:14px}
+.rp-leg{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink-2);margin-top:8px}.rp-sw{display:inline-block;width:12px;height:12px;border-radius:3px}.rp-sw.n,.rp-bars i.n{background:var(--line-2)}.rp-sw.k,.rp-bars i.k{background:var(--bar)}
+.rp-weeks{display:flex;gap:4px;align-items:flex-end;height:190px;margin-top:10px;direction:ltr}.rp-wk{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;height:100%}
+.rp-bars{flex:1;width:100%;display:flex;align-items:flex-end;justify-content:center;gap:2px}.rp-bars i{display:block;width:42%;max-width:16px;border-radius:3px 3px 0 0;min-height:1px}
+.rp-num{font-size:10.5px;color:var(--ink-3);height:14px}.rp-lab{font-size:10px;color:var(--ink-3);margin-top:4px;white-space:nowrap;overflow:hidden;max-width:100%}
 </style>
 </head>
 <body>
@@ -840,6 +859,8 @@ body.as-on .as-fab{display:none}
   </section>
 
   <section class="view" id="v-tasks"></section>
+  <section class="view" id="v-market"></section>
+  <section class="view" id="v-perf"></section>
   <section class="view" id="v-daily">
     <div class="note">One day at a time, from CloudBlue. New leads are counted on their creation date. From 16 Nov 2026 the system logs every change it sees between copies (morning and evening): leads received, feedback changes in CloudBlue and new clients or feedback changes in the agents' Google Sheets. "Actions logged" are leads whose Last Agent Activity Date in CloudBlue is that day. The Agent filter above applies.</div>
     <div class="subfilters" style="margin-top:0"><button class="btn" id="dy-prev" type="button">Previous day</button><div class="f"><label for="dy-date">Day</label><input type="date" id="dy-date"></div><button class="btn" id="dy-next" type="button">Next day</button><button class="btn" id="dy-copy" type="button">Copy this day's report</button><span class="note" style="margin:0">To message an agent, use the green Notify button beside their name in the table below.</span><span class="note" id="dy-copied" style="margin:0"></span></div>
@@ -1481,14 +1502,15 @@ var ICONS={map:"M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21zM12 7a2.
   team:"M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21v-1a6 6 0 0 1 6-6h2a6 6 0 0 1 6 6v1M16 3.5a4 4 0 0 1 0 7M22 21v-1a6 6 0 0 0-4-5.6",
   sales:"M3 3v18h18M7 15l4-4 3 3 6-6",
   projects:"M4 21V7l8-4 8 4v14M9 21v-6h6v6M8 10h.01M12 10h.01M16 10h.01"};
-var SECTIONS=[{id:"today",label:"Today",views:[["today","Today"],["tasks","Tasks & reminders"],["daily","Daily report"],["changes","What changed"]]},
+var SECTIONS=[{id:"today",label:"Today",views:[["today","Today"],["tasks","Tasks & reminders"],["market","Market brief"],["daily","Daily report"],["changes","What changed"]]},
   {id:"leads",label:"Leads",views:[["sections","Sections"],["overview","Overview"],["leads","All leads"],["clients","Clients"],["reassigned","Reassigned"],["rotation","Rotation"],["cold","Cold calls"]]},
   {id:"team",label:"Team",views:[["agents","Agents"],["team","Feedback mix"],["performance","Agent rates"],["sheets","Agent sheets"]]},
   {id:"sales",label:"Sales",views:[["tcrs","TCRs and targets"],["reports","Reports"]]},
   {id:"map",label:"Map",views:[["map","Map"]]},
   {id:"projects",label:"Projects",views:[["projects","Projects"]]}];
+if(!window.CB_AGENT) SECTIONS.filter(function(s){ return s.id==="team"; })[0].views.unshift(["perf","Performance report"]);
 var ALLVIEWS=[], SECOF={}, LASTV={}; SECTIONS.forEach(function(s){ LASTV[s.id]=s.views[0][0]; s.views.forEach(function(v){ ALLVIEWS.push(v[0]); SECOF[v[0]]=s.id; }); });
-var NOFILTER={today:1,tasks:1,agents:1,myleads:1,rotation:1,cold:1,reassigned:1,map:1};
+var NOFILTER={today:1,tasks:1,market:1,perf:1,agents:1,myleads:1,rotation:1,cold:1,reassigned:1,map:1};
 function icon(name){ var NS="http://www.w3.org/2000/svg", s=document.createElementNS(NS,"svg"); s.setAttribute("viewBox","0 0 24 24"); s.setAttribute("aria-hidden","true"); var p=document.createElementNS(NS,"path"); p.setAttribute("d",ICONS[name]); s.appendChild(p); return s; }
 function buildNav(){ [$("tabs"),$("botnav")].forEach(function(nav){ nav.textContent=""; SECTIONS.forEach(function(s){ var b=el("button"); b.type="button"; b.dataset.sec=s.id; b.appendChild(icon(s.id)); b.appendChild(el("span",null,s.label)); b.addEventListener("click",function(){ go(LASTV[s.id]); }); nav.appendChild(b); }); }); }
 
@@ -2384,6 +2406,112 @@ function tkRender(){ var box=$("v-tasks"); if(!box) return; var A=window.CB_APP|
       var g=el("div","tk-list"); sp.overdue.concat(sp.today,sp.later,TK.showDone?sp.done:[]).forEach(function(u){ g.appendChild(tkRow(u,{check:true})); }); t.appendChild(g); });
     if(!any) t.appendChild(el("div","tk-empty",tkT("noTeam")));
     box.appendChild(t); } }
+/* ---------- shared: page language (English / Arabic) for Tasks, Market brief and Performance ---------- */
+function lgBtn(rerender){ var b=el("button","btn tk-lang",TK.lang==="ar"?"English":"عربي"); b.type="button"; b.addEventListener("click",function(){ TK.lang=TK.lang==="ar"?"en":"ar"; try{ localStorage.setItem("cb-lang",TK.lang); }catch(e){} rerender(); }); return b; }
+function lgBox(box){ box.textContent=""; box.dir=TK.lang==="ar"?"rtl":"ltr"; box.lang=TK.lang; box.classList.toggle("tk-ar",TK.lang==="ar"); }
+function rich(node,s){ String(s==null?"":s).split(/(\*\*[^*]+\*\*)/).forEach(function(p){ if(!p) return; if(/^\*\*[^*]+\*\*$/.test(p)){ var t=p.slice(2,-2); node.appendChild(el(/^\[(unverified|غير مؤكد)/.test(t)?"span":"b",/^\[(unverified|غير مؤكد)/.test(t)?"mk-unv":null,t)); } else node.appendChild(document.createTextNode(p)); }); return node; }
+
+/* ---------- Market brief: the daily Egypt market brief, saved in market/*.json each morning ---------- */
+var MK={doc:null,dates:null,day:"",err:"",loading:false};
+var MK_T={en:{title:"Market brief",sub:"Egypt real estate news, launches and offers, updated every morning.",updated:"Updated",day:"Day",loading:"Loading the brief…",none:"No brief yet. It arrives each morning.",sources:"Sources",retry:"Try again",mgr:"Managers only",mgrOnly:"Only you see this"},
+  ar:{title:"تقرير السوق",sub:"أخبار العقارات في مصر واللونشات والعروض، بيتحدّث كل يوم الصبح.",updated:"آخر تحديث",day:"اليوم",loading:"جاري تحميل التقرير…",none:"لسه مفيش تقرير. بيوصل كل يوم الصبح.",sources:"المصادر",retry:"حاول تاني",mgr:"للمديرين بس",mgrOnly:"حضرتك بس اللي شايف ده"}};
+function mkT(k){ return (MK_T[TK.lang]||MK_T.en)[k]; }
+function mkLoad(day){ MK.loading=true; MK.err=""; var f=day?day+".json":"latest.json";
+  var A=window.CB_APP||{}; f=f.replace(/\.json$/,".bin");
+  var p1=Promise.all([fetch("market/"+f+"?t="+Date.now(),{cache:"no-store"}).then(function(r){ if(!r.ok) throw new Error(r.status); return r.arrayBuffer(); }),A.marketKey?A.marketKey():Promise.reject(new Error("no key"))])
+    .then(function(x){ return A.openMarket(x[0],x[1]); });
+  var p2=MK.dates?Promise.resolve(null):fetch("market/index.json?t="+Date.now(),{cache:"no-store"}).then(function(r){ return r.ok?r.json():null; }).catch(function(){ return null; });
+  var p3=A.marketMgrKey?Promise.all([fetch("market/"+f.replace(/\.bin$/,".mgr.bin")+"?t="+Date.now(),{cache:"no-store"}).then(function(r){ if(!r.ok) throw new Error(r.status); return r.arrayBuffer(); }),A.marketMgrKey()]).then(function(x){ return A.openMarket(x[0],x[1]); }).catch(function(){ return null; }):Promise.resolve(null);
+  Promise.all([p1,p2,p3]).then(function(x){ MK.doc=x[0]; MK.mgr=x[2]; MK.day=x[0].date||day||""; if(x[1]&&x[1].dates) MK.dates=x[1].dates; })
+    .catch(function(e){ MK.err=String(e&&e.message||e); MK.doc=null; }).then(function(){ MK.loading=false; mkRender(); }); }
+function mkRender(){ var box=$("v-market"); if(!box) return; lgBox(box);
+  var hd=el("div","greet tk-hd"); var hl=el("div"); hl.appendChild(el("h2",null,mkT("title"))); hl.appendChild(el("p",null,mkT("sub"))); hd.appendChild(hl); hd.appendChild(lgBtn(mkRender)); box.appendChild(hd);
+  if(!MK.doc&&!MK.loading&&!MK.err){ box.appendChild(el("div","card tk-empty",mkT("loading"))); mkLoad(""); return; }
+  if(MK.loading){ box.appendChild(el("div","card tk-empty",mkT("loading"))); return; }
+  if(!MK.doc){ var c0=el("div","card tk-empty",mkT("none")+" "); var rb=el("button","btn sm",mkT("retry")); rb.type="button"; rb.addEventListener("click",function(){ mkLoad(MK.day); }); c0.appendChild(rb); box.appendChild(c0); return; }
+  var D0=MK.doc, L=D0[TK.lang]||D0.en||{};
+  var bar=el("div","mk-bar"); bar.appendChild(el("span","chip warn",mkT("updated")+": "+tkDt(D0.updated||D0.date)));
+  if(MK.dates&&MK.dates.length>1){ var s=el("select"); s.setAttribute("aria-label",mkT("day")); MK.dates.forEach(function(d){ var o=el("option",null,new Date(d+"T12:00").toLocaleDateString(TK.lang==="ar"?"ar-EG":"en-GB",{weekday:"short",day:"numeric",month:"short"})); o.value=d; if(d===MK.day) o.selected=true; s.appendChild(o); }); s.addEventListener("change",function(){ mkLoad(s.value); }); bar.appendChild(s); }
+  box.appendChild(bar);
+  if(L.note) box.appendChild(rich(el("div","note mk-note"),L.note));
+  mkSections(box,L.sections,"");
+  if(MK.mgr){ var M2=MK.mgr[TK.lang]||MK.mgr.en||{}; var mh=el("div","mk-mgr-h"); mh.appendChild(el("h3","sect",M2.title||mkT("mgr"))); mh.appendChild(el("span","tk-tag",mkT("mgrOnly"))); box.appendChild(mh); if(M2.note) box.appendChild(rich(el("div","note mk-note"),M2.note)); mkSections(box,M2.sections,"mk-mgr"); }
+  mkSources(box,D0.sources); }
+function mkSections(box,list,cls){ (list||[]).forEach(function(sc){ var c=el("div","card mk-sec"+(cls?" "+cls:"")); c.appendChild(el("h2",null,sc.h||""));
+    if(sc.text) c.appendChild(rich(el("p"),sc.text));
+    if(sc.bullets){ var ul=el("ul","mk-ul"); sc.bullets.forEach(function(b){ ul.appendChild(rich(el("li"),b)); }); c.appendChild(ul); }
+    if(sc.table){ var w=el("div","mk-tw"), t=el("table","mk-t"), th=el("tr"); (sc.table.head||[]).forEach(function(h){ th.appendChild(el("th",null,h)); }); var hd2=el("thead"); hd2.appendChild(th); t.appendChild(hd2); var tb=el("tbody");
+      (sc.table.rows||[]).forEach(function(r){ var tr=el("tr"); r.forEach(function(v){ tr.appendChild(rich(el("td"),v)); }); tb.appendChild(tr); }); t.appendChild(tb); w.appendChild(t); c.appendChild(w); }
+    if(sc.after) c.appendChild(rich(el("p","mk-after"),sc.after));
+    box.appendChild(c); }); }
+function mkSources(box,src){ var D0={sources:src};
+  if(D0.sources&&D0.sources.length){ var sd=el("details","card mk-src"); sd.appendChild(el("summary",null,mkT("sources")+" ("+D0.sources.length+")")); var ul2=el("ul","mk-ul");
+    D0.sources.forEach(function(s2){ var li=el("li"); if(/^https?:\/\//.test(s2.u||"")){ var a=el("a",null,s2.t||s2.u); a.href=s2.u; a.target="_blank"; a.rel="noopener"; li.appendChild(a); } else li.textContent=s2.t||""; ul2.appendChild(li); }); sd.appendChild(ul2); box.appendChild(sd); } }
+
+/* ---------- Performance report (Basel only): each agent's contact rate, qualified leads going cold, activity, weekly trend ---------- */
+var RP_T={en:{title:"Team performance report",sub:"Worked out from the leads in this app (CloudBlue, the app and the agents' sheets). Your own leads are left out.",
+    total:"Leads with agents",untouched:"Never contacted",untouchedN:"No feedback yet",active:"Worked, last 7 days",activeN:"Any activity in CloudBlue or the app",stale:"Qualified going cold",staleN:"Qualified, quiet 7+ days",
+    bulk:"Bulk batches: in the last 60 days, {n} leads arrived in bulk (100+ created the same day) and only {w} have any feedback.",
+    score:"Agent scorecard",scoreSub:"Ranked by leads worked in the last 7 days. Qualified rate = qualified or closed out of leads with feedback.",
+    agent:"Agent",leads:"Leads",never:"Never contacted",qual:"Qualified",closed:"Closed",rate:"Qualified rate",cold:"Going cold",w7:"Worked 7d",w30:"Worked 30d",app:"App updates 30d",
+    coach:"Coaching notes",coachSub:"Talking points for your one-to-ones, from each agent's numbers.",
+    c_untouched:"{p} of leads never contacted. Agree a daily first-call target and check it tomorrow.",c_cold:"{n} qualified leads quiet for over a week. Ask for a next step on each today.",c_idle:"No leads worked in the last 7 days.",c_app:"No feedback logged in the app this month. Remind them to log calls.",c_good:"Good pace: {n} leads worked this week.",
+    weeks:"New leads and how many got worked, by week",weeksSub:"Team total by the week the lead was created (last 12 weeks).",nw:"New",wk:"Worked",nodata:"No lead data loaded yet."},
+  ar:{title:"تقرير أداء التيم",sub:"محسوب من الليدز اللي في الأبلكيشن (CloudBlue والأبلكيشن وشيتات السيلز). ليدز حضرتك مش محسوبة.",
+    total:"ليدز مع السيلز",untouched:"ماحدش كلّمها",untouchedN:"مفيش فيدباك لسه",active:"اتشغل عليها آخر ٧ أيام",activeN:"أي نشاط في CloudBlue أو الأبلكيشن",stale:"كواليفايد بتبرد",staleN:"كواليفايد ومفيش نشاط ٧ أيام+",
+    bulk:"دفعات كبيرة: في آخر ٦٠ يوم، وصل {n} ليد في دفعات (١٠٠+ في نفس اليوم) و{w} بس عليهم فيدباك.",
+    score:"تقييم السيلز",scoreSub:"مترتب حسب الليدز اللي اتشغل عليها آخر ٧ أيام. نسبة الكواليفايد = كواليفايد أو مقفول من الليدز اللي عليها فيدباك.",
+    agent:"السيلز",leads:"ليدز",never:"ماحدش كلّمها",qual:"كواليفايد",closed:"مقفول",rate:"نسبة الكواليفايد",cold:"بتبرد",w7:"شغل ٧ أيام",w30:"شغل ٣٠ يوم",app:"تحديثات الأبلكيشن ٣٠ يوم",
+    coach:"ملاحظات للمتابعة",coachSub:"نقاط تتكلم فيها في المتابعة الفردية، من أرقام كل سيلز.",
+    c_untouched:"{p} من الليدز ماحدش كلّمها. اتفق على عدد مكالمات أولى يومي وتابعه بكرة.",c_cold:"{n} ليد كواليفايد من غير نشاط أكتر من أسبوع. اطلب خطوة جاية لكل واحد النهارده.",c_idle:"مفيش ليدز اتشغل عليها آخر ٧ أيام.",c_app:"مفيش فيدباك متسجل في الأبلكيشن الشهر ده. فكّره يسجل مكالماته.",c_good:"شغل كويس: {n} ليد اتشغل عليها الأسبوع ده.",
+    weeks:"الليدز الجديدة وكام منها اتشغل عليها، بالأسبوع",weeksSub:"إجمالي التيم حسب أسبوع دخول الليد (آخر ١٢ أسبوع).",nw:"جديدة",wk:"اتشغل عليها",nodata:"لسه مفيش بيانات ليدز."}};
+function rpT(k){ return (RP_T[TK.lang]||RP_T.en)[k]; }
+function rpCat(f){ var x=String(f||"").toLowerCase().trim();
+  if(!x||x.indexOf("no feedback")===0||x.indexOf("pending")===0) return "untouched";
+  if(x==="closed") return "closed";
+  if(["qualified","interested","follow up","meeting","meeting scheduled","meeting done","showing"].indexOf(x)>=0) return "qualified";
+  if(x==="call later"||x.indexOf("postpon")===0||x.indexOf("pospon")===0) return "call_later";
+  if(x.indexOf("unqualified")>=0||x.indexOf("not interested")>=0||x.indexOf("mohtam")>=0||x.indexOf("low budget")>=0) return "unqualified";
+  if(x.indexOf("no answer")>=0||x==="busy"||x==="off"||x.indexOf("مردش")>=0||x.indexOf("wrong")>=0) return "no_answer";
+  return "other"; }
+function rpData(){ var A=window.CB_APP||{}, nowMin=Date.now()/60000+120, ago=function(m){ return (nowMin-m)/1440; };
+  var perDay={}; R.forEach(function(r){ var c=r[C.created]; if(c&&ago(c)<=60){ var k=Math.floor(c/1440); perDay[k]=(perDay[k]||0)+1; } });
+  var akName={}; Object.keys(A.AK_OF||{}).forEach(function(n){ akName[A.AK_OF[n]]=n; });
+  var app30={}, cut=Date.now()-30*864e5; (A.allUpdates?A.allUpdates():[]).forEach(function(u){ if(u.kind==="reminder"||!u.ak) return; if((__tsMs(u.at)||0)>=cut){ var n=akName[u.ak]; if(n) app30[n]=(app30[n]||0)+1; } });
+  var M={}, W={};
+  R.forEach(function(r){ var ag=X.agent[r[C.agent]]; if(!ag||/algamal/i.test(ag)) return;
+    var a=M[ag]||(M[ag]={agent:ag,name:String(ag).split(" ").slice(0,2).join(" "),total:0,untouched:0,qualified:0,closed:0,no_answer:0,call_later:0,unqualified:0,other:0,stale:0,w7:0,w30:0,bulk:0,bulkW:0,app:0});
+    var c=rpCat(asFb(r)); a.total++; a[c]++;
+    var la=r[C.lastAct]; if(la){ if(ago(la)<=7) a.w7++; if(ago(la)<=30) a.w30++; }
+    if(c==="qualified"&&(!la||ago(la)>7)) a.stale++;
+    var cr=r[C.created]; if(cr&&ago(cr)<=60&&perDay[Math.floor(cr/1440)]>=100){ a.bulk++; if(c!=="untouched") a.bulkW++; }
+    if(cr){ var w=Math.floor(ago(cr)/7); if(w>=0&&w<12){ var o=W[w]||(W[w]={w:w,n:0,k:0}); o.n++; if(c!=="untouched") o.k++; } } });
+  var list=Object.keys(M).map(function(k){ var a=M[k]; a.app=app30[a.agent]||0; var fb=a.total-a.untouched; a.rate=fb?(a.qualified+a.closed)/fb:null; a.upct=a.total?a.untouched/a.total:0; return a; });
+  list.sort(function(x,y){ return y.w7-x.w7||y.total-x.total; });
+  var T={total:0,untouched:0,w7:0,stale:0,bulk:0,bulkW:0}; list.forEach(function(a){ Object.keys(T).forEach(function(k){ T[k]+=a[k]; }); });
+  var weeks=[]; for(var i=11;i>=0;i--){ var o2=W[i]||{w:i,n:0,k:0}; var st=new Date(Date.now()-(i+1)*7*864e5+864e5); o2.label=st.toLocaleDateString(TK.lang==="ar"?"ar-EG":"en-GB",{day:"numeric",month:"short"}); weeks.push(o2); }
+  return {list:list,T:T,weeks:weeks}; }
+function rpRender(){ var box=$("v-perf"); if(!box) return; lgBox(box);
+  var hd=el("div","greet tk-hd"); var hl=el("div"); hl.appendChild(el("h2",null,rpT("title"))); hl.appendChild(el("p",null,rpT("sub"))); hd.appendChild(hl); hd.appendChild(lgBtn(rpRender)); box.appendChild(hd);
+  var P=rpData(), T=P.T, pc=function(v){ return v==null?"—":Math.round(v*100)+"%"; };
+  if(!P.list.length){ box.appendChild(el("div","card tk-empty",rpT("nodata"))); return; }
+  var tl=el("div","tiles rp-tiles"); function tile2(k,v,n,cls){ var t=el("div","tile"+(cls?" "+cls:"")); t.appendChild(el("div","k",k)); t.appendChild(el("div","v",v)); t.appendChild(el("div","n",n)); tl.appendChild(t); }
+  tile2(rpT("total"),fmt(T.total),P.list.length+" "+(TK.lang==="ar"?"سيلز":"agents")); tile2(rpT("untouched"),pc(T.total?T.untouched/T.total:0),fmt(T.untouched)+" · "+rpT("untouchedN"),"rp-bad"); tile2(rpT("active"),fmt(T.w7),rpT("activeN")); tile2(rpT("stale"),fmt(T.stale),rpT("staleN"),"rp-warn"); box.appendChild(tl);
+  if(T.bulk) box.appendChild(el("div","note rp-alert",rpT("bulk").replace("{n}",fmt(T.bulk)).replace("{w}",fmt(T.bulkW))));
+  var sc=el("div","card mk-sec"); sc.appendChild(el("h2",null,rpT("score"))); sc.appendChild(el("div","hint",rpT("scoreSub")));
+  var w=el("div","mk-tw"), t=el("table","mk-t rp-t"), tr=el("tr"); ["agent","leads","never","qual","closed","rate","cold","w7","w30","app"].forEach(function(k){ tr.appendChild(el("th",null,rpT(k))); }); var th=el("thead"); th.appendChild(tr); t.appendChild(th); var tb=el("tbody");
+  P.list.forEach(function(a){ var r=el("tr"); [a.name,fmt(a.total),pc(a.upct),fmt(a.qualified),fmt(a.closed),pc(a.rate),fmt(a.stale),fmt(a.w7),fmt(a.w30),fmt(a.app)].forEach(function(v,i){ var td=el("td",null,v); if(i===2&&a.upct>=.5) td.className="rp-hi"; if(i===6&&a.stale>0) td.className="rp-mid"; r.appendChild(td); }); tb.appendChild(r); });
+  t.appendChild(tb); w.appendChild(t); sc.appendChild(w); box.appendChild(sc);
+  var cc=el("div","card mk-sec"); cc.appendChild(el("h2",null,rpT("coach"))); cc.appendChild(el("div","hint",rpT("coachSub")));
+  P.list.forEach(function(a){ var notes=[]; if(a.upct>=.3) notes.push(rpT("c_untouched").replace("{p}",pc(a.upct))); if(a.stale) notes.push(rpT("c_cold").replace("{n}",fmt(a.stale))); if(!a.w7) notes.push(rpT("c_idle")); if(!a.app) notes.push(rpT("c_app")); if(!notes.length) notes.push(rpT("c_good").replace("{n}",fmt(a.w7)));
+    var g=el("div","rp-coach"); g.appendChild(el("b",null,a.name)); var ul=el("ul","mk-ul"); notes.forEach(function(n){ ul.appendChild(el("li",null,n)); }); g.appendChild(ul); cc.appendChild(g); });
+  box.appendChild(cc);
+  var wc=el("div","card mk-sec"); wc.appendChild(el("h2",null,rpT("weeks"))); wc.appendChild(el("div","hint",rpT("weeksSub")));
+  var lg=el("div","rp-leg"); lg.appendChild(el("span","rp-sw n")); lg.appendChild(document.createTextNode(rpT("nw")+"  ")); lg.appendChild(el("span","rp-sw k")); lg.appendChild(document.createTextNode(rpT("wk"))); wc.appendChild(lg);
+  var mx=Math.max.apply(null,P.weeks.map(function(x){ return x.n; }).concat([1])), ch=el("div","rp-weeks");
+  P.weeks.forEach(function(x){ var col=el("div","rp-wk"); col.title=x.label+": "+rpT("nw")+" "+x.n+" · "+rpT("wk")+" "+x.k; var bars=el("div","rp-bars"); var b1=el("i","n"); b1.style.height=(x.n/mx*100)+"%"; var b2=el("i","k"); b2.style.height=(x.k/mx*100)+"%"; bars.appendChild(b1); bars.appendChild(b2); col.appendChild(el("div","rp-num",x.n?fmt(x.n):"")); col.appendChild(bars); col.appendChild(el("div","rp-lab",x.label)); ch.appendChild(col); });
+  wc.appendChild(ch); box.appendChild(wc); }
+
 window.tkRefresh=function(){ var v=$("v-tasks"); if(v&&v.classList.contains("on")&&!(document.activeElement&&/^tk-/.test(document.activeElement.id||""))) tkRender(); };
 
 function render(){
@@ -2398,7 +2526,7 @@ function route(){ var h=VIEW||(location.hash||"#today").slice(1); if(ALLVIEWS.in
   ALLVIEWS.forEach(function(v){ $("v-"+v).classList.toggle("on",v===h); });
   [$("tabs"),$("botnav")].forEach(function(nav){ Array.prototype.forEach.call(nav.querySelectorAll("button"),function(b){ if(b.dataset.sec===sec) b.setAttribute("aria-current","page"); else b.removeAttribute("aria-current"); }); });
   var sn=$("subnav"); sn.textContent=""; var S0=SECTIONS.filter(function(s){return s.id===sec})[0]; if(S0&&S0.views.length>1) S0.views.forEach(function(v){ var b=el("button",null,v[1]); b.type="button"; b.setAttribute("role","tab"); if(v[0]===h){ b.setAttribute("aria-current","page"); b.setAttribute("aria-selected","true"); } else b.setAttribute("aria-selected","false"); b.addEventListener("click",function(){ go(v[0]); }); sn.appendChild(b); });
-  $("filters").classList.toggle("off",!!NOFILTER[h]); if(h==="sections"&&typeof secRender==="function") secRender(); if(h==="map"&&typeof mapRender==="function") mapRender(); if(h==="tasks") tkRender(); }
+  $("filters").classList.toggle("off",!!NOFILTER[h]); if(h==="sections"&&typeof secRender==="function") secRender(); if(h==="map"&&typeof mapRender==="function") mapRender(); if(h==="tasks") tkRender(); if(h==="market") mkRender(); if(h==="perf") rpRender(); }
 
 // init
 var sub=$("sub"); if(D.updated){ sub.appendChild(document.createTextNode("Updated ")); sub.appendChild(el("b",null,D.updated)); sub.appendChild(el("br"));
@@ -2536,7 +2664,7 @@ async function loadData(path) {
 function startDashboard(data) {
   window.LEADS = data.LEADS; window.EXTRA = data.EXTRA; window.SNAP = data.SNAP; window.PREV = data.PREV; window.HIST = data.HIST;
   window.CB_AGENT = ME.admin ? "" : ME.name; window.CB_NAME = ME.admin ? "Basel" : (ME.name || "").split(" ")[0];
-  window.CB_APP = { admin: ME.admin, email: ME.email, ak: ME.ak, name: ME.name, logFeedback, updatesFor, FB_OPTIONS, AK_OF, reassign: ME.admin ? reassignLead : null, allUpdates: () => UPDATES, saveWa, setShowSales: ME.admin ? setShowSales : null, setPin: ME.admin ? setPin : null, savePlan: ME.admin ? savePlan : null, removePlan: ME.admin ? removePlan : null, setInfo: ME.admin ? setInfo : null, loadPlan, aiModel, setTaskDone, deleteTask: ME.admin ? deleteTask : null };
+  window.CB_APP = { admin: ME.admin, email: ME.email, ak: ME.ak, name: ME.name, logFeedback, updatesFor, FB_OPTIONS, AK_OF, reassign: ME.admin ? reassignLead : null, allUpdates: () => UPDATES, saveWa, setShowSales: ME.admin ? setShowSales : null, setPin: ME.admin ? setPin : null, savePlan: ME.admin ? savePlan : null, removePlan: ME.admin ? removePlan : null, setInfo: ME.admin ? setInfo : null, loadPlan, aiModel, setTaskDone, deleteTask: ME.admin ? deleteTask : null, marketKey, openMarket, marketMgrKey: ME.admin ? marketMgrKey : null };
   window.__startDashboard();
   started = true;
   gate.hidden = true;
@@ -2687,6 +2815,18 @@ async function aiModel(opts) {
   }
   throw lastErr || new Error("No AI model available");
 }
+
+// ---------- Market brief: the files in market/ are encrypted; the key sits in Firestore (settings/market), readable only by the signed-in team ----------
+let MKEY = null;
+async function marketKey() { if (MKEY) return MKEY; const s = await getDoc(doc(db, "settings", "market")); if (!s.exists() || !s.data().k) throw new Error("no key"); MKEY = s.data().k; return MKEY; }
+async function openMarket(buf, keyB64) {
+  const b = new Uint8Array(buf), key = await crypto.subtle.importKey("raw", b64ToBytes(keyB64), "AES-GCM", false, ["decrypt"]);
+  return JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({ name: "AES-GCM", iv: b.slice(0, 12) }, key, b.slice(12))));
+}
+let MGRKEY = null;
+async function marketMgrKey() { if (!ME.admin) throw new Error("only Basel"); if (MGRKEY) return MGRKEY; const s = await getDoc(doc(db, "admin", "market")); if (!s.exists() || !s.data().k) throw new Error("no key"); MGRKEY = s.data().k; return MGRKEY; }
+window.cbSetMarketMgrKey = async function (keyB64) { if (!ME.admin) throw new Error("only Basel"); await setDoc(doc(db, "admin", "market"), { k: keyB64 }); MGRKEY = keyB64; return "saved"; };
+window.cbSetMarketKey = async function (keyB64) { if (!ME.admin) throw new Error("only Basel"); await setDoc(doc(db, "settings", "market"), { k: keyB64 }); MKEY = keyB64; return "saved"; };
 
 // ---------- Tasks & reminders: mark a reminder done (agents may change only these three fields on their own reminders) ----------
 async function setTaskDone(id, done) {
