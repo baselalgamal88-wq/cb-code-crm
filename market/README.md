@@ -18,3 +18,17 @@ Then commit only the `market/` changes. Never commit the plain JSON.
 
 JSON shape (both files): `{date, updated, en: {title, note, sections}, ar: {...}, sources: [{t, u}]}`.
 Each section is `{h, bullets: [...]}`, `{h, text}` or `{h, table: {head, rows}, after?}`. Text may use `**bold**`.
+
+## New (preferred): brief saved in Firestore, no keys needed
+
+The daily run opens the app in Basel's signed-in browser and calls:
+
+```js
+await cbSaveBrief(team, managers)   // team = what agents see, managers = Basel only (or null)
+```
+
+- `team` goes to Firestore `settings/brief_<date>` (all signed-in team members can read it).
+- `managers` goes to `admin/brief_<date>` (Basel only).
+- `settings/brief_index` keeps the last 60 dates, newest first.
+
+The Market page reads Firestore first and falls back to the encrypted files in this folder.

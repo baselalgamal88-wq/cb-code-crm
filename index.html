@@ -2416,7 +2416,11 @@ var MK={doc:null,dates:null,day:"",err:"",loading:false};
 var MK_T={en:{title:"Market brief",sub:"Egypt real estate news, launches and offers, updated every morning.",updated:"Updated",day:"Day",loading:"Loading the brief…",none:"No brief yet. It arrives each morning.",sources:"Sources",retry:"Try again",mgr:"Managers only",mgrOnly:"Only you see this"},
   ar:{title:"تقرير السوق",sub:"أخبار العقارات في مصر واللونشات والعروض، بيتحدّث كل يوم الصبح.",updated:"آخر تحديث",day:"اليوم",loading:"جاري تحميل التقرير…",none:"لسه مفيش تقرير. بيوصل كل يوم الصبح.",sources:"المصادر",retry:"حاول تاني",mgr:"للمديرين بس",mgrOnly:"حضرتك بس اللي شايف ده"}};
 function mkT(k){ return (MK_T[TK.lang]||MK_T.en)[k]; }
-function mkLoad(day){ MK.loading=true; MK.err=""; var f=day?day+".json":"latest.json";
+function mkLoad(day){ MK.loading=true; MK.err=""; var A0=window.CB_APP||{};
+  if(A0.loadBrief){ A0.loadBrief(day).then(function(r){ if(!r) return mkLoadFiles(day); MK.doc=r.doc; MK.mgr=r.mgr; MK.day=r.doc.date||day||""; MK.dates=r.dates; MK.loading=false; mkRender(); }).catch(function(){ mkLoadFiles(day); }); return; }
+  mkLoadFiles(day); }
+window.cbBriefSaved=function(){ MK.doc=null; MK.dates=null; MK.err=""; if(location.hash==="#market") mkLoad(""); };
+function mkLoadFiles(day){ MK.loading=true; MK.err=""; var f=day?day+".json":"latest.json";
   var A=window.CB_APP||{}; f=f.replace(/\.json$/,".bin");
   var p1=Promise.all([fetch("market/"+f+"?t="+Date.now(),{cache:"no-store"}).then(function(r){ if(!r.ok) throw new Error(r.status); return r.arrayBuffer(); }),A.marketKey?A.marketKey():Promise.reject(new Error("no key"))])
     .then(function(x){ return A.openMarket(x[0],x[1]); });
@@ -2664,7 +2668,7 @@ async function loadData(path) {
 function startDashboard(data) {
   window.LEADS = data.LEADS; window.EXTRA = data.EXTRA; window.SNAP = data.SNAP; window.PREV = data.PREV; window.HIST = data.HIST;
   window.CB_AGENT = ME.admin ? "" : ME.name; window.CB_NAME = ME.admin ? "Basel" : (ME.name || "").split(" ")[0];
-  window.CB_APP = { admin: ME.admin, email: ME.email, ak: ME.ak, name: ME.name, logFeedback, updatesFor, FB_OPTIONS, AK_OF, reassign: ME.admin ? reassignLead : null, allUpdates: () => UPDATES, saveWa, setShowSales: ME.admin ? setShowSales : null, setPin: ME.admin ? setPin : null, savePlan: ME.admin ? savePlan : null, removePlan: ME.admin ? removePlan : null, setInfo: ME.admin ? setInfo : null, loadPlan, aiModel, setTaskDone, deleteTask: ME.admin ? deleteTask : null, marketKey, openMarket, marketMgrKey: ME.admin ? marketMgrKey : null };
+  window.CB_APP = { admin: ME.admin, email: ME.email, ak: ME.ak, name: ME.name, logFeedback, updatesFor, FB_OPTIONS, AK_OF, reassign: ME.admin ? reassignLead : null, allUpdates: () => UPDATES, saveWa, setShowSales: ME.admin ? setShowSales : null, setPin: ME.admin ? setPin : null, savePlan: ME.admin ? savePlan : null, removePlan: ME.admin ? removePlan : null, setInfo: ME.admin ? setInfo : null, loadPlan, aiModel, setTaskDone, deleteTask: ME.admin ? deleteTask : null, marketKey, openMarket, marketMgrKey: ME.admin ? marketMgrKey : null, loadBrief };
   window.__startDashboard();
   started = true;
   gate.hidden = true;
@@ -2826,6 +2830,27 @@ async function openMarket(buf, keyB64) {
 let MGRKEY = null;
 async function marketMgrKey() { if (!ME.admin) throw new Error("only Basel"); if (MGRKEY) return MGRKEY; const s = await getDoc(doc(db, "admin", "market")); if (!s.exists() || !s.data().k) throw new Error("no key"); MGRKEY = s.data().k; return MGRKEY; }
 window.cbSetMarketMgrKey = async function (keyB64) { if (!ME.admin) throw new Error("only Basel"); await setDoc(doc(db, "admin", "market"), { k: keyB64 }); MGRKEY = keyB64; return "saved"; };
+async function loadBrief(day) {
+  const ix = await getDoc(doc(db, "settings", "brief_index")); const dates = ix.exists() ? (ix.data().dates || []) : [];
+  const d = day || dates[0]; if (!d) return null;
+  const t = await getDoc(doc(db, "settings", "brief_" + d)); if (!t.exists()) return null;
+  let mgr = null; if (ME.admin) { try { const m = await getDoc(doc(db, "admin", "brief_" + d)); if (m.exists()) mgr = JSON.parse(m.data().json); } catch (e) {} }
+  return { doc: JSON.parse(t.data().json), mgr, dates };
+}
+// Basel only: the daily market brief run calls this in Basel's signed-in app. team = what agents see, managers = Basel only.
+window.cbSaveBrief = async function (team, managers) {
+  if (!ME.admin) throw new Error("only Basel");
+  if (typeof team === "string") team = JSON.parse(team); if (typeof managers === "string") managers = JSON.parse(managers);
+  const d = team && team.date; if (!/^\d{4}-\d{2}-\d{2}$/.test(d || "")) throw new Error("team.date must be YYYY-MM-DD");
+  if (!team.en || !team.ar) throw new Error("team needs en and ar");
+  await setDoc(doc(db, "settings", "brief_" + d), { json: JSON.stringify(team), at: Date.now() });
+  if (managers) await setDoc(doc(db, "admin", "brief_" + d), { json: JSON.stringify(managers), at: Date.now() });
+  const ix = await getDoc(doc(db, "settings", "brief_index"));
+  const dates = [d].concat((ix.exists() ? ix.data().dates || [] : []).filter(x => x !== d)).sort().reverse().slice(0, 60);
+  await setDoc(doc(db, "settings", "brief_index"), { dates });
+  if (window.cbBriefSaved) window.cbBriefSaved();
+  return "saved " + d;
+};
 window.cbSetMarketKey = async function (keyB64) { if (!ME.admin) throw new Error("only Basel"); await setDoc(doc(db, "settings", "market"), { k: keyB64 }); MKEY = keyB64; return "saved"; };
 
 // ---------- Tasks & reminders: mark a reminder done (agents may change only these three fields on their own reminders) ----------
