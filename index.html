@@ -637,6 +637,37 @@ body.as-on .as-fab{display:none}
 .as-in{display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--line);background:var(--surface)}
 .as-in textarea{flex:1;resize:none;border:1px solid var(--line-2);border-radius:12px;padding:10px 12px;font:inherit;font-size:15px;max-height:120px;background:var(--surface);color:var(--ink)}
 
+/* Tasks & reminders */
+#v-tasks .tk-hd{align-items:flex-start}
+#v-tasks .tk-lang{flex:none}
+.tk-ar{font-family:"IBM Plex Sans Arabic",var(--font)}
+.tk-form{margin-top:14px;display:flex;flex-direction:column;gap:10px}
+.tk-form textarea{width:100%;box-sizing:border-box;min-height:64px;resize:vertical;border:1px solid var(--line-2);border-radius:10px;padding:10px 12px;font:inherit;background:var(--surface);color:var(--ink)}
+.tk-frow{display:flex;flex-wrap:wrap;gap:10px}.tk-f{display:flex;flex-direction:column;gap:4px;flex:1 1 180px;min-width:0}
+.tk-f input,.tk-f select{height:38px;border:1px solid var(--line-2);border-radius:9px;padding:0 10px;font:inherit;background:var(--surface);color:var(--ink);min-width:0}
+.tk-lab{font-size:12.5px;font-weight:600;color:var(--ink-2)}
+.tk-quick{display:flex;flex-wrap:wrap;gap:6px}.tk-quick .btn{height:30px;font-size:12.5px;border-radius:999px;padding:0 12px}
+.tk-act{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.tk-msg{font-size:13px;color:var(--good)}
+.tk-card{margin-top:14px}.tk-th{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.tk-sd{font-size:13px;color:var(--ink-2);display:flex;align-items:center;gap:4px}
+.tk-gh{margin:14px 0 6px;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3)}
+.tk-ar .tk-gh{letter-spacing:0}
+.tk-list{display:flex;flex-direction:column;gap:6px}
+.tk-row{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.tk-row.late{border-color:var(--bad-bg);background:color-mix(in srgb,var(--bad-bg) 35%,var(--surface))}
+.tk-row.done .tk-text{text-decoration:line-through;color:var(--ink-3)}
+.tk-check{flex:none;width:26px;height:26px;border-radius:50%;border:2px solid var(--line-2);background:var(--surface);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0;margin-top:1px}
+.tk-check svg{width:16px;height:16px;fill:none;stroke:transparent;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.tk-check:hover svg{stroke:var(--ink-3)}.tk-check[aria-pressed="true"]{background:var(--good);border-color:var(--good)}.tk-check[aria-pressed="true"] svg{stroke:#fff}
+.tk-dot{flex:none;width:8px;height:8px;border-radius:50%;background:var(--gold);margin-top:8px}
+.tk-body{flex:1;min-width:0}.tk-text{font-weight:600;line-height:1.4;overflow-wrap:anywhere}
+.tk-meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;align-items:center}
+.tk-meta .chip{height:24px;padding:0 10px;cursor:default;font-size:12px}
+.tk-meta .chip.bad{background:var(--bad-bg);color:var(--bad)}.tk-meta .chip.warn{background:var(--info-bg);color:var(--info)}.tk-meta .chip.good{background:var(--good-bg);color:var(--good)}
+.tk-tag{font-size:12px;font-weight:600;color:var(--gold-ink);background:var(--gold-soft);border-radius:999px;padding:3px 9px}
+.tk-client{font:inherit;font-size:12px;border:0;background:none;color:var(--accent);cursor:pointer;padding:0;text-decoration:underline}
+.tk-del{flex:none;border:0;background:none;color:var(--ink-3);font-size:20px;line-height:1;cursor:pointer;padding:2px 6px;border-radius:6px}.tk-del:hover{color:var(--bad);background:var(--bad-bg)}
+.tk-agent{display:flex;align-items:center;justify-content:space-between;margin:16px 0 6px;font-size:14px}.tk-count{font-size:12.5px;color:var(--ink-3);font-weight:600}
+.tk-empty{color:var(--ink-3);font-size:14px;padding:10px 0}
 </style>
 </head>
 <body>
@@ -808,6 +839,7 @@ body.as-on .as-fab{display:none}
     <div class="grid" id="pf-grid"></div>
   </section>
 
+  <section class="view" id="v-tasks"></section>
   <section class="view" id="v-daily">
     <div class="note">One day at a time, from CloudBlue. New leads are counted on their creation date. From 16 Nov 2026 the system logs every change it sees between copies (morning and evening): leads received, feedback changes in CloudBlue and new clients or feedback changes in the agents' Google Sheets. "Actions logged" are leads whose Last Agent Activity Date in CloudBlue is that day. The Agent filter above applies.</div>
     <div class="subfilters" style="margin-top:0"><button class="btn" id="dy-prev" type="button">Previous day</button><div class="f"><label for="dy-date">Day</label><input type="date" id="dy-date"></div><button class="btn" id="dy-next" type="button">Next day</button><button class="btn" id="dy-copy" type="button">Copy this day's report</button><span class="note" style="margin:0">To message an agent, use the green Notify button beside their name in the table below.</span><span class="note" id="dy-copied" style="margin:0"></span></div>
@@ -1449,14 +1481,14 @@ var ICONS={map:"M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21zM12 7a2.
   team:"M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21v-1a6 6 0 0 1 6-6h2a6 6 0 0 1 6 6v1M16 3.5a4 4 0 0 1 0 7M22 21v-1a6 6 0 0 0-4-5.6",
   sales:"M3 3v18h18M7 15l4-4 3 3 6-6",
   projects:"M4 21V7l8-4 8 4v14M9 21v-6h6v6M8 10h.01M12 10h.01M16 10h.01"};
-var SECTIONS=[{id:"today",label:"Today",views:[["today","Today"],["daily","Daily report"],["changes","What changed"]]},
+var SECTIONS=[{id:"today",label:"Today",views:[["today","Today"],["tasks","Tasks & reminders"],["daily","Daily report"],["changes","What changed"]]},
   {id:"leads",label:"Leads",views:[["sections","Sections"],["overview","Overview"],["leads","All leads"],["clients","Clients"],["reassigned","Reassigned"],["rotation","Rotation"],["cold","Cold calls"]]},
   {id:"team",label:"Team",views:[["agents","Agents"],["team","Feedback mix"],["performance","Agent rates"],["sheets","Agent sheets"]]},
   {id:"sales",label:"Sales",views:[["tcrs","TCRs and targets"],["reports","Reports"]]},
   {id:"map",label:"Map",views:[["map","Map"]]},
   {id:"projects",label:"Projects",views:[["projects","Projects"]]}];
 var ALLVIEWS=[], SECOF={}, LASTV={}; SECTIONS.forEach(function(s){ LASTV[s.id]=s.views[0][0]; s.views.forEach(function(v){ ALLVIEWS.push(v[0]); SECOF[v[0]]=s.id; }); });
-var NOFILTER={today:1,agents:1,myleads:1,rotation:1,cold:1,reassigned:1,map:1};
+var NOFILTER={today:1,tasks:1,agents:1,myleads:1,rotation:1,cold:1,reassigned:1,map:1};
 function icon(name){ var NS="http://www.w3.org/2000/svg", s=document.createElementNS(NS,"svg"); s.setAttribute("viewBox","0 0 24 24"); s.setAttribute("aria-hidden","true"); var p=document.createElementNS(NS,"path"); p.setAttribute("d",ICONS[name]); s.appendChild(p); return s; }
 function buildNav(){ [$("tabs"),$("botnav")].forEach(function(nav){ nav.textContent=""; SECTIONS.forEach(function(s){ var b=el("button"); b.type="button"; b.dataset.sec=s.id; b.appendChild(icon(s.id)); b.appendChild(el("span",null,s.label)); b.addEventListener("click",function(){ go(LASTV[s.id]); }); nav.appendChild(b); }); }); }
 
@@ -2273,6 +2305,87 @@ async function asSend(text){ if(AS.busy) return; AS.busy=true; var sg=$("as-sug"
   AS.busy=false; }
 function asInit(){ if(!window.CB_APP||!window.CB_APP.aiModel) return; asEl(); }
 
+/* ---------- Tasks & reminders: Basel's own to-do list, reminders he sends the team, and each agent's reminders (English / Arabic) ---------- */
+var TK_T={
+  en:{title:"Tasks & reminders",sub_admin:"Your own tasks, and reminders you send the team. Everyone gets a phone notification at the time you set (Alerts must be on).",sub_agent:"Your tasks and the reminders Basel sends you. You get a phone notification at the time (turn on Alerts).",
+    what:"What needs doing?",ph:"e.g. Call Ahmed about the Badya unit",when:"When",forw:"For",me:"Me",team:"Whole team",add:"Add reminder",adding:"Adding…",
+    q1h:"In 1 hour",q6:"Today 6 PM",qt10:"Tomorrow 10 AM",qw:"Next week",need:"Write the task and pick a time.",added:"Added. ",addedTeam:"Sent to {n} agents.",err:"Could not save: ",
+    mine:"My tasks",overdue:"Overdue",today:"Today",later:"Coming up",done:"Done (last 7 days)",none:"Nothing here. Add a task above.",
+    teamH:"Team reminders",teamHint:"What you asked each agent to do, and whether they marked it done.",showDone:"Show done",noTeam:"No reminders sent to the team yet.",
+    fromB:"From Basel",markDone:"Mark done",undo:"Not done",doneAt:"Done",late:"Overdue",sched:"Scheduled",del:"Delete",delQ:"Delete this reminder?",rulesErr:"Basel needs to publish the new Firebase rules before agents can mark reminders done.",lang:"عربي",client:"Client"},
+  ar:{title:"المهام والتذكيرات",sub_admin:"مهامك الشخصية والتذكيرات اللي بتبعتها للتيم. كل واحد هيوصله إشعار على الموبايل في الميعاد (لازم التنبيهات تكون شغالة).",sub_agent:"مهامك والتذكيرات اللي باسل بيبعتهالك. هيوصلك إشعار على الموبايل في الميعاد (شغّل التنبيهات).",
+    what:"المطلوب إيه؟",ph:"مثلاً: كلّم أحمد بخصوص وحدة بادية",when:"الميعاد",forw:"لمين",me:"ليّا",team:"التيم كله",add:"أضف التذكير",adding:"جاري الإضافة…",
+    q1h:"بعد ساعة",q6:"النهارده ٦ م",qt10:"بكرة ١٠ ص",qw:"الأسبوع الجاي",need:"اكتب المهمة واختار الميعاد.",added:"تمت الإضافة. ",addedTeam:"اتبعت لـ {n} سيلز.",err:"ماقدرناش نحفظ: ",
+    mine:"مهامي",overdue:"متأخرة",today:"النهارده",later:"الجاية",done:"اتعملت (آخر ٧ أيام)",none:"مفيش حاجة هنا. ضيف مهمة من فوق.",
+    teamH:"تذكيرات التيم",teamHint:"اللي طلبته من كل سيلز، وهل علّم إنه خلّصه.",showDone:"اعرض اللي خلص",noTeam:"لسه مبعتش تذكيرات للتيم.",
+    fromB:"من باسل",markDone:"تم",undo:"لسه",doneAt:"اتعملت",late:"متأخرة",sched:"في الميعاد",del:"امسح",delQ:"تمسح التذكير ده؟",rulesErr:"باسل محتاج ينشر قواعد Firebase الجديدة قبل ما السيلز يقدروا يعلّموا التذكير إنه اتعمل.",lang:"English",client:"العميل"}};
+var TK={lang:"en",showDone:false,msg:""};
+try{ TK.lang=localStorage.getItem("cb-lang")==="ar"?"ar":"en"; }catch(e){}
+function tkT(k){ return (TK_T[TK.lang]||TK_T.en)[k]||TK_T.en[k]||k; }
+function tkDt(v){ if(!v) return ""; var d=new Date(String(v).length<=10?v+"T09:00":v); if(isNaN(d)) return String(v); return d.toLocaleString(TK.lang==="ar"?"ar-EG":"en-GB",{weekday:"short",day:"numeric",month:"short",hour:"numeric",minute:"2-digit"}); }
+function tkWhen(u){ return String(u.next||"").length<=10&&u.next?u.next+"T09:00":String(u.next||""); }
+function tkFirst(n){ return String(n||"").split(" ")[0]; }
+function tkAll(){ var A=window.CB_APP||{}; return (A.allUpdates?A.allUpdates():[]).filter(function(u){ return u.kind==="reminder"&&u.next; }); }
+function tkRow(u,opts){ var A=window.CB_APP||{}, now=__nowLocal(), w=tkWhen(u), late=!u.done&&w<now;
+  var r=el("div","tk-row"+(u.done?" done":"")+(late?" late":""));
+  var cb=el("button","tk-check"); cb.type="button"; cb.setAttribute("aria-pressed",u.done?"true":"false"); cb.setAttribute("aria-label",u.done?tkT("undo"):tkT("markDone")); cb.title=cb.getAttribute("aria-label"); cb.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+  cb.addEventListener("click",function(){ if(!A.setTaskDone) return; cb.disabled=true; A.setTaskDone(u.id,!u.done).catch(function(e){ cb.disabled=false; TK.msg=/permission/i.test(String(e&&(e.code||e.message)))?tkT("rulesErr"):tkT("err")+(e&&e.message||e); tkRender(); }); });
+  if(opts.check!==false) r.appendChild(cb); else r.appendChild(el("span","tk-dot"));
+  var b=el("div","tk-body"); var tx=el("div","tk-text",u.note||""); tx.dir="auto"; b.appendChild(tx);
+  var m=el("div","tk-meta");
+  m.appendChild(el("span","chip "+(u.done?"good":late?"bad":"warn"),u.done?tkT("doneAt")+(u.doneAt?" · "+tkDt(new Date(__tsMs(u.doneAt))):""):(late?tkT("late")+" · ":"")+tkDt(w)));
+  if(opts.from&&u.by&&u.by!==A.email&&/basel\.algamal/.test(u.by)) m.appendChild(el("span","tk-tag",tkT("fromB")));
+  if(u.client){ var c=el("button","tk-client",tkT("client")+": "+u.client); c.type="button"; c.dir="auto"; c.addEventListener("click",function(){ var l=leadById[u.lead]||leadById[+u.lead]; if(l) openClient(clientOfLead(l)); }); m.appendChild(c); }
+  b.appendChild(m); r.appendChild(b);
+  if(A.admin&&A.deleteTask){ var d=el("button","tk-del","×"); d.type="button"; d.setAttribute("aria-label",tkT("del")); d.title=tkT("del"); d.addEventListener("click",function(){ if(confirm(tkT("delQ"))) A.deleteTask(u.id).catch(function(e){ TK.msg=tkT("err")+(e&&e.message||e); tkRender(); }); }); r.appendChild(d); }
+  return r; }
+function tkGroup(box,title,list,opts){ if(!list.length) return; box.appendChild(el("div","tk-gh",title+" ("+list.length+")")); var g=el("div","tk-list"); list.forEach(function(u){ g.appendChild(tkRow(u,opts||{})); }); box.appendChild(g); }
+function tkSplit(list){ var now=__nowLocal(), end=now.slice(0,10)+"T23:59", wk=Date.now()-7*864e5, o={overdue:[],today:[],later:[],done:[]};
+  list.forEach(function(u){ var w=tkWhen(u); if(u.done){ if((__tsMs(u.doneAt)||__tsMs(u.at)||Date.now())>=wk) o.done.push(u); } else if(w<now) o.overdue.push(u); else if(w<=end) o.today.push(u); else o.later.push(u); });
+  var asc=function(a,b){ return tkWhen(a)<tkWhen(b)?-1:1; }; o.overdue.sort(asc); o.today.sort(asc); o.later.sort(asc); o.done.sort(function(a,b){ return (__tsMs(b.doneAt)||0)-(__tsMs(a.doneAt)||0); }); return o; }
+function tkForm(box){ var A=window.CB_APP||{}, f=el("form","card tk-form");
+  var l1=el("label","tk-lab",tkT("what")); var ta=el("textarea"); ta.id="tk-text"; ta.rows=2; ta.placeholder=tkT("ph"); ta.dir="auto"; ta.maxLength=600; l1.htmlFor="tk-text"; f.appendChild(l1); f.appendChild(ta);
+  var row=el("div","tk-frow");
+  var c1=el("div","tk-f"); var l2=el("label","tk-lab",tkT("when")); l2.htmlFor="tk-when"; var wi=el("input"); wi.type="datetime-local"; wi.id="tk-when"; c1.appendChild(l2); c1.appendChild(wi); row.appendChild(c1);
+  var who=null; if(A.admin){ var c2=el("div","tk-f"); var l3=el("label","tk-lab",tkT("forw")); l3.htmlFor="tk-who"; who=el("select"); who.id="tk-who";
+    var o0=el("option",null,tkT("me")); o0.value="basel"; who.appendChild(o0); var oT=el("option",null,tkT("team")); oT.value="*"; who.appendChild(oT);
+    Object.keys(A.AK_OF||{}).forEach(function(n){ var o=el("option",null,n.split(" ").slice(0,2).join(" ")); o.value=A.AK_OF[n]; who.appendChild(o); });
+    c2.appendChild(l3); c2.appendChild(who); row.appendChild(c2); }
+  f.appendChild(row);
+  var q=el("div","tk-quick"); function at(ms){ var d=new Date(ms); return d.getFullYear()+"-"+__p2(d.getMonth()+1)+"-"+__p2(d.getDate())+"T"+__p2(d.getHours())+":"+__p2(d.getMinutes()); }
+  [["q1h",function(){ return at(Date.now()+36e5); }],["q6",function(){ return __dtLocal(0,18); }],["qt10",function(){ return __dtLocal(1,10); }],["qw",function(){ return __dtLocal(7,10); }]].forEach(function(x){ var b=el("button","btn sm",tkT(x[0])); b.type="button"; b.addEventListener("click",function(){ wi.value=x[1](); }); q.appendChild(b); });
+  f.appendChild(q);
+  var act=el("div","tk-act"); var sb=el("button","btn primary",tkT("add")); sb.type="submit"; act.appendChild(sb); var ms=el("span","tk-msg"); ms.setAttribute("role","status"); ms.textContent=TK.msg; TK.msg=""; act.appendChild(ms); f.appendChild(act);
+  f.addEventListener("submit",function(e){ e.preventDefault(); var text=ta.value.trim(), when=wi.value; if(!text||!when){ ms.textContent=tkT("need"); return; } if(!A.logFeedback) return;
+    var targets=!A.admin?[""]:who.value==="*"?Object.keys(A.AK_OF||{}).map(function(n){ return A.AK_OF[n]; }):[who.value];
+    sb.disabled=true; sb.textContent=tkT("adding");
+    Promise.all(targets.map(function(ak){ return A.logFeedback({kind:"reminder",ak:ak,lead:"",client:"",phone:"",feedback:"",note:text,next:when}); }))
+      .then(function(){ TK.msg=tkT("added")+(targets.length>1?tkT("addedTeam").replace("{n}",targets.length):""); ta.value=""; tkRender(); })
+      .catch(function(err){ sb.disabled=false; sb.textContent=tkT("add"); ms.textContent=tkT("err")+(err&&err.message||err); }); });
+  box.appendChild(f); }
+function tkRender(){ var box=$("v-tasks"); if(!box) return; var A=window.CB_APP||{}; var keep=(document.activeElement&&document.activeElement.id==="tk-text")?{t:$("tk-text").value,w:$("tk-when").value}:null;
+  box.textContent=""; box.dir=TK.lang==="ar"?"rtl":"ltr"; box.lang=TK.lang; box.classList.toggle("tk-ar",TK.lang==="ar");
+  var hd=el("div","greet tk-hd"); var hl=el("div"); hl.appendChild(el("h2",null,tkT("title"))); hl.appendChild(el("p",null,tkT(A.admin?"sub_admin":"sub_agent"))); hd.appendChild(hl);
+  var lb=el("button","btn tk-lang",tkT("lang")); lb.type="button"; lb.lang=TK.lang==="ar"?"en":"ar"; lb.addEventListener("click",function(){ TK.lang=TK.lang==="ar"?"en":"ar"; try{ localStorage.setItem("cb-lang",TK.lang); }catch(e){} tkRender(); }); hd.appendChild(lb); box.appendChild(hd);
+  tkForm(box);
+  if(keep){ $("tk-text").value=keep.t; $("tk-when").value=keep.w; }
+  var all=tkAll(), mine=all.filter(function(u){ return A.admin?u.ak==="basel":u.ak===A.ak; });
+  var c=el("div","card tk-card"); c.appendChild(el("h2",null,tkT("mine"))); var s=tkSplit(mine);
+  if(!s.overdue.length&&!s.today.length&&!s.later.length&&!s.done.length) c.appendChild(el("div","tk-empty",tkT("none")));
+  tkGroup(c,tkT("overdue"),s.overdue,{from:true}); tkGroup(c,tkT("today"),s.today,{from:true}); tkGroup(c,tkT("later"),s.later,{from:true}); tkGroup(c,tkT("done"),s.done,{from:true});
+  box.appendChild(c);
+  if(A.admin){ var t=el("div","card tk-card"); var th=el("div","tk-th"); th.appendChild(el("h2",null,tkT("teamH")));
+    var sd=el("label","tk-sd"); var cx=el("input"); cx.type="checkbox"; cx.checked=TK.showDone; cx.addEventListener("change",function(){ TK.showDone=cx.checked; tkRender(); }); sd.appendChild(cx); sd.appendChild(document.createTextNode(" "+tkT("showDone"))); th.appendChild(sd); t.appendChild(th);
+    t.appendChild(el("div","hint",tkT("teamHint")));
+    var names={}; Object.keys(A.AK_OF||{}).forEach(function(n){ names[A.AK_OF[n]]=n.split(" ").slice(0,2).join(" "); });
+    var any=false; Object.keys(names).forEach(function(ak){ var list=all.filter(function(u){ return u.ak===ak&&(TK.showDone||!u.done); }); if(!list.length) return; any=true; var sp=tkSplit(list);
+      var dn=all.filter(function(u){ return u.ak===ak&&u.done; }).length, tot=all.filter(function(u){ return u.ak===ak; }).length;
+      var gh=el("div","tk-agent"); gh.appendChild(el("b",null,names[ak])); gh.appendChild(el("span","tk-count",dn+"/"+tot+" ✓")); t.appendChild(gh);
+      var g=el("div","tk-list"); sp.overdue.concat(sp.today,sp.later,TK.showDone?sp.done:[]).forEach(function(u){ g.appendChild(tkRow(u,{check:true})); }); t.appendChild(g); });
+    if(!any) t.appendChild(el("div","tk-empty",tkT("noTeam")));
+    box.appendChild(t); } }
+window.tkRefresh=function(){ var v=$("v-tasks"); if(v&&v.classList.contains("on")&&!(document.activeElement&&/^tk-/.test(document.activeElement.id||""))) tkRender(); };
+
 function render(){
   var c=$("count"); c.textContent=""; c.appendChild(el("b",null,fmt(view.length))); c.appendChild(document.createTextNode(" of "+fmt(R.length)+" leads"+(state.stale?" · no activity for "+(state.stale>=1440?Math.round(state.stale/1440)+" days":Math.round(state.stale/60)+" hours")+" or more":"")));
   tiles(); bars("c-feedback",C.feedback,X.feedback,"feedback"); bars("c-status",C.status,X.status,"status"); months(); bars("c-project",C.project,X.project,"project",10);
@@ -2285,7 +2398,7 @@ function route(){ var h=VIEW||(location.hash||"#today").slice(1); if(ALLVIEWS.in
   ALLVIEWS.forEach(function(v){ $("v-"+v).classList.toggle("on",v===h); });
   [$("tabs"),$("botnav")].forEach(function(nav){ Array.prototype.forEach.call(nav.querySelectorAll("button"),function(b){ if(b.dataset.sec===sec) b.setAttribute("aria-current","page"); else b.removeAttribute("aria-current"); }); });
   var sn=$("subnav"); sn.textContent=""; var S0=SECTIONS.filter(function(s){return s.id===sec})[0]; if(S0&&S0.views.length>1) S0.views.forEach(function(v){ var b=el("button",null,v[1]); b.type="button"; b.setAttribute("role","tab"); if(v[0]===h){ b.setAttribute("aria-current","page"); b.setAttribute("aria-selected","true"); } else b.setAttribute("aria-selected","false"); b.addEventListener("click",function(){ go(v[0]); }); sn.appendChild(b); });
-  $("filters").classList.toggle("off",!!NOFILTER[h]); if(h==="sections"&&typeof secRender==="function") secRender(); if(h==="map"&&typeof mapRender==="function") mapRender(); }
+  $("filters").classList.toggle("off",!!NOFILTER[h]); if(h==="sections"&&typeof secRender==="function") secRender(); if(h==="map"&&typeof mapRender==="function") mapRender(); if(h==="tasks") tkRender(); }
 
 // init
 var sub=$("sub"); if(D.updated){ sub.appendChild(document.createTextNode("Updated ")); sub.appendChild(el("b",null,D.updated)); sub.appendChild(el("br"));
@@ -2423,7 +2536,7 @@ async function loadData(path) {
 function startDashboard(data) {
   window.LEADS = data.LEADS; window.EXTRA = data.EXTRA; window.SNAP = data.SNAP; window.PREV = data.PREV; window.HIST = data.HIST;
   window.CB_AGENT = ME.admin ? "" : ME.name; window.CB_NAME = ME.admin ? "Basel" : (ME.name || "").split(" ")[0];
-  window.CB_APP = { admin: ME.admin, email: ME.email, ak: ME.ak, name: ME.name, logFeedback, updatesFor, FB_OPTIONS, AK_OF, reassign: ME.admin ? reassignLead : null, allUpdates: () => UPDATES, saveWa, setShowSales: ME.admin ? setShowSales : null, setPin: ME.admin ? setPin : null, savePlan: ME.admin ? savePlan : null, removePlan: ME.admin ? removePlan : null, setInfo: ME.admin ? setInfo : null, loadPlan, aiModel };
+  window.CB_APP = { admin: ME.admin, email: ME.email, ak: ME.ak, name: ME.name, logFeedback, updatesFor, FB_OPTIONS, AK_OF, reassign: ME.admin ? reassignLead : null, allUpdates: () => UPDATES, saveWa, setShowSales: ME.admin ? setShowSales : null, setPin: ME.admin ? setPin : null, savePlan: ME.admin ? savePlan : null, removePlan: ME.admin ? removePlan : null, setInfo: ME.admin ? setInfo : null, loadPlan, aiModel, setTaskDone, deleteTask: ME.admin ? deleteTask : null };
   window.__startDashboard();
   started = true;
   gate.hidden = true;
@@ -2575,6 +2688,20 @@ async function aiModel(opts) {
   throw lastErr || new Error("No AI model available");
 }
 
+// ---------- Tasks & reminders: mark a reminder done (agents may change only these three fields on their own reminders) ----------
+async function setTaskDone(id, done) {
+  const data = done ? { done: true, doneAt: serverTimestamp(), doneBy: ME.email } : { done: false, doneAt: deleteField(), doneBy: deleteField() };
+  await updateDoc(doc(db, "updates", id), data);
+  const u = UPDATES.find(x => x.id === id); if (u) { u.done = !!done; if (done) { u.doneAt = new Date(); u.doneBy = ME.email; } else { delete u.doneAt; delete u.doneBy; } }
+  if (window.tkRefresh) window.tkRefresh();
+}
+async function deleteTask(id) {
+  if (!ME.admin) throw new Error("only Basel can delete");
+  await deleteDoc(doc(db, "updates", id));
+  UPDATES = UPDATES.filter(x => x.id !== id);
+  if (window.tkRefresh) window.tkRefresh();
+}
+
 // ---------- feedback logged in the app ----------
 async function logFeedback(rec) {
   const ak = ME.admin ? (rec.ak || "basel") : ME.ak;
@@ -2594,6 +2721,7 @@ function watchUpdates() {
     UPDATES = s.docs.map(d => Object.assign({ id: d.id }, d.data())).sort((a, b) => ((b.at && b.at.seconds) || 9e12) - ((a.at && a.at.seconds) || 9e12));
     renderUpdates();
     pushOverlay();
+    if (window.tkRefresh) window.tkRefresh();
   }, () => {});
 }
 function when(u) { const t = u.at && u.at.toDate ? u.at.toDate() : new Date(); return t.toLocaleString("en-GB", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }); }
@@ -2664,7 +2792,7 @@ async function pollUpdates() {
       UPDATES = (await getDocs(query(collection(db, "updates"), where("ak", "==", ME.ak), limit(200)))).docs.map(d => Object.assign({ id: d.id }, d.data()));
     }
     UPDATES.sort((a, b) => ((b.at && b.at.seconds) || 9e12) - ((a.at && a.at.seconds) || 9e12));
-    renderUpdates(); pushOverlay();
+    renderUpdates(); pushOverlay(); if (window.tkRefresh) window.tkRefresh();
   } catch (e) {}
 }
 
