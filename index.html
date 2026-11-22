@@ -437,6 +437,12 @@ body.privsales #priv{background:rgba(230,201,125,.16);border-color:rgba(230,201,
 .seccard.attn .v{color:#b54708}.seccard.gold .v{color:#a8842c}
 .secph{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.secph input{flex:1 1 200px;min-height:38px}
 .projchips{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 20px}.pchip{display:inline-flex;gap:8px;align-items:center;border:1px solid var(--line,#e3e7ee);background:var(--card,#fff);border-radius:999px;padding:7px 12px;cursor:pointer;font:inherit;color:inherit}.pchip b{font-size:12px;color:var(--ink-3)}.pchip:hover{border-color:var(--gold,#c9a54a)}
+.bk-bar{display:flex;flex-direction:column;gap:8px;padding:10px 12px;margin:0 0 10px;border:1px solid var(--line,#d9e0ea);border-radius:10px;background:var(--accent-soft)}
+.bk-line{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.bk-line .tk-lang{margin-inline-start:auto}.bk-hint{color:var(--ink-2);font-size:13px;flex:1}
+.bk-bar:has(.bk-hint){flex-direction:row;align-items:center;background:transparent}
+.bk-move{display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap}.bk-move select{min-height:32px;max-width:180px}
+.bk-confirm{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-weight:600}.bk-status{font-size:13px}.bk-err{color:#b3261e}
+.bk-cell{width:34px;text-align:center}.bk-cell input{width:18px;height:18px;cursor:pointer}tr.bk-on td{background:var(--accent-soft)}
 .mvcell{white-space:nowrap}.mvcell select{max-width:130px;min-height:30px}.mvcell .btn{margin-left:4px}
 .lastfb{background:rgba(201,165,74,.08);border-left:3px solid var(--gold,#c9a54a);padding:10px 12px;border-radius:8px}.lastfb p{margin:4px 0;white-space:pre-wrap}
 .lnote.lastline{color:var(--ink-1,#1d2939);font-style:normal}
@@ -1064,14 +1070,16 @@ function leads(){
   var pages=Math.max(1,Math.ceil(v.length/PAGE)); if(state.page>=pages) state.page=pages-1; var start=state.page*PAGE, slice=v.slice(start,start+PAGE);
   var t=$("lead-table"); t.textContent=""; var th=el("thead"), hr=el("tr");
   LCOLS.forEach(function(c){ var h=el("th"); var b=el("button",null,c[0]+(state.sort===c[1]?(state.dir>0?" ▲":" ▼"):"")); b.type="button"; b.title="Sort by "+c[0]; b.addEventListener("click",function(){ if(state.sort===c[1]) state.dir=-state.dir; else {state.sort=c[1]; state.dir=1;} leads(); }); h.appendChild(b); hr.appendChild(h); });
+  var BK=window.__bk&&window.__bk.on(); if(BK) hr.insertBefore(window.__bk.headCell(slice),hr.firstChild);
   th.appendChild(hr); t.appendChild(th); var tb=el("tbody");
-  if(!slice.length){ var tr=el("tr"), td=el("td","empty","No leads match these filters"); td.colSpan=LCOLS.length; tr.appendChild(td); tb.appendChild(tr); }
-  slice.forEach(function(r){ var tr=el("tr"); tr.appendChild(el("td","num",String(r[C.id]))); tr.lastChild.style.textAlign="left"; var n=el("td"); n.appendChild(clientLink(r[C.client],clientOfLead(r))); tr.appendChild(n); var ct=el("td",null,r[C.contact]||""); ct.dir="ltr"; addWa(ct,r[C.contact],r[C.client],X.project[r[C.project]]); tr.appendChild(ct);
+  if(!slice.length){ var tr=el("tr"), td=el("td","empty","No leads match these filters"); td.colSpan=LCOLS.length+(BK?1:0); tr.appendChild(td); tb.appendChild(tr); }
+  slice.forEach(function(r){ var tr=el("tr"); if(BK) tr.appendChild(window.__bk.rowCell(r,tr)); tr.appendChild(el("td","num",String(r[C.id]))); tr.lastChild.style.textAlign="left"; var n=el("td"); n.appendChild(clientLink(r[C.client],clientOfLead(r))); tr.appendChild(n); var ct=el("td",null,r[C.contact]||""); ct.dir="ltr"; addWa(ct,r[C.contact],r[C.client],X.project[r[C.project]]); tr.appendChild(ct);
     tr.appendChild(el("td",null,X.project[r[C.project]]||"")); tr.appendChild(el("td",null,X.agent[r[C.agent]]||"")); tr.appendChild(el("td",null,X.status[r[C.status]]||""));
     var f=el("td"); var fn=X.feedback[r[C.feedback]]||""; f.appendChild(el("span","pill "+fbClass(fn),fn)); tr.appendChild(f);
     tr.appendChild(el("td",null,dstr(r[C.created]))); tr.lastChild.title=dtstr(r[C.created]); tr.appendChild(el("td",null,dstr(r[C.lastAct]))); if(r[C.lastAct]) tr.lastChild.title=dtstr(r[C.lastAct]);
     tr.appendChild(el("td",null,X.source[r[C.source]]||"")); var LN=window.__lastNote?window.__lastNote(r):{text:r[C.comment]||"",meta:""}; var cm=el("td","wrapc",LN.text||""); cm.dir="auto"; if(LN.text){ cm.title=(LN.meta?LN.meta+". ":"")+"Click to show it all"; cm.addEventListener("click",function(ev){ ev.stopPropagation(); cm.classList.toggle("open"); }); } tr.appendChild(cm); if(window.CB_APP&&window.CB_APP.admin&&window.__moveCell) tr.appendChild(window.__moveCell(r)); tr.classList.add("click"); tr.addEventListener("click",function(ev){ if(ev.target.closest&&ev.target.closest("a,button,select,input")) return; openClient(clientOfLead(r)); }); tb.appendChild(tr); });
   t.appendChild(tb);
+  if(window.__bk) window.__bk.bar();
   $("pg-info").textContent=v.length? (fmt(start+1)+" to "+fmt(start+slice.length)+" of "+fmt(v.length)) : "0 leads"; $("pg-prev").disabled=state.page<=0; $("pg-next").disabled=state.page>=pages-1;
 }
 
@@ -1805,6 +1813,71 @@ window.__moveCell=function(r){ var A=window.CB_APP||{}, td=el("td","mvcell"); if
       A.reassign({id:String(r[C.id]), agent:s.value, fromAgent:cur, client:r[C.client], phone:r[C.contact]||"", project:X.project[r[C.project]]||"", source:X.source[r[C.source]]||"", feedback:ln.fb||X.feedback[r[C.feedback]]||"", status:X.status[r[C.status]]||"", note:ln.note||"", noteBy:ln.by||"", noteAt:ln.when||""})
         .catch(function(err){ alert("Not moved ("+((err&&err.code)||err.message||"error")+")"); td.replaceWith(window.__moveCell(r)); }); }); });
   return td; };
+// ---------- Basel: select several leads in "All leads" and move them to another agent at once ----------
+var BK_T={en:{sel:"{n} selected",selAll:"Select all {n} matching the filters",clear:"Clear selection",to:"Move to",pick:"Choose an agent",move:"Move",
+    confirm:"Move {n} leads to {a}?",skip:"{k} already with {a} will stay as they are.",yes:"Yes, move them",cancel:"Cancel",moving:"Moving {d} of {n}…",
+    done:"Moved {n} leads to {a}. Your sheet's Agent column and the Reassigned tab update within a few minutes. CloudBlue is not changed.",
+    none:"All selected leads are already with {a}.",fail:"Not moved ({e}). Check your connection and try again.",part:"Moved {d} of {n} leads to {a}. The rest were not moved ({e}); they are still selected, try again.",
+    max:"You can move up to {m} leads at a time for now. Untick {x} to continue.",
+    rowSel:"Select lead {id}",pageSel:"Select all leads on this page",hint:"Tick leads in the list to move several at once."},
+  ar:{sel:"{n} متحدد",selAll:"اختار كل الـ {n} اللي في الفلتر",clear:"الغي الاختيار",to:"انقل لـ",pick:"اختار السيلز",move:"انقل",
+    confirm:"تنقل {n} ليد لـ {a}؟",skip:"{k} مع {a} أصلاً وهيفضلوا زي ما هما.",yes:"أيوه، انقلهم",cancel:"إلغاء",moving:"بننقل {d} من {n}…",
+    done:"اتنقل {n} ليد لـ {a}. عمود الـ Agent في الشيت وتاب Reassigned هيتحدثوا خلال دقايق. CloudBlue مش هيتغير.",
+    none:"كل الليدز المتحددة مع {a} أصلاً.",fail:"ماتنقلوش ({e}). اتأكد من النت وجرّب تاني.",part:"اتنقل {d} من {n} ليد لـ {a}. الباقي ماتنقلش ({e})، لسه متحدد، جرّب تاني.",
+    max:"ممكن تنقل لحد {m} ليد في المرة دلوقتي. شيل {x} عشان تكمل.",
+    rowSel:"اختار الليد {id}",pageSel:"اختار كل ليدز الصفحة دي",hint:"علّم على الليدز في القايمة عشان تنقل كذا واحد مرة واحدة."}};
+// Upper limit per move (the sheet's script sends one grouped alert per agent since 22 Nov 2026, so big moves are fine).
+var BK_MAX=500;
+window.__bk=(function(){
+  var SEL={}, ST={to:"",ask:false,busy:"",msg:"",err:false};
+  function lang(){ return (typeof TK!=="undefined"&&TK.lang==="ar")?"ar":"en"; }
+  function T(k,o){ var t=(BK_T[lang()]||BK_T.en)[k]||BK_T.en[k]||k; Object.keys(o||{}).forEach(function(x){ t=t.split("{"+x+"}").join(o[x]); }); return t; }
+  function on(){ var A=window.CB_APP||{}; return !!(A.admin&&A.reassignMany); }
+  function ids(){ return Object.keys(SEL); }
+  function short(n){ return String(n||"").split(" ").slice(0,2).join(" "); }
+  function sync(){ var t=$("lead-table"); if(!t) return; t.querySelectorAll("input.bk-row").forEach(function(c){ c.checked=!!SEL[c.value]; var tr=c.closest("tr"); if(tr) tr.classList.toggle("bk-on",c.checked); }); var h=t.querySelector("input.bk-head"); if(h) headState(h); bar(); }
+  function headState(h){ var rows=JSON.parse(h.dataset.ids||"[]"), n=rows.filter(function(i){ return SEL[i]; }).length; h.checked=rows.length>0&&n===rows.length; h.indeterminate=n>0&&n<rows.length; }
+  function headCell(slice){ var th=el("th","bk-cell"), c=el("input"); c.type="checkbox"; c.className="bk-head"; c.setAttribute("aria-label",T("pageSel")); c.dataset.ids=JSON.stringify(slice.map(function(r){ return String(r[C.id]); }));
+    headState(c); c.addEventListener("change",function(){ JSON.parse(c.dataset.ids).forEach(function(i){ if(c.checked) SEL[i]=1; else delete SEL[i]; }); ST.msg=""; ST.ask=false; sync(); }); th.appendChild(c); return th; }
+  function rowCell(r,tr){ var td=el("td","bk-cell"), c=el("input"), id=String(r[C.id]); c.type="checkbox"; c.className="bk-row"; c.value=id; c.checked=!!SEL[id]; c.setAttribute("aria-label",T("rowSel",{id:id})); if(c.checked) tr.classList.add("bk-on");
+    c.addEventListener("click",function(e){ e.stopPropagation(); }); c.addEventListener("change",function(){ if(c.checked) SEL[id]=1; else delete SEL[id]; ST.msg=""; ST.ask=false; sync(); }); td.appendChild(c); return td; }
+  function payload(r,to){ var ln=window.__lastNote?window.__lastNote(r):{}; return {id:String(r[C.id]), agent:to, fromAgent:X.agent[r[C.agent]]||"", client:r[C.client], phone:r[C.contact]||"", project:X.project[r[C.project]]||"", source:X.source[r[C.source]]||"", feedback:ln.fb||X.feedback[r[C.feedback]]||"", status:X.status[r[C.status]]||"", note:ln.note||"", noteBy:ln.by||"", noteAt:ln.when||""}; }
+  function chosen(){ return ids().map(function(i){ return leadById[i]; }).filter(Boolean); }
+  function bar(){ var box=$("v-leads"); if(!box) return; var b=$("bk-bar"); if(!on()){ if(b) b.remove(); return; }
+    if(!b){ b=el("div","bk-bar"); b.id="bk-bar"; b.setAttribute("role","region"); b.setAttribute("aria-label","Bulk actions"); box.insertBefore(b,box.firstChild); }
+    var A=window.CB_APP, L=lang(); b.textContent=""; b.dir=L==="ar"?"rtl":"ltr"; b.lang=L;
+    var n=ids().length;
+    if(!n&&!ST.msg){ b.appendChild(el("span","bk-hint",T("hint"))); b.appendChild(lgBtn(function(){ bar(); })); return; }
+    var line=el("div","bk-line");
+    if(n){ line.appendChild(el("strong","bk-n",T("sel",{n:fmt(n)})));
+      if(view.length>n&&!ST.busy){ var all=el("button","btn sm",T("selAll",{n:fmt(view.length)})); all.type="button"; all.addEventListener("click",function(){ view.forEach(function(r){ SEL[String(r[C.id])]=1; }); ST.ask=false; ST.msg=""; sync(); }); line.appendChild(all); }
+      if(!ST.busy){ var cl=el("button","btn sm",T("clear")); cl.type="button"; cl.addEventListener("click",function(){ SEL={}; ST.ask=false; ST.msg=""; sync(); }); line.appendChild(cl); } }
+    if(n&&!ST.busy){ var grp=el("span","bk-move"); var lab=el("label",null,T("to")); var s=el("select"); s.id="bk-to"; lab.htmlFor="bk-to";
+      var o0=el("option",null,T("pick")); o0.value=""; s.appendChild(o0);
+      Object.keys(A.AK_OF||{}).forEach(function(nm){ var o=el("option",null,short(nm)); o.value=nm; if(nm===ST.to) o.selected=true; s.appendChild(o); });
+      s.addEventListener("change",function(){ ST.to=s.value; ST.ask=false; ST.msg=""; bar(); });
+      var mv=el("button","btn sm primary",T("move")); mv.type="button"; mv.disabled=!ST.to||ST.ask||n>BK_MAX; mv.addEventListener("click",function(){ ST.ask=true; ST.msg=""; bar(); });
+      grp.appendChild(lab); grp.appendChild(s); grp.appendChild(mv); line.appendChild(grp); }
+    line.appendChild(lgBtn(function(){ bar(); }));
+    b.appendChild(line);
+    if(n>BK_MAX&&!ST.busy) b.appendChild(el("div","bk-status bk-err",T("max",{m:BK_MAX,x:fmt(n-BK_MAX)})));
+    if(ST.ask&&n<=BK_MAX&&n&&ST.to&&!ST.busy){ var rows=chosen(), keep=rows.filter(function(r){ return (X.agent[r[C.agent]]||"")===ST.to; }).length, go2=rows.length-keep;
+      var cf=el("div","bk-confirm"); cf.setAttribute("role","alertdialog");
+      if(!go2){ cf.appendChild(el("span",null,T("none",{a:short(ST.to)}))); var ok0=el("button","btn sm",T("cancel")); ok0.type="button"; ok0.addEventListener("click",function(){ ST.ask=false; bar(); }); cf.appendChild(ok0); }
+      else { cf.appendChild(el("span",null,T("confirm",{n:fmt(go2),a:short(ST.to)})+(keep?" "+T("skip",{k:fmt(keep),a:short(ST.to)}):"")));
+        var y=el("button","btn sm primary",T("yes")), c2=el("button","btn sm",T("cancel")); y.type=c2.type="button";
+        c2.addEventListener("click",function(){ ST.ask=false; bar(); }); y.addEventListener("click",function(){ run(rows); });
+        cf.appendChild(y); cf.appendChild(c2); setTimeout(function(){ try{ y.focus(); }catch(e){} },0); }
+      b.appendChild(cf); }
+    if(ST.busy){ var pg=el("div","bk-status",ST.busy); pg.setAttribute("aria-live","polite"); b.appendChild(pg); }
+    else if(ST.msg){ var m=el("div","bk-status"+(ST.err?" bk-err":""),ST.msg); m.setAttribute("aria-live","polite"); b.appendChild(m); } }
+  function run(rows){ var to=ST.to, list=rows.filter(function(r){ return (X.agent[r[C.agent]]||"")!==to; }).map(function(r){ return payload(r,to); });
+    ST.ask=false; ST.busy=T("moving",{d:0,n:fmt(list.length)}); bar();
+    var got=0; window.CB_APP.reassignMany(list,function(d,n){ got=d; list.slice(0,d).forEach(function(p){ delete SEL[p.id]; }); ST.busy=T("moving",{d:fmt(d),n:fmt(n)}); bar(); })
+      .then(function(n){ ST.busy=""; ST.err=false; ST.msg=T("done",{n:fmt(n),a:short(to)}); SEL={}; sync(); },
+            function(e){ var em=(e&&(e.code||e.message))||"error"; ST.busy=""; ST.err=true; ST.msg=got?T("part",{d:fmt(got),n:fmt(list.length),a:short(to),e:em}):T("fail",{e:em}); sync(); }); }
+  return {on:on,headCell:headCell,rowCell:rowCell,bar:bar,_sel:function(){ return SEL; }};
+})();
 // Sections: quick lists of leads
 function __best(re){ var bi=-1,bn=-1,cnt={}; R.forEach(function(r){ cnt[r[C.feedback]]=(cnt[r[C.feedback]]||0)+1; }); X.feedback.forEach(function(n,i){ if(re.test(n)&&(cnt[i]||0)>bn){ bn=cnt[i]||0; bi=i; } }); return bi; }
 function __ymd(d){ return d.toISOString().slice(0,10); }
@@ -2668,7 +2741,7 @@ async function loadData(path) {
 function startDashboard(data) {
   window.LEADS = data.LEADS; window.EXTRA = data.EXTRA; window.SNAP = data.SNAP; window.PREV = data.PREV; window.HIST = data.HIST;
   window.CB_AGENT = ME.admin ? "" : ME.name; window.CB_NAME = ME.admin ? "Basel" : (ME.name || "").split(" ")[0];
-  window.CB_APP = { admin: ME.admin, email: ME.email, ak: ME.ak, name: ME.name, logFeedback, updatesFor, FB_OPTIONS, AK_OF, reassign: ME.admin ? reassignLead : null, allUpdates: () => UPDATES, saveWa, setShowSales: ME.admin ? setShowSales : null, setPin: ME.admin ? setPin : null, savePlan: ME.admin ? savePlan : null, removePlan: ME.admin ? removePlan : null, setInfo: ME.admin ? setInfo : null, loadPlan, aiModel, setTaskDone, deleteTask: ME.admin ? deleteTask : null, marketKey, openMarket, marketMgrKey: ME.admin ? marketMgrKey : null, loadBrief };
+  window.CB_APP = { admin: ME.admin, email: ME.email, ak: ME.ak, name: ME.name, logFeedback, updatesFor, FB_OPTIONS, AK_OF, reassign: ME.admin ? reassignLead : null, reassignMany: ME.admin ? reassignMany : null, allUpdates: () => UPDATES, saveWa, setShowSales: ME.admin ? setShowSales : null, setPin: ME.admin ? setPin : null, savePlan: ME.admin ? savePlan : null, removePlan: ME.admin ? removePlan : null, setInfo: ME.admin ? setInfo : null, loadPlan, aiModel, setTaskDone, deleteTask: ME.admin ? deleteTask : null, marketKey, openMarket, marketMgrKey: ME.admin ? marketMgrKey : null, loadBrief };
   window.__startDashboard();
   started = true;
   gate.hidden = true;
@@ -2795,6 +2868,27 @@ async function reassignLead(r) {
   await setDoc(doc(db, "changes", key), data);
   CHANGES[key] = Object.assign({ docId: key }, data, { at: new Date() });
   pushOverlay();
+}
+// Basel moves many leads at once: same change records as a single move (the sheet's script copies each one), written in batches
+async function reassignMany(list, onProgress) {
+  if (!ME.admin) throw new Error("only Basel can reassign");
+  const items = (list || []).filter(r => r && r.id && r.agent && AK_OF[r.agent] && r.agent !== r.fromAgent);
+  let done = 0;
+  for (let i = 0; i < items.length; i += 400) {
+    const chunk = items.slice(i, i + 400), b = writeBatch(db), local = [];
+    chunk.forEach(r => {
+      const id = String(r.id), key = "reassign_" + id;
+      const data = { kind: "reassign", id, ak: AK_OF[r.agent] || "", agent: r.agent, from: AK_OF[r.fromAgent] || "", fromAgent: r.fromAgent || "",
+        client: String(r.client || "").slice(0, 200), phone: String(r.phone || "").slice(0, 60), project: r.project || "", source: r.source || "",
+        feedback: r.feedback || "", note: String(r.note || "").slice(0, 1990), noteBy: r.noteBy || "", noteAt: r.noteAt || "", status: r.status || "", at: serverTimestamp(), by: ME.email, bulk: true };
+      b.set(doc(db, "changes", key), data); local.push([key, data]);
+    });
+    await b.commit();
+    local.forEach(([key, data]) => { CHANGES[key] = Object.assign({ docId: key }, data, { at: new Date() }); });
+    done += chunk.length; if (onProgress) onProgress(done, items.length);
+  }
+  pushOverlay();
+  return done;
 }
 
 // ---------- CB Assistant: Gemini through Firebase AI Logic (newer SDK loaded only when the assistant opens; App Check via reCAPTCHA v3) ----------
