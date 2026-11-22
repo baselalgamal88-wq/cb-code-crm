@@ -2553,7 +2553,7 @@ async function reassignLead(r) {
 }
 
 // ---------- CB Assistant: Gemini through Firebase AI Logic (newer SDK loaded only when the assistant opens; App Check via reCAPTCHA v3) ----------
-const AI_SITE_KEY = "6Lcz7iwuAAAAAFLAYFxvTcb0EIG2n2B3ST7vXZOf", AI_MODELS = ["gemini-2.5-flash", "gemini-2.0-flash"];
+const AI_SITE_KEY = "6Lcz7iwuAAAAAFLAYFxvTcb0EIG2n2B3ST7vXZOf", AI_MODELS = ["gemini-3-flash-preview", "gemini-3.1-flash-preview", "gemini-flash-latest"];
 let AIMOD = null;
 async function aiModel(opts) {
   if (!AIMOD) {
@@ -2568,7 +2568,7 @@ async function aiModel(opts) {
   for (const m of list) {
     try {
       const gm = AIMOD.lib.getGenerativeModel(AIMOD.ai, Object.assign({ model: m }, opts));
-      if (!AIMOD.model) { await gm.countTokens("ping"); AIMOD.model = m; }
+      if (!AIMOD.model) { await AIMOD.lib.getGenerativeModel(AIMOD.ai, { model: m }).generateContent("ping"); AIMOD.model = m; }
       return gm;
     } catch (e) { lastErr = e; if (!/not found|404|not supported/i.test(String(e && e.message))) throw e; }
   }
