@@ -609,6 +609,33 @@ button.d2tile{cursor:pointer}button.d2tile:hover{border-color:#b9c7ea}
 .lp-tpl{display:flex;flex-wrap:wrap;gap:8px}
 .lp-tbtn{padding:9px 14px;border-radius:12px;border:1px solid var(--line-2);background:var(--surface);color:#2f4f9e;font-weight:600;font-size:14px;text-decoration:none}
 .lp-tbtn:hover{border-color:#4a72c4;background:#f4f7fd}
+/* ---- CB Assistant ---- */
+.as-fab{position:fixed;right:18px;bottom:22px;z-index:44;display:flex;align-items:center;gap:8px;border:0;border-radius:999px;padding:12px 18px 12px 14px;background:linear-gradient(120deg,#16286a,#4a72c4);color:#fff;font:inherit;font-weight:700;font-size:15px;cursor:pointer;box-shadow:0 12px 28px -10px rgba(15,30,77,.6)}
+.as-fab svg{width:20px;height:20px;fill:#fff}
+@media(max-width:820px){.as-fab{bottom:calc(76px + env(safe-area-inset-bottom));right:12px;padding:11px 14px}.as-fab span{display:none}}
+body.as-on .as-fab{display:none}
+.as-panel{position:fixed;right:16px;bottom:16px;top:16px;width:min(420px,calc(100vw - 32px));z-index:45;background:var(--surface);border:1px solid var(--line);border-radius:20px;box-shadow:0 24px 60px -20px rgba(10,20,50,.55);display:flex;flex-direction:column;overflow:hidden}
+.as-panel[hidden]{display:none}
+@media(max-width:820px){.as-panel{left:0;right:0;top:0;bottom:0;width:auto;border-radius:0;border:0}}
+.as-hd{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px;background:linear-gradient(110deg,#0f1c4d,#22357f);color:#fff}
+.as-hd b{display:block;font-family:var(--display);font-size:20px}.as-hd span{font-size:12px;color:#c8d2ee}
+.as-x{border:0;background:rgba(255,255,255,.12);color:#fff;width:34px;height:34px;border-radius:10px;font-size:20px;cursor:pointer}
+.as-log{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:10px;background:var(--bg)}
+.as-m{display:flex;flex-direction:column;max-width:88%}
+.as-m.me{align-self:flex-end;align-items:flex-end}
+.as-b{padding:10px 13px;border-radius:14px;line-height:1.55;font-size:14.5px;background:var(--surface);border:1px solid var(--line);white-space:normal;word-break:break-word}
+.as-m.me .as-b{background:#4a72c4;border-color:#4a72c4;color:#fff}
+.as-m.thinking .as-b{color:var(--ink-3);animation:asp 1.2s infinite}
+@keyframes asp{50%{opacity:.4}}
+.as-b a.btn{display:inline-block;margin:6px 0 2px;text-decoration:none}
+.as-conf{align-self:stretch;background:#fff8e6;border:1px solid #f0d58f;border-radius:14px;padding:10px 12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:14px}
+.as-conf div{flex:1 1 100%;font-weight:600}
+.as-conf.done{opacity:.6}.as-conf.no div{text-decoration:line-through}
+.as-sug{display:flex;flex-wrap:wrap;gap:6px;padding:8px 12px 0;background:var(--bg)}
+.as-sug[hidden]{display:none}
+.as-sug button{border:1px solid var(--line-2);background:var(--surface);color:#2f4f9e;border-radius:999px;padding:6px 11px;font:inherit;font-size:13px;cursor:pointer}
+.as-in{display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--line);background:var(--surface)}
+.as-in textarea{flex:1;resize:none;border:1px solid var(--line-2);border-radius:12px;padding:10px 12px;font:inherit;font-size:15px;max-height:120px;background:var(--surface);color:var(--ink)}
 
 </style>
 </head>
@@ -2139,6 +2166,113 @@ function ui2Init(){ if(!window.CB_APP) return; try{ ui2Side(); }catch(e){} try{ 
   if(!window.__ui2t){ window.__ui2t=setInterval(function(){ try{ ui2Side(); if($("v-today").classList.contains("on")) ui2Dash(); }catch(e){} },60000);
     window.addEventListener("hashchange",function(){ setTimeout(function(){ ui2SideMark(); if(location.hash==="#today"||!location.hash) try{ ui2Dash(); }catch(e){} },50); }); } }
 
+/* ---------- CB Assistant: AI helper inside the app (Gemini through Firebase), with tools over this person's CRM data ---------- */
+var AS={open:false,chat:null,busy:false,model:null};
+function asNow(){ var d=new Date(); return d.toLocaleString("en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric",hour:"2-digit",minute:"2-digit"}); }
+function asLocalIso(d){ var p=function(n){ return String(n).padStart(2,"0"); }; return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate())+"T"+p(d.getHours())+":"+p(d.getMinutes()); }
+function asFb(r){ var LN=__lastNote(r); var f=LN.fb||X.feedback[r[C.feedback]]||""; return /pending|no feedback/i.test(f)?"No feedback yet":f; }
+function asLead(r,full){ var o={id:String(r[C.id]),name:r[C.client]||"",phone:r[C.contact]||"",project:X.project[r[C.project]]||"",agent:String(X.agent[r[C.agent]]||"").split(" ").slice(0,2).join(" "),feedback:asFb(r),source:X.source[r[C.source]]||"",added:r[C.created]?dtstr(r[C.created]):"",last_activity:r[C.lastAct]?dtstr(r[C.lastAct]):"never"};
+  if(full){ var LN=__lastNote(r); o.latest_note=LN.text||""; o.latest_note_info=LN.meta||""; var A=window.CB_APP||{}; var ups=A.updatesFor?A.updatesFor(pkeys(r[C.contact]),[String(r[C.id])]):[]; o.history=ups.slice(0,8).map(function(u){ var t=__tsMs(u.at); return {when:t?new Date(t).toLocaleString("en-GB",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}):"",feedback:u.feedback||"",note:u.note||"",next:u.next||"",by:String(u.by||"").split("@")[0]}; }); var nx=ups.filter(function(u){ return u.next; })[0]; o.next_followup=nx?nx.next:""; var I=window.__GEO&&window.__GEO.info?window.__GEO.info[o.project]:null; if(I) o.project_info={developer:I.dev||"",start_price:I.price?I.price+" "+(I.cur||"EGP"):"",down_payment:I.down?I.down+"%":"",years:I.years||"",delivery:I.delivery||""}; }
+  return o; }
+function asMatch(r,a){ a=a||{}; var q=String(a.query||"").trim().toLowerCase(), qd=q.replace(/\D/g,"");
+  if(q){ var hay=((r[C.client]||"")+" "+(r[C.contact]||"")+" "+String(r[C.id])+" "+(X.project[r[C.project]]||"")).toLowerCase(); if(hay.indexOf(q)<0&&!(qd.length>=5&&String(r[C.contact]||"").replace(/\D/g,"").indexOf(qd)>=0)) return false; }
+  if(a.project&&String(X.project[r[C.project]]||"").toLowerCase().indexOf(String(a.project).toLowerCase())<0) return false;
+  if(a.agent&&String(X.agent[r[C.agent]]||"").toLowerCase().indexOf(String(a.agent).toLowerCase())<0) return false;
+  if(a.source&&String(X.source[r[C.source]]||"").toLowerCase().indexOf(String(a.source).toLowerCase())<0) return false;
+  if(a.feedback){ var f=asFb(r).toLowerCase(), w=String(a.feedback).toLowerCase(); if(f.replace(/[^a-z]/g,"")!==w.replace(/[^a-z]/g,"")&&f.indexOf(w)<0) return false; }
+  if(a.no_feedback&&!(r[C.feedback]===I_PENDING||r[C.feedback]===I_NONE)) return false;
+  if(a.new_not_called&&!((r[C.feedback]===I_PENDING||r[C.feedback]===I_NONE)&&!r[C.lastAct])) return false;
+  if(a.added_within_days){ var lim=Date.now()/60000-(+a.added_within_days)*1440; if(!(r[C.created]>=lim)) return false; }
+  if(a.quiet_for_days){ var lim2=Date.now()/60000-(+a.quiet_for_days)*1440; if((r[C.lastAct]||r[C.created]||0)>lim2) return false; }
+  return true; }
+function asFindLead(a){ a=a||{}; if(a.lead_id){ var l=leadById[a.lead_id]||leadById[+a.lead_id]; if(l) return l; } var key=String(a.lead_id||a.phone||a.name||"").trim(); if(!key) return null; var kd=key.replace(/\D/g,"");
+  var hits=R.filter(function(r){ return (kd.length>=7&&String(r[C.contact]||"").replace(/\D/g,"").indexOf(kd.slice(-10))>=0)||String(r[C.client]||"").toLowerCase()===key.toLowerCase(); });
+  if(!hits.length) hits=R.filter(function(r){ return String(r[C.client]||"").toLowerCase().indexOf(key.toLowerCase())>=0; });
+  return hits.length===1?hits[0]:(hits.length?{multi:hits.slice(0,8)}:null); }
+var AS_TOOLS={
+  find_leads:function(a){ var lim=Math.min(+a.limit||10,40); var hits=R.filter(function(r){ return asMatch(r,a); }); var srt=a.sort||"newest"; hits.sort(function(x,y){ return srt==="oldest"?(x[C.created]-y[C.created]):srt==="quiet"?((x[C.lastAct]||x[C.created])-(y[C.lastAct]||y[C.created])):(y[C.created]-x[C.created]); }); return {total:hits.length,showing:Math.min(lim,hits.length),leads:hits.slice(0,lim).map(function(r){ return asLead(r,false); })}; },
+  count_leads:function(a){ var g=a.group_by||"feedback", m={}, n=0; R.forEach(function(r){ if(!asMatch(r,a)) return; n++; var k=g==="project"?X.project[r[C.project]]:g==="agent"?String(X.agent[r[C.agent]]||"").split(" ").slice(0,2).join(" "):g==="source"?X.source[r[C.source]]:asFb(r); k=k||"(none)"; m[k]=(m[k]||0)+1; }); return {total:n,groups:Object.keys(m).sort(function(x,y){ return m[y]-m[x]; }).slice(0,25).map(function(k){ return {name:k,count:m[k]}; })}; },
+  lead_details:function(a){ var l=asFindLead(a); if(!l) return {error:"No lead found for that. Ask for the phone number or lead ID."}; if(l.multi) return {several_matches:l.multi.map(function(r){ return asLead(r,false); })}; return asLead(l,true); },
+  followups:function(a){ var A=window.CB_APP||{}, ups=A.allUpdates?A.allUpdates():[], latest={}; ups.forEach(function(u){ var k=String(u.lead||u.phone||""); if(!k||u.kind==="reminder"&&!u.lead) return; var t=__tsMs(u.at)||9e12; if(!latest[k]||t>latest[k].t) latest[k]={t:t,u:u}; });
+    var now=asLocalIso(new Date()), endDay=now.slice(0,10)+"T23:59", wk=asLocalIso(new Date(Date.now()+7*864e5)), rng=a.range||"today", out=[];
+    Object.keys(latest).forEach(function(k){ var u=latest[k].u; if(!u.next) return; var n=String(u.next).length<=10?u.next+"T09:00":String(u.next); var ok=rng==="overdue"?n<now:rng==="week"?n<=wk:n<=endDay; if(ok) out.push({when:n,overdue:n<now,client:u.client||"",phone:u.phone||"",lead_id:u.lead||"",feedback:u.feedback||"",note:u.note||""}); });
+    out.sort(function(x,y){ return x.when<y.when?-1:1; }); return {count:out.length,followups:out.slice(0,40)}; },
+  my_reminders:function(){ var A=window.CB_APP||{}, ups=A.allUpdates?A.allUpdates():[], now=asLocalIso(new Date()); var me=String(A.email||""); var list=ups.filter(function(u){ return u.kind==="reminder"&&u.next&&(A.admin?u.by===me:true)&&String(u.next)>=now.slice(0,10); }).map(function(u){ return {when:u.next,text:u.note||"",client:u.client||""}; }); list.sort(function(x,y){ return x.when<y.when?-1:1; }); return {count:list.length,reminders:list.slice(0,30)}; },
+  project_info:function(a){ var G=(window.__GEO||{}).info||{}, q=String(a.name||"").toLowerCase(); var names=Object.keys(G).filter(function(n){ return n.toLowerCase().indexOf(q)>=0||String(G[n].dev||"").toLowerCase().indexOf(q)>=0; }).slice(0,8);
+    return {projects:names.map(function(n){ var I=G[n], cnt=R.filter(function(r){ return X.project[r[C.project]]===n; }).length; return {name:n,developer:I.dev||"",area:I.area||"",start_price:I.price?I.price+" "+(I.cur||"EGP"):"not added",down_payment:I.down?I.down+"%":"",installment_years:I.years||"",delivery:I.delivery||"",unit_types:(I.types||[]).join(", "),about:I.desc||"",my_leads_in_it:cnt}; })}; },
+  team_summary:function(){ var A=window.CB_APP||{}; if(!A.admin) return {error:"Only Basel can see the team summary."}; var m={}; R.forEach(function(r){ var a=String(X.agent[r[C.agent]]||"Unassigned").split(" ").slice(0,2).join(" "); var o=m[a]||(m[a]={leads:0,no_feedback:0,qualified:0,no_answer:0}); o.leads++; var f=asFb(r); if(f==="No feedback yet") o.no_feedback++; else if(f==="Qualified") o.qualified++; else if(f==="No Answer") o.no_answer++; });
+    var ups=A.allUpdates?A.allUpdates():[], d0=new Date(); d0.setHours(0,0,0,0); var today={}; ups.forEach(function(u){ if((__tsMs(u.at)||0)>=d0.getTime()&&u.kind!=="reminder"){ var w=String(u.by||"").split("@")[0]; today[w]=(today[w]||0)+1; } }); return {agents:m,feedback_logged_today_by:today}; },
+  whatsapp_message:function(a){ var l=asFindLead(a); var phone=a.phone||(l&&!l.multi?l[C.contact]:""); if(!phone) return {error:"No phone number for that lead."}; return {link:listWaUrl(phone)+"?text="+encodeURIComponent(a.message||""),note:"Show this as a button; the user taps it to open WhatsApp."}; },
+  open_lead:function(a){ var l=asFindLead(a); if(!l||l.multi) return {error:"Say which lead (ID or phone)."}; var e=clientOfLead(l); if(e){ setTimeout(function(){ openClient(e); },300); return {opened:true}; } return {error:"Could not open it."}; }
+};
+var AS_WRITE={
+  log_feedback:{label:function(a,l){ return "Log \""+a.feedback+"\" on "+(l?l[C.client]:"this lead")+(a.next_followup?" · follow-up "+__niceDt(a.next_followup):"")+(a.note?" · “"+String(a.note).slice(0,80)+"”":""); },
+    run:function(a,l){ var A=window.CB_APP; var agentName=X.agent[l[C.agent]]; return A.logFeedback({ak:A.AK_OF[agentName]||"",lead:l[C.id],client:l[C.client],phone:l[C.contact]||"",feedback:a.feedback,note:a.note||"",next:a.next_followup||""}); }},
+  set_reminder:{label:function(a,l){ return "Remind "+(a.who?a.who+" ":"you ")+__niceDt(a.when)+": "+a.text+(l?" ("+l[C.client]+")":""); },
+    run:function(a,l){ var A=window.CB_APP; var ak=""; if(A.admin&&a.who){ Object.keys(A.AK_OF).forEach(function(n){ if(n.toLowerCase().indexOf(String(a.who).toLowerCase())>=0) ak=A.AK_OF[n]; }); } else if(A.admin&&l) ak=A.AK_OF[X.agent[l[C.agent]]]||"";
+      return A.logFeedback({kind:"reminder",ak:ak,lead:l?l[C.id]:"",client:l?l[C.client]:"",phone:l?(l[C.contact]||""):"",feedback:l?asFb(l).replace("No feedback yet",""):"",note:a.text,next:a.when}); }},
+  add_lead:{label:function(a){ return "Add lead "+a.name+" · "+a.phone+(a.project?" · "+a.project:"")+(a.feedback?" · "+a.feedback:""); },
+    run:function(a){ var A=window.CB_APP; var ak=""; if(A.admin&&a.agent){ Object.keys(A.AK_OF).forEach(function(n){ if(n.toLowerCase().indexOf(String(a.agent).toLowerCase())>=0) ak=A.AK_OF[n]; }); } return A.logFeedback({kind:"new",ak:ak,client:a.name,phone:a.phone,project:a.project||"",source:a.source||"Personal",feedback:a.feedback||"New, not contacted yet",note:a.note||"",next:a.next_followup||""}); }},
+  reassign_lead:{label:function(a,l){ return "Move "+(l?l[C.client]:"lead")+" to "+a.agent; },
+    run:function(a,l){ var A=window.CB_APP; if(!A.admin) return Promise.reject(new Error("Only Basel can move leads.")); var to=Object.keys(A.AK_OF).filter(function(n){ return n.toLowerCase().indexOf(String(a.agent).toLowerCase())>=0; })[0]; if(!to) return Promise.reject(new Error("Unknown agent")); var LN=__lastNote(l);
+      return A.reassign({id:String(l[C.id]),agent:to,fromAgent:X.agent[l[C.agent]]||"",client:l[C.client],phone:l[C.contact]||"",project:X.project[l[C.project]]||"",source:X.source[l[C.source]]||"",feedback:LN.fb||X.feedback[l[C.feedback]]||"",status:X.status[l[C.status]]||"",note:LN.note||"",noteBy:LN.by||"",noteAt:LN.when||""}); }}
+};
+function asDecls(){ var A=window.CB_APP||{}, S=window.CB_AI_SCHEMA; var str={type:"string"}, num={type:"number"}, bool={type:"boolean"};
+  var filt={query:{type:"string",description:"name, phone, lead ID or project words"},feedback:{type:"string",description:"e.g. Qualified, No Answer, Call Later, UnQualified, No feedback yet"},project:str,agent:{type:"string",description:"agent first name"},source:str,no_feedback:bool,new_not_called:bool,added_within_days:num,quiet_for_days:{type:"number",description:"no activity for at least this many days"}};
+  function obj(p,req,desc){ return {type:"object",properties:p,required:req||[],description:desc}; }
+  var d=[
+    {name:"find_leads",description:"Search this person's leads with filters. Returns total and a list.",parameters:obj(Object.assign({limit:num,sort:{type:"string",description:"newest, oldest or quiet"}},filt))},
+    {name:"count_leads",description:"Count leads grouped by feedback, project, agent or source, with optional filters.",parameters:obj(Object.assign({group_by:{type:"string",description:"feedback, project, agent or source"}},filt))},
+    {name:"lead_details",description:"Everything about one lead: details, latest note, history, next follow-up, project prices.",parameters:obj({lead_id:str,phone:str,name:str})},
+    {name:"followups",description:"Follow-ups that are due: overdue, today (default) or this week.",parameters:obj({range:{type:"string",description:"overdue, today or week"}})},
+    {name:"my_reminders",description:"The person's upcoming personal reminders.",parameters:obj({})},
+    {name:"project_info",description:"Compound details from the map: developer, start price, down payment, years, delivery, unit types.",parameters:obj({name:str},["name"])},
+    {name:"whatsapp_message",description:"Make a WhatsApp link with a ready message for a lead.",parameters:obj({lead_id:str,phone:str,name:str,message:str},["message"])},
+    {name:"open_lead",description:"Open a lead's page on screen.",parameters:obj({lead_id:str,phone:str,name:str})},
+    {name:"log_feedback",description:"Log feedback on a lead (the user confirms on screen first).",parameters:obj({lead_id:str,phone:str,name:str,feedback:{type:"string",description:"one of: "+(A.FB_OPTIONS||[]).join(", ")},note:str,next_followup:{type:"string",description:"optional local date-time YYYY-MM-DDTHH:MM"}},["feedback"])},
+    {name:"set_reminder",description:"Set a reminder that arrives as a phone notification at that time. Optionally about a lead"+(A.admin?", or for an agent (who).":"."),parameters:obj(Object.assign({when:{type:"string",description:"local date-time YYYY-MM-DDTHH:MM (Cairo)"},text:str,lead_id:str,phone:str,name:str},A.admin?{who:{type:"string",description:"agent first name, to remind them instead of Basel"}}:{}),["when","text"])},
+    {name:"add_lead",description:"Add a new lead (confirmed on screen first).",parameters:obj(Object.assign({name:str,phone:str,project:str,source:str,feedback:str,note:str,next_followup:str},A.admin?{agent:{type:"string",description:"agent first name"}}:{}),["name","phone"])}
+  ];
+  if(A.admin){ d.push({name:"team_summary",description:"Per-agent counts and feedback logged today (Basel only).",parameters:obj({})}); d.push({name:"reassign_lead",description:"Move a lead to another agent (Basel only, confirmed on screen).",parameters:obj({lead_id:str,phone:str,name:str,agent:{type:"string",description:"agent first name"}},["agent"])}); }
+  return d; }
+function asSystem(){ var A=window.CB_APP||{}; var who=A.admin?"Basel Algamal, the sales team leader (admin: sees every agent's leads)":(String(A.name||window.CB_NAME||"an agent")+", a sales agent (sees only their own leads)");
+  return "You are CB Assistant inside the CB Code CRM app of Coldwell Banker Values (Egypt real estate, Basel Algamal's sales team). You are talking to "+who+". Now: "+asNow()+" (Cairo). Agents' names: "+Object.keys(A.AK_OF||{}).map(function(n){ return n.split(" ")[0]; }).join(", ")+".\n"+
+  "Rules: Reply in the user's language (Arabic, Egyptian Arabic or English), short and practical, like a helpful sales coordinator. Always use the tools to read real data; never invent leads, numbers or prices. When the user asks to change something (log feedback, set a reminder, add or move a lead), call the tool directly; the app shows a Confirm button, so do not ask 'are you sure' yourself. Convert times like 'tomorrow 10am' or 'بكرة الساعة 5' to YYYY-MM-DDTHH:MM using the current Cairo time. If several leads match, list them briefly and ask which one. For 'what should I do today', check followups (overdue and today) and new leads not called yet, and give a short prioritised plan. Phone numbers may be shown to the user."+(window.__NOSALES?" Do not mention sales volumes or targets.":""); }
+async function asModel(){ if(AS.model) return AS.model; var A=window.CB_APP; if(!A||!A.aiModel) throw new Error("Assistant not available"); AS.model=await A.aiModel({systemInstruction:asSystem(),tools:[{functionDeclarations:asDecls()}]}); return AS.model; }
+function asEl(){ var p=$("as-panel"); if(p) return p;
+  var btn=el("button","as-fab"); btn.id="as-fab"; btn.type="button"; btn.setAttribute("aria-label","Open CB Assistant"); btn.innerHTML='<svg viewBox="0 0 24 24"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg><span>Ask CB</span>'; document.body.appendChild(btn);
+  p=el("section","as-panel"); p.id="as-panel"; p.setAttribute("aria-label","CB Assistant"); p.hidden=true;
+  var hd=el("div","as-hd"); var tt=el("div"); tt.appendChild(el("b",null,"CB Assistant")); tt.appendChild(el("span",null,"Ask anything about your leads, or tell me what to do")); hd.appendChild(tt); var x=el("button","as-x","×"); x.type="button"; x.setAttribute("aria-label","Close"); x.addEventListener("click",asToggle); hd.appendChild(x); p.appendChild(hd);
+  var log=el("div","as-log"); log.id="as-log"; log.setAttribute("aria-live","polite"); p.appendChild(log);
+  var sg=el("div","as-sug"); sg.id="as-sug"; ["What should I do today?","Overdue follow-ups","Remind me tomorrow at 10 to call my qualified leads","Start price in Badya?","عندي كام ليد مردش؟"].forEach(function(s){ var b=el("button",null,s); b.type="button"; b.addEventListener("click",function(){ asSend(s); }); sg.appendChild(b); }); p.appendChild(sg);
+  var f=el("form","as-in"); var ta=el("textarea"); ta.id="as-text"; ta.rows=1; ta.placeholder="Type a question or a task…"; ta.setAttribute("aria-label","Message"); ta.dir="auto";
+  ta.addEventListener("keydown",function(e){ if(e.key==="Enter"&&!e.shiftKey){ e.preventDefault(); f.requestSubmit?f.requestSubmit():f.dispatchEvent(new Event("submit")); } });
+  var sb=el("button","btn primary","Send"); sb.type="submit"; f.appendChild(ta); f.appendChild(sb); f.addEventListener("submit",function(e){ e.preventDefault(); var v=ta.value.trim(); if(!v) return; ta.value=""; asSend(v); }); p.appendChild(f);
+  document.body.appendChild(p); btn.addEventListener("click",asToggle); return p; }
+function asToggle(){ var p=asEl(); AS.open=!AS.open; p.hidden=!AS.open; document.body.classList.toggle("as-on",AS.open); if(AS.open){ if(!$("as-log").childNodes.length) asMsg("bot",(new Date().getHours()<12?"Good morning":"Hi")+" "+ui2Me()+"! I can find leads, tell you who to call, log feedback, set reminders and add leads. What do you need?"); setTimeout(function(){ $("as-text").focus(); },50); } }
+function asMsg(who,text,extra){ var log=$("as-log"), m=el("div","as-m "+who); var b=el("div","as-b"); b.dir="auto"; b.innerHTML=asFmt(text||""); m.appendChild(b); if(extra) m.appendChild(extra); log.appendChild(m); log.scrollTop=log.scrollHeight; return m; }
+function asFmt(t){ var s=String(t).replace(/[&<>]/g,function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c]; }); s=s.replace(/\*\*([^*]+)\*\*/g,"<b>$1</b>").replace(/(https:\/\/wa\.me\/[^\s)]+)/g,'<a class="btn sm" target="_blank" rel="noopener" href="$1">Open WhatsApp</a>').replace(/^\s*[\*\-]\s+/gm,"• ").replace(/\n/g,"<br>"); return s; }
+function asConfirm(label){ return new Promise(function(res){ var box=el("div","as-conf"); box.appendChild(el("div",null,label)); var ok=el("button","btn primary sm","Confirm"), no=el("button","btn sm","Cancel"); ok.type=no.type="button";
+  ok.addEventListener("click",function(){ ok.disabled=no.disabled=true; box.classList.add("done"); res(true); }); no.addEventListener("click",function(){ ok.disabled=no.disabled=true; box.classList.add("done","no"); res(false); }); box.appendChild(ok); box.appendChild(no); var log=$("as-log"); log.appendChild(box); log.scrollTop=log.scrollHeight; }); }
+async function asExec(fc){ var name=fc.name, a=fc.args||{};
+  try{ if(AS_TOOLS[name]) return AS_TOOLS[name](a);
+    var W=AS_WRITE[name]; if(!W) return {error:"Unknown tool"};
+    var l=null; if(name!=="add_lead"&&(a.lead_id||a.phone||a.name)){ l=asFindLead(a); if(!l) return {error:"No lead found. Ask for the phone or lead ID."}; if(l.multi) return {several_matches:l.multi.map(function(r){ return asLead(r,false); })}; }
+    if((name==="log_feedback"||name==="reassign_lead")&&!l) return {error:"Which lead? Ask for the name, phone or lead ID."};
+    var ok=await asConfirm(W.label(a,l)); if(!ok) return {cancelled:true,note:"The user cancelled. Do not retry."};
+    await W.run(a,l); return {done:true};
+  }catch(e){ return {error:String(e&&e.message||e)}; } }
+async function asSend(text){ if(AS.busy) return; AS.busy=true; var sg=$("as-sug"); if(sg) sg.hidden=true; asMsg("me",text); var th=asMsg("bot","…"); th.classList.add("thinking");
+  try{ var model=await asModel(); if(!AS.chat) AS.chat=model.startChat({history:[]});
+    var r=await AS.chat.sendMessage(text);
+    for(var i=0;i<8;i++){ var calls=r.response.functionCalls?r.response.functionCalls():null; if(!calls||!calls.length) break;
+      var parts=[]; for(var j=0;j<calls.length;j++){ var out=await asExec(calls[j]); parts.push({functionResponse:{name:calls[j].name,response:{result:out}}}); }
+      r=await AS.chat.sendMessage(parts); }
+    th.remove(); var t=""; try{ t=r.response.text(); }catch(e){} asMsg("bot",t||"Done.");
+  }catch(e){ th.remove(); asMsg("bot","Sorry, I couldn't answer that ("+String(e&&e.message||e).slice(0,140)+")."); AS.chat=null; }
+  AS.busy=false; }
+function asInit(){ if(!window.CB_APP||!window.CB_APP.aiModel) return; asEl(); }
+
 function render(){
   var c=$("count"); c.textContent=""; c.appendChild(el("b",null,fmt(view.length))); c.appendChild(document.createTextNode(" of "+fmt(R.length)+" leads"+(state.stale?" · no activity for "+(state.stale>=1440?Math.round(state.stale/1440)+" days":Math.round(state.stale/60)+" hours")+" or more":"")));
   tiles(); bars("c-feedback",C.feedback,X.feedback,"feedback"); bars("c-status",C.status,X.status,"status"); months(); bars("c-project",C.project,X.project,"project",10);
@@ -2188,7 +2322,7 @@ $("dr-close").addEventListener("click",closeClient); $("scrim").addEventListener
 $("td-changes").addEventListener("click",function(){ go("changes"); });
 $("td-copy").addEventListener("click",function(){ var done=function(ok){ $("td-msg").textContent=ok?"Copied. Paste it into WhatsApp or email.":"Copy is blocked here."; }; try{ navigator.clipboard.writeText(TDTXT.join("\n")).then(function(){done(true)},function(){done(false)}); }catch(e){ done(false); } });
 if(window.CB_AGENT) $("zm-start").style.display="none";
-route(); apply(); today(); homeCharts(); agents(); heroTarget(); if(typeof ui2Init==="function") ui2Init();
+route(); apply(); today(); homeCharts(); agents(); heroTarget(); if(typeof ui2Init==="function") ui2Init(); if(typeof asInit==="function") asInit();
 };
 </script>
 <script type="module">
@@ -2289,7 +2423,7 @@ async function loadData(path) {
 function startDashboard(data) {
   window.LEADS = data.LEADS; window.EXTRA = data.EXTRA; window.SNAP = data.SNAP; window.PREV = data.PREV; window.HIST = data.HIST;
   window.CB_AGENT = ME.admin ? "" : ME.name; window.CB_NAME = ME.admin ? "Basel" : (ME.name || "").split(" ")[0];
-  window.CB_APP = { admin: ME.admin, email: ME.email, ak: ME.ak, name: ME.name, logFeedback, updatesFor, FB_OPTIONS, AK_OF, reassign: ME.admin ? reassignLead : null, allUpdates: () => UPDATES, saveWa, setShowSales: ME.admin ? setShowSales : null, setPin: ME.admin ? setPin : null, savePlan: ME.admin ? savePlan : null, removePlan: ME.admin ? removePlan : null, setInfo: ME.admin ? setInfo : null, loadPlan };
+  window.CB_APP = { admin: ME.admin, email: ME.email, ak: ME.ak, name: ME.name, logFeedback, updatesFor, FB_OPTIONS, AK_OF, reassign: ME.admin ? reassignLead : null, allUpdates: () => UPDATES, saveWa, setShowSales: ME.admin ? setShowSales : null, setPin: ME.admin ? setPin : null, savePlan: ME.admin ? savePlan : null, removePlan: ME.admin ? removePlan : null, setInfo: ME.admin ? setInfo : null, loadPlan, aiModel };
   window.__startDashboard();
   started = true;
   gate.hidden = true;
@@ -2418,11 +2552,34 @@ async function reassignLead(r) {
   pushOverlay();
 }
 
+// ---------- CB Assistant: Gemini through Firebase AI Logic (newer SDK loaded only when the assistant opens; App Check via reCAPTCHA v3) ----------
+const AI_SITE_KEY = "6Lcz7iwuAAAAAFLAYFxvTcb0EIG2n2B3ST7vXZOf", AI_MODELS = ["gemini-2.5-flash", "gemini-2.0-flash"];
+let AIMOD = null;
+async function aiModel(opts) {
+  if (!AIMOD) {
+    const V = "https://www.gstatic.com/firebasejs/13.4.0/";
+    const [fa, fc, fai] = await Promise.all([import(V + "firebase-app.js"), import(V + "firebase-app-check.js"), import(V + "firebase-ai.js")]);
+    const a2 = fa.initializeApp(CONFIG, "cb-ai");
+    fc.initializeAppCheck(a2, { provider: new fc.ReCaptchaV3Provider(AI_SITE_KEY), isTokenAutoRefreshEnabled: true });
+    AIMOD = { ai: fai.getAI(a2, { backend: new fai.GoogleAIBackend() }), lib: fai, model: null };
+  }
+  const list = AIMOD.model ? [AIMOD.model] : AI_MODELS;
+  let lastErr = null;
+  for (const m of list) {
+    try {
+      const gm = AIMOD.lib.getGenerativeModel(AIMOD.ai, Object.assign({ model: m }, opts));
+      if (!AIMOD.model) { await gm.countTokens("ping"); AIMOD.model = m; }
+      return gm;
+    } catch (e) { lastErr = e; if (!/not found|404|not supported/i.test(String(e && e.message))) throw e; }
+  }
+  throw lastErr || new Error("No AI model available");
+}
+
 // ---------- feedback logged in the app ----------
 async function logFeedback(rec) {
   const ak = ME.admin ? (rec.ak || "basel") : ME.ak;
   const docData = { ak, lead: String(rec.lead || ""), client: String(rec.client || "").slice(0, 200), phone: String(rec.phone || "").slice(0, 60),
-    feedback: String(rec.feedback || ""), kind: rec.kind === "new" ? "new" : "feedback", project: String(rec.project || "").slice(0, 120), source: String(rec.source || "").slice(0, 60), note: String(rec.note || "").slice(0, 1990), next: String(rec.next || ""), at: serverTimestamp(), by: ME.email, src: "app" };
+    feedback: String(rec.feedback || ""), kind: rec.kind === "new" ? "new" : rec.kind === "reminder" ? "reminder" : "feedback", project: String(rec.project || "").slice(0, 120), source: String(rec.source || "").slice(0, 60), note: String(rec.note || "").slice(0, 1990), next: String(rec.next || ""), at: serverTimestamp(), by: ME.email, src: "app" };
   await addDoc(collection(db, "updates"), docData);
   if (!LIVE.updates) pollUpdates();
 }
@@ -2442,7 +2599,7 @@ function watchUpdates() {
 function when(u) { const t = u.at && u.at.toDate ? u.at.toDate() : new Date(); return t.toLocaleString("en-GB", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }); }
 function renderUpdates() {
   const box = $("app-updates"); if (!box) return; box.textContent = "";
-  const list = ME.admin ? UPDATES.filter(u => !u.done) : UPDATES.slice(0, 30);
+  const list = ME.admin ? UPDATES.filter(u => !u.done && u.kind !== "reminder") : UPDATES.filter(u => u.kind !== "reminder").slice(0, 30);
   $("app-upd-hint").textContent = ME.admin ? (list.length ? list.length + " update" + (list.length === 1 ? "" : "s") + " from the team to copy into CloudBlue. Mark each one when it's done." : "Nothing waiting: every update from the team is copied into CloudBlue.")
     : (list.length ? "Your latest updates. Remember to log them in CloudBlue too." : "Feedback you log on a client (tap a client's name) appears here.");
   list.forEach(u => {
