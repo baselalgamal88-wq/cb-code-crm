@@ -804,6 +804,8 @@ body.as-on .as-fab{display:none}
   </section>
 
   <section class="view" id="v-projects">
+    <div id="pj-pick"></div>
+    <div id="pj-leads"></div>
     <div class="grid" style="margin-top:0;margin-bottom:12px">
       <div class="card"><h2>Qualified leads by project</h2><div class="hint">Top 10. Click a bar to filter by project.</div><div class="bars" id="pj-qual"></div></div>
       <div class="card"><h2>Leads with no feedback, by project</h2><div class="hint">Top 10 projects where leads are still waiting</div><div class="bars" id="pj-wait"></div></div>
@@ -852,6 +854,7 @@ body.as-on .as-fab{display:none}
   </section>
 
   <section class="view" id="v-sections"></section>
+  <section class="view" id="v-recent"></section>
   <section class="view" id="v-map"></section>
   <section class="view" id="v-reassigned"><div class="lcount">Loading…</div></section>
   <section class="view" id="v-rotation"><div class="lcount">Loading…</div></section>
@@ -975,7 +978,7 @@ function apply(){
   var a=state.agent,p=state.project,s=state.status,f=state.feedback, from=dayMin(state.from), to=dayMin(state.to,true), q=state.q.trim().toLowerCase(), qd=q.replace(/\D/g,"");
   view=[];
   for(var i=0;i<R.length;i++){ var r=R[i];
-    if(a>=0&&r[C.agent]!==a) continue; if(p>=0&&r[C.project]!==p) continue; if(s>=0&&r[C.status]!==s) continue; if(f>=0&&r[C.feedback]!==f) continue; if(f===-2&&r[C.feedback]!==I_PENDING&&r[C.feedback]!==I_NONE) continue; if(state.act===1&&r[C.lastAct]) continue; if(state.act===2&&!r[C.lastAct]) continue; if(state.stale&&r[C.lastAct]&&r[C.lastAct]>REFMIN-state.stale) continue;
+    if(a>=0&&r[C.agent]!==a) continue; if(p>=0&&r[C.project]!==p) continue; if(s>=0&&r[C.status]!==s) continue; if(f>=0&&r[C.feedback]!==f) continue; if(f===-2&&r[C.feedback]!==I_PENDING&&r[C.feedback]!==I_NONE) continue; if(state.act===1&&r[C.lastAct]) continue; if(state.act===2&&!r[C.lastAct]) continue; if(state.stale&&__clk(r)>REFMIN-state.stale) continue;
     if(from!==null&&r[C.created]<from) continue; if(to!==null&&r[C.created]>to) continue;
     if(q){ var ct=(r[C.contact]||"").toLowerCase(); if(String(r[C.id]).indexOf(q)<0 && r[C.client].toLowerCase().indexOf(q)<0 && ct.indexOf(q)<0 && (!qd || ct.replace(/\D/g,"").indexOf(qd)<0)) continue; }
     view.push(r); }
@@ -1059,14 +1062,14 @@ function projects(){
     var td=el("td"); var tk=el("span","mini"); tk.style.width="140px"; tk.style.marginLeft="0"; var fi=el("i"); fi.style.background="var(--bar)"; fi.style.width=(o.n/max*100)+"%"; tk.appendChild(fi); td.appendChild(tk); tr.appendChild(td);
     cols.forEach(function(f){ tr.appendChild(el("td","num",fmt(o.fb[f]||0))); });
     var ags=Object.keys(o.ag).map(Number).sort(function(a,b){return o.ag[b]-o.ag[a]}); tr.appendChild(el("td","num",String(ags.length))); tr.appendChild(el("td",null,(X.agent[ags[0]]||"(unassigned)")+" ("+fmt(o.ag[ags[0]])+")"));
-    tr.addEventListener("click",function(){ state.project=p; $("f-project").value=String(p); go("leads"); apply(); }); tb.appendChild(tr); });
-  t.appendChild(tb);
+    tr.addEventListener("click",function(){ PJQ.sel=p; PJQ.fb=""; PJQ.q=""; pjRender(); var pk=$("pj-leads"); if(pk) pk.scrollIntoView({behavior:"smooth",block:"start"}); }); tb.appendChild(tr); });
+  t.appendChild(tb); pjRender();
 }
 
-var LCOLS=[["Lead ID",C.id],["Client",C.client],["Contact",C.contact],["Project",C.project],["Agent",C.agent],["Status",C.status],["Last feedback",C.feedback],["Created",C.created],["Last activity",C.lastAct],["Source",C.source],["Latest feedback",C.comment]].concat(window.CB_APP&&window.CB_APP.admin?[["Move",C.id]]:[]);
+var LCOLS=[["Lead ID",C.id],["Client",C.client],["Contact",C.contact],["Project",C.project],["Agent",C.agent],["Status",C.status],["Last feedback",C.feedback],["Entry date",C.created],["Last activity",C.lastAct],["Source",C.source],["Latest feedback",C.comment]].concat(window.CB_APP&&window.CB_APP.admin?[["Move",C.id]]:[]);
 function leads(){
   var col=state.sort, dir=state.dir; var dictFor={}; dictFor[C.project]=X.project; dictFor[C.agent]=X.agent; dictFor[C.status]=X.status; dictFor[C.feedback]=X.feedback; dictFor[C.source]=X.source;
-  var v=view.slice().sort(function(a,b){ var x=a[col], y=b[col]; if(dictFor[col]){x=dictFor[col][x]||"";y=dictFor[col][y]||"";} if(typeof x==="string") return x.localeCompare(y)*dir; return (x-y)*dir; });
+  var v=view.slice().sort(function(a,b){ var x=col===C.created?__entry(a):a[col], y=col===C.created?__entry(b):b[col]; if(dictFor[col]){x=dictFor[col][x]||"";y=dictFor[col][y]||"";} if(typeof x==="string") return x.localeCompare(y)*dir; return (x-y)*dir; });
   var pages=Math.max(1,Math.ceil(v.length/PAGE)); if(state.page>=pages) state.page=pages-1; var start=state.page*PAGE, slice=v.slice(start,start+PAGE);
   var t=$("lead-table"); t.textContent=""; var th=el("thead"), hr=el("tr");
   LCOLS.forEach(function(c){ var h=el("th"); var b=el("button",null,c[0]+(state.sort===c[1]?(state.dir>0?" ▲":" ▼"):"")); b.type="button"; b.title="Sort by "+c[0]; b.addEventListener("click",function(){ if(state.sort===c[1]) state.dir=-state.dir; else {state.sort=c[1]; state.dir=1;} leads(); }); h.appendChild(b); hr.appendChild(h); });
@@ -1076,7 +1079,7 @@ function leads(){
   slice.forEach(function(r){ var tr=el("tr"); if(BK) tr.appendChild(window.__bk.rowCell(r,tr)); tr.appendChild(el("td","num",String(r[C.id]))); tr.lastChild.style.textAlign="left"; var n=el("td"); n.appendChild(clientLink(r[C.client],clientOfLead(r))); tr.appendChild(n); var ct=el("td",null,r[C.contact]||""); ct.dir="ltr"; addWa(ct,r[C.contact],r[C.client],X.project[r[C.project]]); tr.appendChild(ct);
     tr.appendChild(el("td",null,X.project[r[C.project]]||"")); tr.appendChild(el("td",null,X.agent[r[C.agent]]||"")); tr.appendChild(el("td",null,X.status[r[C.status]]||""));
     var f=el("td"); var fn=X.feedback[r[C.feedback]]||""; f.appendChild(el("span","pill "+fbClass(fn),fn)); tr.appendChild(f);
-    tr.appendChild(el("td",null,dstr(r[C.created]))); tr.lastChild.title=dtstr(r[C.created]); tr.appendChild(el("td",null,dstr(r[C.lastAct]))); if(r[C.lastAct]) tr.lastChild.title=dtstr(r[C.lastAct]);
+    var __en0=__entry(r); tr.appendChild(el("td",null,dstr(__en0))); tr.lastChild.title=__en0!==r[C.created]?"Moved to this agent "+dtstr(__en0)+" (created "+dtstr(r[C.created])+")":dtstr(r[C.created]); tr.appendChild(el("td",null,dstr(r[C.lastAct]))); if(r[C.lastAct]) tr.lastChild.title=dtstr(r[C.lastAct]);
     tr.appendChild(el("td",null,X.source[r[C.source]]||"")); var LN=window.__lastNote?window.__lastNote(r):{text:r[C.comment]||"",meta:""}; var cm=el("td","wrapc",LN.text||""); cm.dir="auto"; if(LN.text){ cm.title=(LN.meta?LN.meta+". ":"")+"Click to show it all"; cm.addEventListener("click",function(ev){ ev.stopPropagation(); cm.classList.toggle("open"); }); } tr.appendChild(cm); if(window.CB_APP&&window.CB_APP.admin&&window.__moveCell) tr.appendChild(window.__moveCell(r)); tr.classList.add("click"); tr.addEventListener("click",function(ev){ if(ev.target.closest&&ev.target.closest("a,button,select,input")) return; openClient(clientOfLead(r)); }); tb.appendChild(tr); });
   t.appendChild(tb);
   if(window.__bk) window.__bk.bar();
@@ -1316,8 +1319,8 @@ function daily(){ var an=selAgentName(), byNew={}, byAct={}, maxDay=0, i;
     // one entry per client (phone number) per agent, from CloudBlue and from the agent's Google Sheet together
     for(var j=0;j<R.length;j++){ var r3=R[j], a3=X.agent[r3[C.agent]]; if(an&&a3!==an) continue; var o3=gs(a3); var k3=pkeys(r3[C.contact])[0]||("L"+r3[C.id]); var e3=o3.c[k3]||(o3.c[k3]={h:false,cb:false,sh:false}); e3.cb=true;
       if(!(r3[C.feedback]===I_PENDING||r3[C.feedback]===I_NONE)||r3[C.lastAct]) e3.h=true;
-      if(r3[C.feedback]===iq&&(!r3[C.lastAct]||r3[C.lastAct]<=REFMIN-10080)) o3.qs++;
-      if(r3[C.feedback]===ina&&(!r3[C.lastAct]||r3[C.lastAct]<=REFMIN-1440)) o3.na++; }
+      if(r3[C.feedback]===iq&&__clk(r3)<=REFMIN-10080) o3.qs++;
+      if(r3[C.feedback]===ina&&__clk(r3)<=REFMIN-1440) o3.na++; }
     if(SH) for(var j2=0;j2<SH.rows.length;j2++){ var s3=SH.rows[j2], a5=sd.agent[s3[S.agent]]; if(an&&a5!==an) continue; var o5=gs(a5); var k5=pkeys(s3[S.number])[0]||("S"+j2); var e5=o5.c[k5]||(o5.c[k5]={h:false,cb:false,sh:false}); e5.sh=true; if(sd.feedback[s3[S.fb]]!=="No feedback") e5.h=true; }
     $("dy-st-hint").textContent="As of the latest copy ("+(D.updated||"")+"), counting each client once across CloudBlue and the agent's Google Sheet. Fresh = received on "+label+" in CloudBlue (new plus reassigned) or newly added to the sheet. Handled = has feedback in CloudBlue or in the sheet, or logged activity. Unhandled = none of those. The last two columns use CloudBlue's activity dates; click those numbers to list the leads.";
     var t2=$("dy-status"); t2.textContent=""; var th2=el("thead"), hr2=el("tr"); ["Agent","Fresh leads","Fresh: CloudBlue","Fresh: sheet","Handled","Unhandled","Only in sheet","Qualified, no activity for 1 week","No Answer over 24 hours","All clients"].forEach(function(x,i){ hr2.appendChild(el("th",i?"num":"",x)); }); th2.appendChild(hr2); t2.appendChild(th2); var tb2=el("tbody");
@@ -1393,8 +1396,8 @@ function histLatest(){ if(!(window.HIST&&HIST.days)) return null; var ks=Object.
 function followup(){ var iq=idx(X.feedback,"Qualified"), ina=idx(X.feedback,"No Answer"), st={}, sd=SH?SH.dict:null; function gs(a){ return st[a]||(st[a]={c:{},qs:0,na:0,leads:0,q:0,nan:0}); }
   for(var j=0;j<R.length;j++){ var r=R[j], a=X.agent[r[C.agent]]; var o=gs(a); o.leads++; var k=pkeys(r[C.contact])[0]||("L"+r[C.id]); var e=o.c[k]||(o.c[k]={h:false,cb:false,sh:false}); e.cb=true;
     if(!(r[C.feedback]===I_PENDING||r[C.feedback]===I_NONE)||r[C.lastAct]) e.h=true;
-    if(r[C.feedback]===iq){ o.q++; if(!r[C.lastAct]||r[C.lastAct]<=REFMIN-10080) o.qs++; }
-    if(r[C.feedback]===ina){ o.nan++; if(!r[C.lastAct]||r[C.lastAct]<=REFMIN-1440) o.na++; } }
+    if(r[C.feedback]===iq){ o.q++; if(__clk(r)<=REFMIN-10080) o.qs++; }
+    if(r[C.feedback]===ina){ o.nan++; if(__clk(r)<=REFMIN-1440) o.na++; } }
   if(SH) for(var j2=0;j2<SH.rows.length;j2++){ var s=SH.rows[j2], a2=sd.agent[s[S.agent]]; var o2=gs(a2); var k2=pkeys(s[S.number])[0]||("S"+j2); var e2=o2.c[k2]||(o2.c[k2]={h:false,cb:false,sh:false}); e2.sh=true; if(sd.feedback[s[S.fb]]!=="No feedback") e2.h=true; }
   Object.keys(st).forEach(function(a){ var o=st[a], n=0, h=0; Object.keys(o.c).forEach(function(k){ n++; if(o.c[k].h) h++; }); o.n=n; o.h=h; o.u=n-h; delete o.c; });
   return st; }
@@ -1511,14 +1514,14 @@ var ICONS={map:"M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21zM12 7a2.
   sales:"M3 3v18h18M7 15l4-4 3 3 6-6",
   projects:"M4 21V7l8-4 8 4v14M9 21v-6h6v6M8 10h.01M12 10h.01M16 10h.01"};
 var SECTIONS=[{id:"today",label:"Today",views:[["today","Today"],["tasks","Tasks & reminders"],["market","Market brief"],["daily","Daily report"],["changes","What changed"]]},
-  {id:"leads",label:"Leads",views:[["sections","Sections"],["overview","Overview"],["leads","All leads"],["clients","Clients"],["reassigned","Reassigned"],["rotation","Rotation"],["cold","Cold calls"]]},
+  {id:"leads",label:"Leads",views:[["sections","Sections"],["recent","Worked recently"],["overview","Overview"],["leads","All leads"],["clients","Clients"],["reassigned","Reassigned"],["rotation","Rotation"],["cold","Cold calls"]]},
   {id:"team",label:"Team",views:[["agents","Agents"],["team","Feedback mix"],["performance","Agent rates"],["sheets","Agent sheets"]]},
   {id:"sales",label:"Sales",views:[["tcrs","TCRs and targets"],["reports","Reports"]]},
   {id:"map",label:"Map",views:[["map","Map"]]},
   {id:"projects",label:"Projects",views:[["projects","Projects"]]}];
 if(!window.CB_AGENT) SECTIONS.filter(function(s){ return s.id==="team"; })[0].views.unshift(["perf","Performance report"]);
 var ALLVIEWS=[], SECOF={}, LASTV={}; SECTIONS.forEach(function(s){ LASTV[s.id]=s.views[0][0]; s.views.forEach(function(v){ ALLVIEWS.push(v[0]); SECOF[v[0]]=s.id; }); });
-var NOFILTER={today:1,tasks:1,market:1,perf:1,agents:1,myleads:1,rotation:1,cold:1,reassigned:1,map:1};
+var NOFILTER={recent:1,today:1,tasks:1,market:1,perf:1,agents:1,myleads:1,rotation:1,cold:1,reassigned:1,map:1};
 function icon(name){ var NS="http://www.w3.org/2000/svg", s=document.createElementNS(NS,"svg"); s.setAttribute("viewBox","0 0 24 24"); s.setAttribute("aria-hidden","true"); var p=document.createElementNS(NS,"path"); p.setAttribute("d",ICONS[name]); s.appendChild(p); return s; }
 function buildNav(){ [$("tabs"),$("botnav")].forEach(function(nav){ nav.textContent=""; SECTIONS.forEach(function(s){ var b=el("button"); b.type="button"; b.dataset.sec=s.id; b.appendChild(icon(s.id)); b.appendChild(el("span",null,s.label)); b.addEventListener("click",function(){ go(LASTV[s.id]); }); nav.appendChild(b); }); }); }
 
@@ -1677,13 +1680,18 @@ window.__cbOverlay=function(list){
   Object.keys(moved).forEach(function(id){ var m=moved[id]; if(del[id]||__baseIds[id]) return; if(adds.some(function(a){ return String(a.id)===id; })) return; if(!me||m.agent===me) out.push(__row(m,m.agent)); });
   var seen={}; adds.forEach(function(c){ var id=String(c.id); if(del[id]||seen[id]) return; seen[id]=1; var pk=pkeys(c.phone||"")[0]; if(pk&&(window.__BASEPHONES||{})[pk]) return; if(pk) seen["P"+pk]=(seen["P"+pk]||0)+1; if(pk&&seen["P"+pk]>1) return; var m=moved[id], ag=m?m.agent:c.agent; if(me&&ag!==me) return; out.push(__row(c,ag)); });
   window.__MOVED=moved;
+  var __ck={}, __en={}, __lu={}; function __m(t){ return Math.floor((t+7200000)/60000); }
+  Object.keys(moved).forEach(function(id){ var t=__tsMs(moved[id].at); if(t&&t<8e12){ __ck[id]=Math.max(__ck[id]||0,__m(t)); __en[id]=__m(t); } });
+  ((window.CB_APP&&CB_APP.allUpdates)?CB_APP.allUpdates():[]).forEach(function(u){ if(!u.lead||u.kind==="reminder") return; var k=String(u.lead); k=(window.__DUPALIAS||{})[k]||k; var t=__tsMs(u.at); if(!t||t>8e12) return;
+    __ck[k]=Math.max(__ck[k]||0,__m(t)); if(!__lu[k]||t>__lu[k].t) __lu[k]={t:t,u:u}; });
+  window.__CLK=__ck; window.__ENTRY=__en; window.__LASTUP=__lu;
   var ups=(window.CB_APP&&CB_APP.allUpdates)?CB_APP.allUpdates():[], latest={};
   ups.forEach(function(u){ if(!u.feedback||!u.lead) return; var t=__tsMs(u.at)||9e12, k=String(u.lead); k=(window.__DUPALIAS||{})[k]||k; if(!latest[k]||t>latest[k].t) latest[k]={t:t,fb:u.feedback}; });
   out=out.map(function(r){ var L=latest[String(r[C.id])]; if(!L) return r; var fi=__fbIdx(L.fb); if(fi===r[C.feedback]) return r; r=r.slice(); r[C.feedback]=fi; return r; });
   R.length=0; Array.prototype.push.apply(R,out);
   leadById={}; for(var i=0;i<R.length;i++) leadById[R[i][C.id]]=R[i]; Object.keys(window.__DUPALIAS||{}).forEach(function(a){ var p=leadById[window.__DUPALIAS[a]]; if(p) leadById[a]=p; });
   FU=null; TCB=null; CL=null; CLMAP={}; NAMEMAP={};
-  apply(); today(); homeCharts(); agents(); heroTarget(); try{ secRender(); rzRender(); }catch(e){} };
+  apply(); today(); homeCharts(); agents(); heroTarget(); try{ secRender(); rzRender(); }catch(e){} try{ if(VIEW==="recent"||location.hash==="#recent") rcRender(); }catch(e){} };
 
 // ---------- Team app: Rotation and Cold calls (tabs in Basel's sheet) ----------
 var LISTS={rotation:[],cold:[]}, LQ={rotation:{q:"",ag:"",fb:""},cold:{q:"",ag:"",fb:""}}, LNAME={rotation:"Rotation",cold:"Cold calls"};
@@ -1907,6 +1915,81 @@ function secRender(){ var box=$("v-sections"); if(!box) return; box.textContent=
 // sales and achievement: Basel decides whether agents see them
 window.__applySales=function(show){ window.__NOSALES=!!(window.CB_AGENT&&!show); document.body.classList.toggle("nosales",window.__NOSALES); try{ heroTarget(); today(); homeCharts(); agents(); }catch(e){} };
 NOFILTER.sections=1;
+
+/* ---------- follow-up clock and entry date ----------
+   No Answer (24 hours) and Qualified (1 week) are counted from the latest of: CloudBlue activity, any feedback logged
+   in the app, or the moment the lead was rotated to its current agent. Lists sort by the entry date: when the lead
+   reached its current agent (rotation date), otherwise its creation date. */
+function __clk(r){ var c=(window.__CLK||{})[String(r[C.id])]||0, a=r[C.lastAct]||0; return a>c?a:c; }
+function __entry(r){ var e=(window.__ENTRY||{})[String(r[C.id])]||0, c=r[C.created]||0; return e>c?e:c; }
+function __lastWork(r){ var L=(window.__LASTUP||{})[String(r[C.id])], t=L?L.t:0, cb=r[C.lastAct]?(r[C.lastAct]*60000-7200000):0; return t>=cb?{t:t,u:L?L.u:null}:{t:cb,u:null}; }
+
+/* ---------- Worked recently: leads with feedback in the last days, newest first, to pick up where you left off ---------- */
+var RCQ={days:2,q:""};
+function rcDayLabel(t){ var d=new Date(t), d0=new Date(); d0.setHours(0,0,0,0); var diff=Math.round((d0.getTime()-new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime())/864e5);
+  return diff<=0?"Today":diff===1?"Yesterday":d.toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"short"}); }
+function rcRender(){ var box=$("v-recent"); if(!box) return; var A=window.CB_APP||{}; box.textContent="";
+  var d0=new Date(); d0.setHours(0,0,0,0); var from=d0.getTime()-(RCQ.days-1)*864e5;
+  var bar=el("div","lbar"), q=el("input"); q.type="search"; q.placeholder="Search name or number"; q.value=RCQ.q; q.setAttribute("aria-label","Search leads worked recently"); bar.appendChild(q);
+  var ds=el("select"); ds.setAttribute("aria-label","Period"); [[1,"Today"],[2,"Today and yesterday"],[3,"Last 3 days"],[7,"Last 7 days"],[30,"Last 30 days"]].forEach(function(o){ var op=el("option",null,o[1]); op.value=String(o[0]); if(o[0]===RCQ.days) op.selected=true; ds.appendChild(op); }); bar.appendChild(ds); box.appendChild(bar);
+  var ql=RCQ.q.toLowerCase(), qd=RCQ.q.replace(/\D/g,""), rows=[];
+  R.forEach(function(r){ var w=__lastWork(r); if(!w.t||w.t<from) return;
+    if(ql&&String(r[C.client]||"").toLowerCase().indexOf(ql)<0&&!(qd.length>=3&&String(r[C.contact]||"").replace(/\D/g,"").indexOf(qd)>=0)&&String(r[C.id]).indexOf(ql)<0) return;
+    rows.push({r:r,t:w.t,u:w.u}); });
+  rows.sort(function(a,b){ return b.t-a.t; });
+  box.appendChild(el("div","lcount",rows.length+" lead"+(rows.length===1?"":"s")+" with feedback or activity "+(RCQ.days===1?"today":RCQ.days===2?"today or yesterday":"in the last "+RCQ.days+" days")+" · newest first"));
+  if(!rows.length) box.appendChild(el("div","card lempty","Nothing logged in this period. Leads appear here as soon as feedback is saved on them, so you can come back to them the next day."));
+  var list=el("div","llist"), lastDay="";
+  rows.slice(0,400).forEach(function(x){ var r=x.r, u=x.u, day=rcDayLabel(x.t); if(day!==lastDay){ list.appendChild(el("h3","sect",day)); lastDay=day; }
+    var fb=u&&u.feedback?u.feedback:X.feedback[r[C.feedback]]||"No feedback";
+    var c=el("div","lrow"); c.tabIndex=0; c.setAttribute("role","button");
+    var top=el("div","ltop"); top.appendChild(el("b",null,r[C.client]||"(no name)")); top.appendChild(el("span","chip "+fbClass(fb),fb)); c.appendChild(top);
+    var tm=new Date(x.t).toLocaleTimeString("en-GB",{hour:"numeric",minute:"2-digit"});
+    var meta=[r[C.contact],X.project[r[C.project]],A.admin?String(X.agent[r[C.agent]]||"").split(" ").slice(0,2).join(" "):"",(u?"Logged "+tm+(A.admin&&u.by?" by "+String(u.by).split("@")[0]:""):"CloudBlue activity"),u&&u.next?"Next: "+String(u.next).replace("T"," "):""].filter(Boolean).join(" · ");
+    c.appendChild(el("div","lmeta",meta));
+    var nt=u?u.note:(window.__lastNote?window.__lastNote(r).text:""); if(nt) c.appendChild(el("div","lnote",nt));
+    var acts=el("div","lacts"), call=el("a","btn sm","Call"); call.href="tel:"+telDigits(r[C.contact]); var wa=el("a","btn sm","WhatsApp"); wa.href=listWaUrl(r[C.contact]); wa.target="_blank"; wa.rel="noopener";
+    [call,wa].forEach(function(a){ a.addEventListener("click",function(ev){ ev.stopPropagation(); }); acts.appendChild(a); }); c.appendChild(acts);
+    function open(){ var e=clientOfLead(r); if(e) openClient(e); } c.addEventListener("click",open); c.addEventListener("keydown",function(ev){ if(ev.key==="Enter") open(); });
+    list.appendChild(c); });
+  if(rows.length>400) list.appendChild(el("div","lcount","Showing the newest 400. Search to find the rest."));
+  box.appendChild(list);
+  q.addEventListener("input",function(){ RCQ.q=q.value; clearTimeout(q._t); q._t=setTimeout(function(){ rcRender(); var n=$("v-recent").querySelector("input"); if(n){ n.focus(); n.setSelectionRange(n.value.length,n.value.length); } },250); });
+  ds.addEventListener("change",function(){ RCQ.days=+ds.value; rcRender(); }); }
+
+/* ---------- Projects page: choose a project, see its leads (newest entry first) ---------- */
+var PJQ={sel:-1,q:"",fb:"",find:""};
+function pjRender(){ var pick=$("pj-pick"), box=$("pj-leads"); if(!pick||!box) return; var A=window.CB_APP||{};
+  var pc={}; R.forEach(function(r){ pc[r[C.project]]=(pc[r[C.project]]||0)+1; });
+  var pl=Object.keys(pc).map(Number).sort(function(a,b){ return pc[b]-pc[a]; });
+  if(!pick._built){ pick._built=1; var hd=el("div","secph"); hd.appendChild(el("h3","sect","Choose a project")); var fi=el("input"); fi.type="search"; fi.placeholder="Find a project"; fi.setAttribute("aria-label","Find a project"); fi.id="pj-find"; hd.appendChild(fi); pick.appendChild(hd);
+    var ch=el("div","projchips"); ch.id="pj-chips"; pick.appendChild(ch); fi.addEventListener("input",function(){ PJQ.find=fi.value; pjRender(); }); }
+  var ch2=$("pj-chips"); ch2.textContent=""; var fq=PJQ.find.trim().toLowerCase();
+  pl.filter(function(i){ return !fq||String(X.project[i]||"").toLowerCase().indexOf(fq)>=0; }).slice(0,fq?200:40).forEach(function(i){ var b=el("button","pchip"+(i===PJQ.sel?" on":"")); b.type="button"; b.setAttribute("aria-pressed",i===PJQ.sel?"true":"false"); b.appendChild(el("span",null,X.project[i]||"No project")); b.appendChild(el("b",null,fmt(pc[i])));
+    b.addEventListener("click",function(){ PJQ.sel=(PJQ.sel===i?-1:i); PJQ.fb=""; PJQ.q=""; pjRender(); if(PJQ.sel>=0) box.scrollIntoView({behavior:"smooth",block:"start"}); }); ch2.appendChild(b); });
+  box.textContent=""; if(PJQ.sel<0||!pc[PJQ.sel]){ PJQ.sel=-1; return; }
+  var all=R.filter(function(r){ return r[C.project]===PJQ.sel; }).sort(function(a,b){ return __entry(b)-__entry(a); });
+  var card=el("div","card"); var h=el("div","secph"); h.appendChild(el("h2",null,(X.project[PJQ.sel]||"No project")+" · "+fmt(all.length)+" lead"+(all.length===1?"":"s")));
+  var cl=el("button","btn sm","Close"); cl.type="button"; cl.addEventListener("click",function(){ PJQ.sel=-1; pjRender(); }); h.appendChild(cl); card.appendChild(h);
+  var fbc={}; all.forEach(function(r){ var f=X.feedback[r[C.feedback]]||"No feedback"; fbc[f]=(fbc[f]||0)+1; });
+  var bar=el("div","lbar"), q=el("input"); q.type="search"; q.placeholder="Search name or number"; q.value=PJQ.q; q.setAttribute("aria-label","Search this project's leads"); bar.appendChild(q);
+  var fs=el("select"); fs.setAttribute("aria-label","Feedback"); [["","All feedback ("+all.length+")"]].concat(Object.keys(fbc).sort(function(a,b){ return fbc[b]-fbc[a]; }).map(function(f){ return [f,f+" ("+fbc[f]+")"]; })).forEach(function(o){ var op=el("option",null,o[1]); op.value=o[0]; if(o[0]===PJQ.fb) op.selected=true; fs.appendChild(op); }); bar.appendChild(fs); card.appendChild(bar);
+  var ql=PJQ.q.toLowerCase(), qd=PJQ.q.replace(/\D/g,"");
+  var rows=all.filter(function(r){ if(PJQ.fb&&(X.feedback[r[C.feedback]]||"No feedback")!==PJQ.fb) return false; if(ql&&String(r[C.client]||"").toLowerCase().indexOf(ql)<0&&!(qd.length>=3&&String(r[C.contact]||"").replace(/\D/g,"").indexOf(qd)>=0)) return false; return true; });
+  var list=el("div","llist");
+  rows.slice(0,300).forEach(function(r){ var fb=X.feedback[r[C.feedback]]||"No feedback"; var c=el("div","lrow"); c.tabIndex=0; c.setAttribute("role","button");
+    var top=el("div","ltop"); top.appendChild(el("b",null,r[C.client]||"(no name)")); top.appendChild(el("span","chip "+fbClass(fb),fb)); c.appendChild(top);
+    var en=__entry(r); c.appendChild(el("div","lmeta",[r[C.contact],A.admin?String(X.agent[r[C.agent]]||"").split(" ").slice(0,2).join(" "):"",(en!==r[C.created]?"Moved to agent ":"Added ")+dstr(en),X.source[r[C.source]]].filter(Boolean).join(" · ")));
+    var nt=window.__lastNote?window.__lastNote(r).text:""; if(nt) c.appendChild(el("div","lnote",nt));
+    var acts=el("div","lacts"), call=el("a","btn sm","Call"); call.href="tel:"+telDigits(r[C.contact]); var wa=el("a","btn sm","WhatsApp"); wa.href=listWaUrl(r[C.contact]); wa.target="_blank"; wa.rel="noopener";
+    [call,wa].forEach(function(a){ a.addEventListener("click",function(ev){ ev.stopPropagation(); }); acts.appendChild(a); }); c.appendChild(acts);
+    function open(){ var e=clientOfLead(r); if(e) openClient(e); } c.addEventListener("click",open); c.addEventListener("keydown",function(ev){ if(ev.key==="Enter") open(); }); list.appendChild(c); });
+  if(!rows.length) list.appendChild(el("div","lcount","No leads match."));
+  if(rows.length>300) list.appendChild(el("div","lcount","Showing the newest 300. Search to find the rest."));
+  card.appendChild(list); box.appendChild(card);
+  q.addEventListener("input",function(){ PJQ.q=q.value; clearTimeout(q._t); q._t=setTimeout(function(){ pjRender(); var n=$("pj-leads").querySelector("input"); if(n){ n.focus(); n.setSelectionRange(n.value.length,n.value.length); } },250); });
+  fs.addEventListener("change",function(){ PJQ.fb=fs.value; pjRender(); }); }
+
 window.__salesToggle=function(show){ var l=$("sales-sw"), c=$("sales-show"); if(!l||!c||!(window.CB_APP&&window.CB_APP.admin)) return; l.hidden=false; c.checked=!!show; };
 (function(){ var c=$("sales-show"); if(c) c.addEventListener("change",function(){ if(window.CB_APP&&window.CB_APP.setShowSales) window.CB_APP.setShowSales(c.checked).then(function(){ var m=$("wa-msg"); if(m) m.textContent=c.checked?"Agents now see their sales.":"Sales are now hidden from agents."; }).catch(function(e){ alert("Not saved ("+(e.code||e.message)+")"); }); }); })();
 
@@ -2220,7 +2303,7 @@ function ui2Side(){ var sb=$("ui2-side"); if(!sb){ sb=el("aside","ui2side"); sb.
   sb.appendChild(el("div","s2h","Lists"));
   var cs=ui2Counts(), ul=el("div","s2lists");
   UI2_LISTS.forEach(function(L){ var b=el("button","s2item sm"); b.type="button"; var d=el("i"); d.style.background=L.dot; b.appendChild(d); b.appendChild(el("span",null,L.label)); b.appendChild(el("em",null,fmt(cs[L.k]||0))); b.addEventListener("click",function(){ L.go(); ui2SideMark(); }); ul.appendChild(b); });
-  [["reassigned","Reassigned","#6250d6"],["rotation","Rotation","#0e8fa3"],["cold","Cold calls","#7a879b"]].forEach(function(v){ var b=el("button","s2item sm"); b.type="button"; var d=el("i"); d.style.background=v[2]; b.appendChild(d); b.appendChild(el("span",null,v[1])); b.addEventListener("click",function(){ go(v[0]); ui2SideMark(); }); ul.appendChild(b); });
+  [["recent","Worked recently","#c2410c"],["reassigned","Reassigned","#6250d6"],["rotation","Rotation","#0e8fa3"],["cold","Cold calls","#7a879b"]].forEach(function(v){ var b=el("button","s2item sm"); b.type="button"; var d=el("i"); d.style.background=v[2]; b.appendChild(d); b.appendChild(el("span",null,v[1])); b.addEventListener("click",function(){ go(v[0]); ui2SideMark(); }); ul.appendChild(b); });
   sb.appendChild(ul);
   var ft=el("div","s2foot"); var add=el("button","s2btn","+ New lead"); add.type="button"; add.addEventListener("click",function(){ var a=$("app-add"); if(a) a.click(); }); ft.appendChild(add);
   ft.appendChild(el("div","s2sync","Synced live")); sb.appendChild(ft); ui2SideMark(); }
@@ -2310,14 +2393,14 @@ function asMatch(r,a){ a=a||{}; var q=String(a.query||"").trim().toLowerCase(), 
   if(a.no_feedback&&!(r[C.feedback]===I_PENDING||r[C.feedback]===I_NONE)) return false;
   if(a.new_not_called&&!((r[C.feedback]===I_PENDING||r[C.feedback]===I_NONE)&&!r[C.lastAct])) return false;
   if(a.added_within_days){ var lim=Date.now()/60000-(+a.added_within_days)*1440; if(!(r[C.created]>=lim)) return false; }
-  if(a.quiet_for_days){ var lim2=Date.now()/60000-(+a.quiet_for_days)*1440; if((r[C.lastAct]||r[C.created]||0)>lim2) return false; }
+  if(a.quiet_for_days){ var lim2=Date.now()/60000-(+a.quiet_for_days)*1440; if((__clk(r)||r[C.created]||0)>lim2) return false; }
   return true; }
 function asFindLead(a){ a=a||{}; if(a.lead_id){ var l=leadById[a.lead_id]||leadById[+a.lead_id]; if(l) return l; } var key=String(a.lead_id||a.phone||a.name||"").trim(); if(!key) return null; var kd=key.replace(/\D/g,"");
   var hits=R.filter(function(r){ return (kd.length>=7&&String(r[C.contact]||"").replace(/\D/g,"").indexOf(kd.slice(-10))>=0)||String(r[C.client]||"").toLowerCase()===key.toLowerCase(); });
   if(!hits.length) hits=R.filter(function(r){ return String(r[C.client]||"").toLowerCase().indexOf(key.toLowerCase())>=0; });
   return hits.length===1?hits[0]:(hits.length?{multi:hits.slice(0,8)}:null); }
 var AS_TOOLS={
-  find_leads:function(a){ var lim=Math.min(+a.limit||10,40); var hits=R.filter(function(r){ return asMatch(r,a); }); var srt=a.sort||"newest"; hits.sort(function(x,y){ return srt==="oldest"?(x[C.created]-y[C.created]):srt==="quiet"?((x[C.lastAct]||x[C.created])-(y[C.lastAct]||y[C.created])):(y[C.created]-x[C.created]); }); return {total:hits.length,showing:Math.min(lim,hits.length),leads:hits.slice(0,lim).map(function(r){ return asLead(r,false); })}; },
+  find_leads:function(a){ var lim=Math.min(+a.limit||10,40); var hits=R.filter(function(r){ return asMatch(r,a); }); var srt=a.sort||"newest"; hits.sort(function(x,y){ return srt==="oldest"?(__entry(x)-__entry(y)):srt==="quiet"?((__clk(x)||x[C.created])-(__clk(y)||y[C.created])):(__entry(y)-__entry(x)); }); return {total:hits.length,showing:Math.min(lim,hits.length),leads:hits.slice(0,lim).map(function(r){ return asLead(r,false); })}; },
   count_leads:function(a){ var g=a.group_by||"feedback", m={}, n=0; R.forEach(function(r){ if(!asMatch(r,a)) return; n++; var k=g==="project"?X.project[r[C.project]]:g==="agent"?String(X.agent[r[C.agent]]||"").split(" ").slice(0,2).join(" "):g==="source"?X.source[r[C.source]]:asFb(r); k=k||"(none)"; m[k]=(m[k]||0)+1; }); return {total:n,groups:Object.keys(m).sort(function(x,y){ return m[y]-m[x]; }).slice(0,25).map(function(k){ return {name:k,count:m[k]}; })}; },
   lead_details:function(a){ var l=asFindLead(a); if(!l) return {error:"No lead found for that. Ask for the phone number or lead ID."}; if(l.multi) return {several_matches:l.multi.map(function(r){ return asLead(r,false); })}; return asLead(l,true); },
   followups:function(a){ var A=window.CB_APP||{}, ups=A.allUpdates?A.allUpdates():[], latest={}; ups.forEach(function(u){ var k=String(u.lead||u.phone||""); if(!k||u.kind==="reminder"&&!u.lead) return; var t=__tsMs(u.at)||9e12; if(!latest[k]||t>latest[k].t) latest[k]={t:t,u:u}; });
@@ -2330,6 +2413,23 @@ var AS_TOOLS={
   team_summary:function(){ var A=window.CB_APP||{}; if(!A.admin) return {error:"Only Basel can see the team summary."}; var m={}; R.forEach(function(r){ var a=String(X.agent[r[C.agent]]||"Unassigned").split(" ").slice(0,2).join(" "); var o=m[a]||(m[a]={leads:0,no_feedback:0,qualified:0,no_answer:0}); o.leads++; var f=asFb(r); if(f==="No feedback yet") o.no_feedback++; else if(f==="Qualified") o.qualified++; else if(f==="No Answer") o.no_answer++; });
     var ups=A.allUpdates?A.allUpdates():[], d0=new Date(); d0.setHours(0,0,0,0); var today={}; ups.forEach(function(u){ if((__tsMs(u.at)||0)>=d0.getTime()&&u.kind!=="reminder"){ var w=String(u.by||"").split("@")[0]; today[w]=(today[w]||0)+1; } }); return {agents:m,feedback_logged_today_by:today}; },
   whatsapp_message:function(a){ var l=asFindLead(a); var phone=a.phone||(l&&!l.multi?l[C.contact]:""); if(!phone) return {error:"No phone number for that lead."}; return {link:listWaUrl(phone)+"?text="+encodeURIComponent(a.message||""),note:"Show this as a button; the user taps it to open WhatsApp."}; },
+  market_brief:function(a){ var A=window.CB_APP||{}; var lang=String(a.language||"en").toLowerCase().indexOf("ar")===0?"ar":"en";
+    function flat(L){ var out=[]; if(!L) return ""; if(L.note) out.push(L.note); (L.sections||[]).forEach(function(sc){ out.push("## "+(sc.h||"")); if(sc.text) out.push(sc.text); (sc.bullets||[]).forEach(function(b){ out.push("- "+b); }); if(sc.table){ out.push((sc.table.head||[]).join(" | ")); (sc.table.rows||[]).forEach(function(r){ out.push(r.join(" | ")); }); } if(sc.after) out.push(sc.after); }); return out.join("\n"); }
+    function pack(r){ if(!r||!r.doc) return {error:"No market brief available yet."}; var o={date:r.doc.date||"",updated:r.doc.updated||"",brief:flat(r.doc[lang]||r.doc.en).slice(0,14000),sources:(r.doc.sources||[]).slice(0,15).map(function(s){ return s.t||s.u; }),other_days:(r.dates||[]).slice(0,14)}; if(A.admin&&r.mgr) o.managers_only=flat(r.mgr[lang]||r.mgr.en).slice(0,6000); return o; }
+    if(!a.day&&MK.doc) return pack({doc:MK.doc,mgr:MK.mgr,dates:MK.dates});
+    if(A.loadBrief) return A.loadBrief(a.day||"").then(pack).catch(function(e){ return {error:String(e&&e.message||e)}; });
+    return {error:"Market brief not available."}; },
+  search_projects:function(a){ var G=(window.__GEO||{}).info||{}, area=String(a.area||"").toLowerCase(), dev=String(a.developer||"").toLowerCase(), typ=String(a.unit_type||"").toLowerCase(), maxp=+a.max_price||0, q=String(a.query||"").toLowerCase();
+    var hits=Object.keys(G).filter(function(n){ var I=G[n]; if(q&&(n+" "+(I.desc||"")+" "+(I.area||"")+" "+(I.dev||"")).toLowerCase().indexOf(q)<0) return false; if(area&&String(I.area||"").toLowerCase().indexOf(area)<0&&n.toLowerCase().indexOf(area)<0) return false; if(dev&&String(I.dev||"").toLowerCase().indexOf(dev)<0) return false; if(typ&&(I.types||[]).join(" ").toLowerCase().indexOf(typ)<0) return false; if(maxp&&(!I.price||+String(I.price).replace(/[^\d.]/g,"")>maxp)) return false; return true; });
+    var pc={}; R.forEach(function(r){ var p=X.project[r[C.project]]; pc[p]=(pc[p]||0)+1; });
+    return {total:hits.length,projects:hits.slice(0,30).map(function(n){ var I=G[n]; return {name:n,developer:I.dev||"",area:I.area||"",start_price:I.price?I.price+" "+(I.cur||"EGP"):"not added",down_payment:I.down?I.down+"%":"",installment_years:I.years||"",delivery:I.delivery||"",unit_types:(I.types||[]).join(", "),about:String(I.desc||"").slice(0,300),leads_in_crm:pc[n]||0}; })}; },
+  recent_work:function(a){ var days=Math.max(1,Math.min(+a.days||2,60)), d0=new Date(); d0.setHours(0,0,0,0); var from=d0.getTime()-(days-1)*864e5, out=[];
+    R.forEach(function(r){ var w=__lastWork(r); if(w.t>=from) out.push({t:w.t,lead:asLead(r,false),when:new Date(w.t).toLocaleString("en-GB",{weekday:"short",day:"numeric",month:"short",hour:"numeric",minute:"2-digit"}),note:w.u?(w.u.note||""):"",next:w.u?(w.u.next||""):""}); });
+    out.sort(function(x,y){ return y.t-x.t; }); return {count:out.length,leads:out.slice(0,40).map(function(x){ delete x.t; return x; })}; },
+  overdue_rules:function(a){ var ina=__best(/no ?answer/i), iq=__best(/^qualified$/i), na=[], qs=[];
+    R.forEach(function(r){ if(r[C.feedback]===ina&&__clk(r)<=REFMIN-1440) na.push(r); else if(r[C.feedback]===iq&&__clk(r)<=REFMIN-10080) qs.push(r); });
+    function srt(l){ return l.sort(function(x,y){ return __clk(x)-__clk(y); }).slice(0,25).map(function(r){ var o=asLead(r,false); o.clock_started=__clk(r)?dtstr(__clk(r)):"never"; return o; }); }
+    return {rule:"No Answer must be called again within 24 hours; Qualified must get feedback within 7 days. The clock restarts when the lead is rotated to a new agent or when any feedback is logged.",no_answer_over_24h:{count:na.length,leads:srt(na)},qualified_over_1_week:{count:qs.length,leads:srt(qs)}}; },
   open_lead:function(a){ var l=asFindLead(a); if(!l||l.multi) return {error:"Say which lead (ID or phone)."}; var e=clientOfLead(l); if(e){ setTimeout(function(){ openClient(e); },300); return {opened:true}; } return {error:"Could not open it."}; }
 };
 var AS_WRITE={
@@ -2355,6 +2455,10 @@ function asDecls(){ var A=window.CB_APP||{}, S=window.CB_AI_SCHEMA; var str={typ
     {name:"my_reminders",description:"The person's upcoming personal reminders.",parameters:obj({})},
     {name:"project_info",description:"Compound details from the map: developer, start price, down payment, years, delivery, unit types.",parameters:obj({name:str},["name"])},
     {name:"whatsapp_message",description:"Make a WhatsApp link with a ready message for a lead.",parameters:obj({lead_id:str,phone:str,name:str,message:str},["message"])},
+    {name:"market_brief",description:"Today's (or a given day's) Egypt real-estate market brief: news, launches, offers, prices. Use for any market question.",parameters:obj({day:{type:"string",description:"optional YYYY-MM-DD"},language:{type:"string",description:"en or ar"}})},
+    {name:"search_projects",description:"Search every compound/project on the map (not only ones with leads): by area, developer, unit type, max start price. Returns developer, area, start price, down payment, years, delivery, unit types.",parameters:obj({query:str,area:str,developer:str,unit_type:{type:"string",description:"e.g. apartment, villa, chalet, townhouse, studio"},max_price:{type:"number",description:"maximum start price in EGP"}})},
+    {name:"recent_work",description:"Leads this person worked on recently (feedback logged or activity), newest first. Use for 'what was I working on yesterday'.",parameters:obj({days:{type:"number",description:"1 = today, 2 = today and yesterday (default)"}})},
+    {name:"overdue_rules",description:"Leads breaking the follow-up rules: No Answer not retried within 24 hours, Qualified with no feedback for 7 days.",parameters:obj({})},
     {name:"open_lead",description:"Open a lead's page on screen.",parameters:obj({lead_id:str,phone:str,name:str})},
     {name:"log_feedback",description:"Log feedback on a lead (the user confirms on screen first).",parameters:obj({lead_id:str,phone:str,name:str,feedback:{type:"string",description:"one of: "+(A.FB_OPTIONS||[]).join(", ")},note:str,next_followup:{type:"string",description:"optional local date-time YYYY-MM-DDTHH:MM"}},["feedback"])},
     {name:"set_reminder",description:"Set a reminder that arrives as a phone notification at that time. Optionally about a lead"+(A.admin?", or for an agent (who).":"."),parameters:obj(Object.assign({when:{type:"string",description:"local date-time YYYY-MM-DDTHH:MM (Cairo)"},text:str,lead_id:str,phone:str,name:str},A.admin?{who:{type:"string",description:"agent first name, to remind them instead of Basel"}}:{}),["when","text"])},
@@ -2364,7 +2468,7 @@ function asDecls(){ var A=window.CB_APP||{}, S=window.CB_AI_SCHEMA; var str={typ
   return d; }
 function asSystem(){ var A=window.CB_APP||{}; var who=A.admin?"Basel Algamal, the sales team leader (admin: sees every agent's leads)":(String(A.name||window.CB_NAME||"an agent")+", a sales agent (sees only their own leads)");
   return "You are CB Assistant inside the CB Code CRM app of Coldwell Banker Values (Egypt real estate, Basel Algamal's sales team). You are talking to "+who+". Now: "+asNow()+" (Cairo). Agents' names: "+Object.keys(A.AK_OF||{}).map(function(n){ return n.split(" ")[0]; }).join(", ")+".\n"+
-  "Rules: Reply in the user's language (Arabic, Egyptian Arabic or English), short and practical, like a helpful sales coordinator. Always use the tools to read real data; never invent leads, numbers or prices. When the user asks to change something (log feedback, set a reminder, add or move a lead), call the tool directly; the app shows a Confirm button, so do not ask 'are you sure' yourself. Convert times like 'tomorrow 10am' or 'بكرة الساعة 5' to YYYY-MM-DDTHH:MM using the current Cairo time. If several leads match, list them briefly and ask which one. For 'what should I do today', check followups (overdue and today) and new leads not called yet, and give a short prioritised plan. Phone numbers may be shown to the user."+(window.__NOSALES?" Do not mention sales volumes or targets.":""); }
+  "Rules: Reply in the user's language (Arabic, Egyptian Arabic or English), short and practical, like a helpful sales coordinator. For leads, follow-ups, projects, units and prices in this CRM always use the tools to read real data; never invent leads, numbers or prices. For the market (news, launches, offers, developers, areas) call market_brief and search_projects first. You may also answer any general question (Egyptian real-estate market, developers, areas, payment plans, investment, sales scripts, objection handling, negotiation, anything else) from your own knowledge; when you do, say it is general knowledge that may be out of date. Follow-up rules of this team: a No Answer lead must be called again within 24 hours, and a Qualified lead must get new feedback within 7 days; both clocks restart when the lead is rotated to a new agent or any feedback is logged (use overdue_rules). When the user asks to change something (log feedback, set a reminder, add or move a lead), call the tool directly; the app shows a Confirm button, so do not ask 'are you sure' yourself. Convert times like 'tomorrow 10am' or 'بكرة الساعة 5' to YYYY-MM-DDTHH:MM using the current Cairo time. If several leads match, list them briefly and ask which one. For 'what should I do today', check followups (overdue and today) and new leads not called yet, and give a short prioritised plan. Phone numbers may be shown to the user."+(window.__NOSALES?" Do not mention sales volumes or targets.":""); }
 async function asModel(){ if(AS.model) return AS.model; var A=window.CB_APP; if(!A||!A.aiModel) throw new Error("Assistant not available"); AS.model=await A.aiModel({systemInstruction:asSystem(),tools:[{functionDeclarations:asDecls()}]}); return AS.model; }
 function asEl(){ var p=$("as-panel"); if(p) return p;
   var btn=el("button","as-fab"); btn.id="as-fab"; btn.type="button"; btn.setAttribute("aria-label","Open CB Assistant"); btn.innerHTML='<svg viewBox="0 0 24 24"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg><span>Ask CB</span>'; document.body.appendChild(btn);
@@ -2603,7 +2707,7 @@ function route(){ var h=VIEW||(location.hash||"#today").slice(1); if(ALLVIEWS.in
   ALLVIEWS.forEach(function(v){ $("v-"+v).classList.toggle("on",v===h); });
   [$("tabs"),$("botnav")].forEach(function(nav){ Array.prototype.forEach.call(nav.querySelectorAll("button"),function(b){ if(b.dataset.sec===sec) b.setAttribute("aria-current","page"); else b.removeAttribute("aria-current"); }); });
   var sn=$("subnav"); sn.textContent=""; var S0=SECTIONS.filter(function(s){return s.id===sec})[0]; if(S0&&S0.views.length>1) S0.views.forEach(function(v){ var b=el("button",null,v[1]); b.type="button"; b.setAttribute("role","tab"); if(v[0]===h){ b.setAttribute("aria-current","page"); b.setAttribute("aria-selected","true"); } else b.setAttribute("aria-selected","false"); b.addEventListener("click",function(){ go(v[0]); }); sn.appendChild(b); });
-  $("filters").classList.toggle("off",!!NOFILTER[h]); if(h==="sections"&&typeof secRender==="function") secRender(); if(h==="map"&&typeof mapRender==="function") mapRender(); if(h==="tasks") tkRender(); if(h==="market") mkRender(); if(h==="perf") rpRender(); }
+  $("filters").classList.toggle("off",!!NOFILTER[h]); if(h==="sections"&&typeof secRender==="function") secRender(); if(h==="recent") rcRender(); if(h==="map"&&typeof mapRender==="function") mapRender(); if(h==="tasks") tkRender(); if(h==="market") mkRender(); if(h==="perf") rpRender(); }
 
 // init
 var sub=$("sub"); if(D.updated){ sub.appendChild(document.createTextNode("Updated ")); sub.appendChild(el("b",null,D.updated)); sub.appendChild(el("br"));
