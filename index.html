@@ -693,6 +693,7 @@ body.as-on .as-fab{display:none}
 .rp-weeks{display:flex;gap:4px;align-items:flex-end;height:190px;margin-top:10px;direction:ltr}.rp-wk{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;height:100%}
 .rp-bars{flex:1;width:100%;display:flex;align-items:flex-end;justify-content:center;gap:2px}.rp-bars i{display:block;width:42%;max-width:16px;border-radius:3px 3px 0 0;min-height:1px}
 .rp-num{font-size:10.5px;color:var(--ink-3);height:14px}.rp-lab{font-size:10px;color:var(--ink-3);margin-top:4px;white-space:nowrap;overflow:hidden;max-width:100%}
+.md-q{min-width:180px;flex:1;max-width:320px;height:34px;border:1px solid var(--line-2);border-radius:9px;padding:0 10px;font:inherit;background:var(--surface);color:var(--ink)}
 </style>
 </head>
 <body>
@@ -870,6 +871,10 @@ body.as-on .as-fab{display:none}
   <section class="view" id="v-tasks"></section>
   <section class="view" id="v-market"></section>
   <section class="view" id="v-perf"></section>
+  <section class="view" id="v-rtm"></section>
+  <section class="view" id="v-devstatus"></section>
+  <section class="view" id="v-compare"></section>
+  <section class="view" id="v-incentives"></section>
   <section class="view" id="v-daily">
     <div class="note">One day at a time, from CloudBlue. New leads are counted on their creation date. From 16 Nov 2026 the system logs every change it sees between copies (morning and evening): leads received, feedback changes in CloudBlue and new clients or feedback changes in the agents' Google Sheets. "Actions logged" are leads whose Last Agent Activity Date in CloudBlue is that day. The Agent filter above applies.</div>
     <div class="subfilters" style="margin-top:0"><button class="btn" id="dy-prev" type="button">Previous day</button><div class="f"><label for="dy-date">Day</label><input type="date" id="dy-date"></div><button class="btn" id="dy-next" type="button">Next day</button><button class="btn" id="dy-copy" type="button">Copy this day's report</button><span class="note" style="margin:0">To message an agent, use the green Notify button beside their name in the table below.</span><span class="note" id="dy-copied" style="margin:0"></span></div>
@@ -1517,11 +1522,13 @@ var SECTIONS=[{id:"today",label:"Today",views:[["today","Today"],["tasks","Tasks
   {id:"leads",label:"Leads",views:[["sections","Sections"],["recent","Worked recently"],["overview","Overview"],["leads","All leads"],["clients","Clients"],["reassigned","Reassigned"],["rotation","Rotation"],["cold","Cold calls"]]},
   {id:"team",label:"Team",views:[["agents","Agents"],["team","Feedback mix"],["performance","Agent rates"],["sheets","Agent sheets"]]},
   {id:"sales",label:"Sales",views:[["tcrs","TCRs and targets"],["reports","Reports"]]},
+  {id:"devs",label:"Developers",views:[["rtm","Ready to move"],["devstatus","Developer status"],["compare","Comparisons"]]},
   {id:"map",label:"Map",views:[["map","Map"]]},
   {id:"projects",label:"Projects",views:[["projects","Projects"]]}];
 if(!window.CB_AGENT) SECTIONS.filter(function(s){ return s.id==="team"; })[0].views.unshift(["perf","Performance report"]);
+if(!window.CB_AGENT) SECTIONS.filter(function(s){ return s.id==="devs"; })[0].views.push(["incentives","Incentives & double commission"]);
 var ALLVIEWS=[], SECOF={}, LASTV={}; SECTIONS.forEach(function(s){ LASTV[s.id]=s.views[0][0]; s.views.forEach(function(v){ ALLVIEWS.push(v[0]); SECOF[v[0]]=s.id; }); });
-var NOFILTER={recent:1,today:1,tasks:1,market:1,perf:1,agents:1,myleads:1,rotation:1,cold:1,reassigned:1,map:1};
+var NOFILTER={recent:1,today:1,tasks:1,market:1,perf:1,rtm:1,devstatus:1,compare:1,incentives:1,agents:1,myleads:1,rotation:1,cold:1,reassigned:1,map:1};
 function icon(name){ var NS="http://www.w3.org/2000/svg", s=document.createElementNS(NS,"svg"); s.setAttribute("viewBox","0 0 24 24"); s.setAttribute("aria-hidden","true"); var p=document.createElementNS(NS,"path"); p.setAttribute("d",ICONS[name]); s.appendChild(p); return s; }
 function buildNav(){ [$("tabs"),$("botnav")].forEach(function(nav){ nav.textContent=""; SECTIONS.forEach(function(s){ var b=el("button"); b.type="button"; b.dataset.sec=s.id; b.appendChild(icon(s.id)); b.appendChild(el("span",null,s.label)); b.addEventListener("click",function(){ go(LASTV[s.id]); }); nav.appendChild(b); }); }); }
 
@@ -2629,6 +2636,31 @@ function mkSources(box,src){ var D0={sources:src};
   if(D0.sources&&D0.sources.length){ var sd=el("details","card mk-src"); sd.appendChild(el("summary",null,mkT("sources")+" ("+D0.sources.length+")")); var ul2=el("ul","mk-ul");
     D0.sources.forEach(function(s2){ var li=el("li"); if(/^https?:\/\//.test(s2.u||"")){ var a=el("a",null,s2.t||s2.u); a.href=s2.u; a.target="_blank"; a.rel="noopener"; li.appendChild(a); } else li.textContent=s2.t||""; ul2.appendChild(li); }); sd.appendChild(ul2); box.appendChild(sd); } }
 
+/* ---------- Developer data tabs: ready to move, developer status, comparisons, incentives (Basel only). Filled by the daily run through cbSaveData ---------- */
+var MD_V={rtm:{en:"Ready to move units",ar:"وحدات استلام فوري",sen:"Units developers can hand over now, from the developer emails.",sar:"وحدات المطورين الجاهزة للاستلام، من إيميلات المطورين."},
+  devstatus:{en:"Developer status",ar:"حالة المطورين",sen:"Each developer's latest updates: launches, deliveries, price changes, payment plans.",sar:"آخر أخبار كل مطور: لونشات وتسليمات وتغيير أسعار وأنظمة سداد."},
+  compare:{en:"Comparisons",ar:"مقارنات",sen:"Side-by-side comparisons of projects and areas for client conversations.",sar:"مقارنات بين المشاريع والمناطق تساعدك مع العميل."},
+  incentives:{en:"Incentives & double commission",ar:"الحوافز والعمولة المضاعفة",sen:"Developer incentives and double commission offers. Only you see this.",sar:"حوافز المطورين وعروض العمولة المضاعفة. حضرتك بس اللي شايف ده."}};
+var MD={}; var MD_T={en:{loading:"Loading…",none:"Nothing here yet. It fills in from the developer emails.",search:"Search",updated:"Updated",retry:"Try again"},ar:{loading:"جاري التحميل…",none:"لسه مفيش بيانات. بتتملي من إيميلات المطورين.",search:"بحث",updated:"آخر تحديث",retry:"حاول تاني"}};
+function mdT(k){ return (MD_T[TK.lang]||MD_T.en)[k]; }
+function mdRender(v){ var box=$("v-"+v); if(!box) return; lgBox(box); var V=MD_V[v], ar=TK.lang==="ar";
+  var hd=el("div","greet tk-hd"); var hl=el("div"); hl.appendChild(el("h2",null,ar?V.ar:V.en)); hl.appendChild(el("p",null,ar?V.sar:V.sen)); hd.appendChild(hl); hd.appendChild(lgBtn(function(){ mdRender(v); })); box.appendChild(hd);
+  var st=MD[v]; var A=window.CB_APP||{};
+  if(!st){ MD[v]={loading:true}; box.appendChild(el("div","card tk-empty",mdT("loading")));
+    (A.loadTabData?A.loadTabData(v):Promise.resolve(null)).then(function(d){ MD[v]={doc:d}; }).catch(function(e){ MD[v]={err:String(e&&e.message||e)}; }).then(function(){ if(location.hash==="#"+v) mdRender(v); }); return; }
+  if(st.loading){ box.appendChild(el("div","card tk-empty",mdT("loading"))); return; }
+  if(!st.doc){ var c0=el("div","card tk-empty",mdT("none")+" "); var rb=el("button","btn sm",mdT("retry")); rb.type="button"; rb.addEventListener("click",function(){ delete MD[v]; mdRender(v); }); c0.appendChild(rb); box.appendChild(c0); return; }
+  var D0=st.doc, L=D0[TK.lang]||D0.en||{};
+  var bar=el("div","mk-bar"); if(D0.updated) bar.appendChild(el("span","chip warn",mdT("updated")+": "+tkDt(D0.updated)));
+  var q=el("input"); q.type="search"; q.placeholder=mdT("search"); q.setAttribute("aria-label",mdT("search")); q.className="md-q"; bar.appendChild(q); box.appendChild(bar);
+  if(L.note) box.appendChild(rich(el("div","note mk-note"),L.note));
+  var body=el("div"); mkSections(body,L.sections,""); box.appendChild(body); mkSources(box,D0.sources);
+  q.addEventListener("input",function(){ var t=q.value.trim().toLowerCase();
+    body.querySelectorAll(".mk-sec").forEach(function(c){ var any=false;
+      c.querySelectorAll("tbody tr, li").forEach(function(r){ var ok=!t||r.textContent.toLowerCase().indexOf(t)>=0; r.style.display=ok?"":"none"; if(ok) any=true; });
+      var hasRows=c.querySelector("tbody tr, li"); c.style.display=(!t||any||(!hasRows&&c.textContent.toLowerCase().indexOf(t)>=0))?"":"none"; }); }); }
+window.cbDataSaved=function(v){ delete MD[v]; if(location.hash==="#"+v) mdRender(v); };
+
 /* ---------- Performance report (Basel only): each agent's contact rate, qualified leads going cold, activity, weekly trend ---------- */
 var RP_T={en:{title:"Team performance report",sub:"Worked out from the leads in this app (CloudBlue, the app and the agents' sheets). Your own leads are left out.",
     total:"Leads with agents",untouched:"Never contacted",untouchedN:"No feedback yet",active:"Worked, last 7 days",activeN:"Any activity in CloudBlue or the app",stale:"Qualified going cold",staleN:"Qualified, quiet 7+ days",
@@ -2707,7 +2739,7 @@ function route(){ var h=VIEW||(location.hash||"#today").slice(1); if(ALLVIEWS.in
   ALLVIEWS.forEach(function(v){ $("v-"+v).classList.toggle("on",v===h); });
   [$("tabs"),$("botnav")].forEach(function(nav){ Array.prototype.forEach.call(nav.querySelectorAll("button"),function(b){ if(b.dataset.sec===sec) b.setAttribute("aria-current","page"); else b.removeAttribute("aria-current"); }); });
   var sn=$("subnav"); sn.textContent=""; var S0=SECTIONS.filter(function(s){return s.id===sec})[0]; if(S0&&S0.views.length>1) S0.views.forEach(function(v){ var b=el("button",null,v[1]); b.type="button"; b.setAttribute("role","tab"); if(v[0]===h){ b.setAttribute("aria-current","page"); b.setAttribute("aria-selected","true"); } else b.setAttribute("aria-selected","false"); b.addEventListener("click",function(){ go(v[0]); }); sn.appendChild(b); });
-  $("filters").classList.toggle("off",!!NOFILTER[h]); if(h==="sections"&&typeof secRender==="function") secRender(); if(h==="recent") rcRender(); if(h==="map"&&typeof mapRender==="function") mapRender(); if(h==="tasks") tkRender(); if(h==="market") mkRender(); if(h==="perf") rpRender(); }
+  $("filters").classList.toggle("off",!!NOFILTER[h]); if(h==="sections"&&typeof secRender==="function") secRender(); if(h==="recent") rcRender(); if(h==="map"&&typeof mapRender==="function") mapRender(); if(h==="tasks") tkRender(); if(h==="market") mkRender(); if(h==="perf") rpRender(); if(MD_V[h]) mdRender(h); }
 
 // init
 var sub=$("sub"); if(D.updated){ sub.appendChild(document.createTextNode("Updated ")); sub.appendChild(el("b",null,D.updated)); sub.appendChild(el("br"));
@@ -2845,7 +2877,7 @@ async function loadData(path) {
 function startDashboard(data) {
   window.LEADS = data.LEADS; window.EXTRA = data.EXTRA; window.SNAP = data.SNAP; window.PREV = data.PREV; window.HIST = data.HIST;
   window.CB_AGENT = ME.admin ? "" : ME.name; window.CB_NAME = ME.admin ? "Basel" : (ME.name || "").split(" ")[0];
-  window.CB_APP = { admin: ME.admin, email: ME.email, ak: ME.ak, name: ME.name, logFeedback, updatesFor, FB_OPTIONS, AK_OF, reassign: ME.admin ? reassignLead : null, reassignMany: ME.admin ? reassignMany : null, allUpdates: () => UPDATES, saveWa, setShowSales: ME.admin ? setShowSales : null, setPin: ME.admin ? setPin : null, savePlan: ME.admin ? savePlan : null, removePlan: ME.admin ? removePlan : null, setInfo: ME.admin ? setInfo : null, loadPlan, aiModel, setTaskDone, deleteTask: ME.admin ? deleteTask : null, marketKey, openMarket, marketMgrKey: ME.admin ? marketMgrKey : null, loadBrief };
+  window.CB_APP = { admin: ME.admin, email: ME.email, ak: ME.ak, name: ME.name, logFeedback, updatesFor, FB_OPTIONS, AK_OF, reassign: ME.admin ? reassignLead : null, reassignMany: ME.admin ? reassignMany : null, allUpdates: () => UPDATES, saveWa, setShowSales: ME.admin ? setShowSales : null, setPin: ME.admin ? setPin : null, savePlan: ME.admin ? savePlan : null, removePlan: ME.admin ? removePlan : null, setInfo: ME.admin ? setInfo : null, loadPlan, aiModel, setTaskDone, deleteTask: ME.admin ? deleteTask : null, marketKey, openMarket, marketMgrKey: ME.admin ? marketMgrKey : null, loadBrief, loadTabData };
   window.__startDashboard();
   started = true;
   gate.hidden = true;
@@ -3049,6 +3081,24 @@ window.cbSaveBrief = async function (team, managers) {
   if (window.cbBriefSaved) window.cbBriefSaved();
   return "saved " + d;
 };
+const DATA_DOCS = { rtm: ["settings", "rtm"], devstatus: ["settings", "devstatus"], compare: ["settings", "comparisons"], incentives: ["admin", "incentives"] };
+async function loadTabData(kind) {
+  const p = DATA_DOCS[kind]; if (!p) throw new Error("unknown tab " + kind); if (p[0] === "admin" && !ME.admin) return null;
+  const s = await getDoc(doc(db, p[0], p[1])); return s.exists() ? JSON.parse(s.data().json) : null;
+}
+// Basel only: the daily run calls this in Basel's signed-in app. kind = rtm | devstatus | compare | incentives (incentives: Basel only)
+window.cbSaveData = async function (kind, data) {
+  if (!ME.admin) throw new Error("only Basel"); const p = DATA_DOCS[kind]; if (!p) throw new Error("kind must be rtm, devstatus, compare or incentives");
+  if (typeof data === "string") data = JSON.parse(data);
+  if (!data || !data.en || !Array.isArray(data.en.sections)) throw new Error("data needs en.sections (list of {h, bullets|text|table})");
+  await setDoc(doc(db, p[0], p[1]), { json: JSON.stringify(data), at: Date.now() });
+  if (window.cbDataSaved) window.cbDataSaved(kind);
+  return "saved " + kind;
+};
+window.cbSaveRtm = d => window.cbSaveData("rtm", d);
+window.cbSaveDevStatus = d => window.cbSaveData("devstatus", d);
+window.cbSaveComparisons = d => window.cbSaveData("compare", d);
+window.cbSaveIncentives = d => window.cbSaveData("incentives", d);
 window.cbSetMarketKey = async function (keyB64) { if (!ME.admin) throw new Error("only Basel"); await setDoc(doc(db, "settings", "market"), { k: keyB64 }); MKEY = keyB64; return "saved"; };
 
 // ---------- Tasks & reminders: mark a reminder done (agents may change only these three fields on their own reminders) ----------
