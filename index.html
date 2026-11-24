@@ -1407,9 +1407,11 @@ function freshStart(){ var H=histLatest(), m=H&&/^(\d{4})-(\d\d)-(\d\d)$/.exec(H
 // ---- speed to lead: fresh leads (reached the agent in the last 2 days) still waiting for a first call ----
 var WAIT_ALERT=120;
 function __nowMin(){ return Math.floor((Date.now()+7200000)/60000); }
-function waitingMin(r){ if(!(r[C.feedback]===I_PENDING||r[C.feedback]===I_NONE)) return 0; var en=__entry(r); if(!en) return 0; var now=__nowMin(); if(now<en||now-en>2*1440) return 0;
+function waitingMin(r){ if(!(r[C.feedback]===I_PENDING||r[C.feedback]===I_NONE)) return 0; if(!__isArrival(r)) return 0; var en=__entry(r); if(!en) return 0; var now=__nowMin(); if(now<en||now-en>2*1440) return 0;
   if((r[C.lastAct]||0)>en) return 0; var lu=(window.__LASTUP||{})[String(r[C.id])]; if(lu&&Math.floor((lu.t+7200000)/60000)>=en) return 0;
   var pk=pkeys(r[C.contact]||"")[0]; if(pk&&((window.__LASTP||{})[pk]||0)>=en) return 0; return Math.max(1,now-en); }
+// an agent's own sheet row is an arrival only when the sheet refresh saw it appear (or it was moved to them), not by the Date the agent typed
+function __isArrival(r){ var id=String(r[C.id]); return id.indexOf("S-")!==0||!!(window.__ENTRY||{})[id]; }
 function waitStr(m){ return m<60?m+" min":m<1440?Math.floor(m/60)+"h"+(m%60>=10?" "+(m%60)+"m":""):Math.floor(m/1440)+"d "+Math.floor((m%1440)/60)+"h"; }
 function waitingBy(min){ var by={}, n=0; R.forEach(function(r){ if(waitingMin(r)>=min){ var a=X.agent[r[C.agent]]; by[a]=(by[a]||0)+1; n++; } }); return {by:by,n:n}; }
 // app feedback logged today, per agent full name
@@ -2774,7 +2776,7 @@ function wkRender(){ var box=$("v-weekly"); if(!box) return; box.textContent="";
     [x.cb_fb||{},x.sh_fb||{}].forEach(function(m){ Object.keys(m).forEach(function(f){ per[a].shcb+=m[f]; if(isQ(f)) per[a].q+=m[f]; }); }); }); });
   var firstApp={}; ups.slice().sort(function(a,b){ return __tsMs(a.at)-__tsMs(b.at); }).forEach(function(u){ var t=__tsMs(u.at); if(!t) return; var a=nm[u.ak]||u.ak; var k=String(u.lead||("P"+(pkeys(u.phone||"")[0]||""))); if(!firstApp[k]) firstApp[k]=t;
     if(t<s0||t>=e0||!per[a]||u.kind==="reminder") return; if(u.kind==="new"){ per[a].added++; return; } per[a].calls++; if(isQ(u.feedback)) { per[a].q++; } else if(isNA(u.feedback)) per[a].na++; else if(isUQ(u.feedback)) per[a].uq++; else per[a].other++; });
-  R.forEach(function(r){ var a=X.agent[r[C.agent]]; if(!per[a]) return; var en=__entry(r); if(!en||en<sMin||en>=eMin) return; per[a].fresh++;
+  R.forEach(function(r){ var a=X.agent[r[C.agent]]; if(!per[a]) return; if(!__isArrival(r)) return; var en=__entry(r); if(!en||en<sMin||en>=eMin) return; per[a].fresh++;
     var t1=firstApp[String(r[C.id])]||firstApp["P"+(pkeys(r[C.contact]||"")[0]||"")]; var m1=t1?Math.floor((t1+7200000)/60000):0; var la=r[C.lastAct]&&r[C.lastAct]>en?r[C.lastAct]:0; var first=m1&&m1>=en?(la?Math.min(m1,la):m1):la;
     if(first) per[a].resp.push(first-en); else if(r[C.feedback]===I_PENDING||r[C.feedback]===I_NONE) per[a].wait++; });
   if(TC) TC.rows.forEach(function(t){ var a=t[T.agent]; if(per[a]&&t[T.date]>=sMin&&t[T.date]<eMin){ per[a].tcr++; per[a].vol+=t[T.vol]; } });
