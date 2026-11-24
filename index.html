@@ -1696,6 +1696,8 @@ window.__cbOverlay=function(list){
   Object.keys(moved).forEach(function(id){ var t=__tsMs(moved[id].at); if(t&&t<8e12){ __ck[id]=Math.max(__ck[id]||0,__m(t)); __en[id]=__m(t); } });
   ((window.CB_APP&&CB_APP.allUpdates)?CB_APP.allUpdates():[]).forEach(function(u){ if(!u.lead||u.kind==="reminder") return; var k=String(u.lead); k=(window.__DUPALIAS||{})[k]||k; var t=__tsMs(u.at); if(!t||t>8e12) return;
     __ck[k]=Math.max(__ck[k]||0,__m(t)); if(!__lu[k]||t>__lu[k].t) __lu[k]={t:t,u:u}; });
+  // agent-sheet clients: when the hourly sheet refresh first saw them (EXTRA.first, "agent|phone" -> minute), so "Fresh leads" can list them
+  var __F=(window.EXTRA&&EXTRA.first)||{}; out.forEach(function(r){ var id=String(r[C.id]); if(id.indexOf("S-")!==0) return; var t=__F[X.agent[r[C.agent]]+"|"+id.slice(2)]; if(t&&!(__en[id]>t)) __en[id]=t; });
   window.__CLK=__ck; window.__ENTRY=__en; window.__LASTUP=__lu;
   var ups=(window.CB_APP&&CB_APP.allUpdates)?CB_APP.allUpdates():[], latest={};
   ups.forEach(function(u){ if(!u.feedback||!u.lead) return; var t=__tsMs(u.at)||9e12, k=String(u.lead); k=(window.__DUPALIAS||{})[k]||k; if(!latest[k]||t>latest[k].t) latest[k]={t:t,fb:u.feedback}; });
