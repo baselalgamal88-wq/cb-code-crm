@@ -5,9 +5,9 @@ service cloud.firestore {
     function email() {
       return request.auth != null && request.auth.token.email_verified == true ? request.auth.token.email.lower() : '';
     }
-    // Basel: the only person who can see and change everything
+    // Basel and Ahmed Nosrat (sales director): full access, see and change everything
     function isAdmin() {
-      return email() in ['basel.algamal@icloud.com', 'basel.algamal88@gmail.com'];
+      return email() in ['basel.algamal@icloud.com', 'basel.algamal88@gmail.com', 'ahmednosrat@gmail.com'];
     }
     // the agent key mapped to this email in /access (set by Basel), or '' if none
     function myAgent() {
