@@ -1629,7 +1629,7 @@ function appDrawer(e,b){ var A=window.CB_APP; if(!A) return;
   var note=el("textarea"); note.placeholder="What happened with the client: what they said, what they want, what you agreed next"; note.setAttribute("aria-label","What happened with the client"); note.maxLength=1990; note.rows=4; f.appendChild(note);
   var acts=el("div","acts"), save=el("button","btn primary","Save"); save.type="button"; var st=el("span"); st.setAttribute("role","status"); acts.appendChild(save); acts.appendChild(st); f.appendChild(acts);
   save.addEventListener("click",function(){ save.disabled=true; st.className=""; st.textContent="Saving…";
-    A.logFeedback({ak:A.AK_OF[agentName]||"", lead:l0?l0[C.id]:"", client:e.name, phone:e.number||"", feedback:sel.value, note:note.value.trim(), next:nx.value})
+    A.logFeedback({ak:A.AK_OF[agentName]||"", lead:l0?l0[C.id]:(pkeys(e.number||"")[0]?"S-"+pkeys(e.number||"")[0]:""), client:e.name, phone:e.number||"", feedback:sel.value, note:note.value.trim(), next:nx.value})
       .then(function(){ st.className="ok"; st.textContent="Saved"+(nx.value?". Reminder set for "+__niceDt(nx.value):"")+". It goes to Basel's sheet within a minute."; note.value=""; save.disabled=false; setTimeout(function(){ openClient(e); },900); })
       .catch(function(err){ st.className="bad"; st.textContent="Not saved ("+((err&&err.code)||"error")+")"; save.disabled=false; }); });
   if(typeof ui2Lead==="function") ui2Lead(e,b,sel,note);
@@ -1700,8 +1700,10 @@ window.__cbOverlay=function(list){
   var __F=(window.EXTRA&&EXTRA.first)||{}; out.forEach(function(r){ var id=String(r[C.id]); if(id.indexOf("S-")!==0) return; var t=__F[X.agent[r[C.agent]]+"|"+id.slice(2)]; if(t&&!(__en[id]>t)) __en[id]=t; });
   window.__CLK=__ck; window.__ENTRY=__en; window.__LASTUP=__lu;
   var ups=(window.CB_APP&&CB_APP.allUpdates)?CB_APP.allUpdates():[], latest={};
-  ups.forEach(function(u){ if(!u.feedback||!u.lead) return; var t=__tsMs(u.at)||9e12, k=String(u.lead); k=(window.__DUPALIAS||{})[k]||k; if(!latest[k]||t>latest[k].t) latest[k]={t:t,fb:u.feedback}; });
-  out=out.map(function(r){ var L=latest[String(r[C.id])]; if(!L) return r; var fi=__fbIdx(L.fb); if(fi===r[C.feedback]) return r; r=r.slice(); r[C.feedback]=fi; return r; });
+  var latestP={}; // updates saved without a lead ID (e.g. logged on a client that is only in the agent's sheet): match them by phone
+  ups.forEach(function(u){ if(!u.feedback||u.kind==="reminder") return; var t=__tsMs(u.at)||9e12; if(u.lead){ var k=String(u.lead); k=(window.__DUPALIAS||{})[k]||k; if(!latest[k]||t>latest[k].t) latest[k]={t:t,fb:u.feedback}; } else { var pk=pkeys(u.phone||"")[0]; if(pk&&(!latestP[pk]||t>latestP[pk].t)) latestP[pk]={t:t,fb:u.feedback}; } });
+  out.forEach(function(r){ var pk=pkeys(r[C.contact]||"")[0], P=pk&&latestP[pk]; if(!P||P.t>8e12) return; var id=String(r[C.id]), m=Math.floor((P.t+7200000)/60000); if(!(__ck[id]>m)) __ck[id]=m; });
+  out=out.map(function(r){ var L=latest[String(r[C.id])], pk=pkeys(r[C.contact]||"")[0], P=pk&&latestP[pk]; if(P&&(!L||P.t>L.t)) L=P; if(!L) return r; var fi=__fbIdx(L.fb); if(fi===r[C.feedback]) return r; r=r.slice(); r[C.feedback]=fi; return r; });
   R.length=0; Array.prototype.push.apply(R,out);
   leadById={}; for(var i=0;i<R.length;i++) leadById[R[i][C.id]]=R[i]; Object.keys(window.__DUPALIAS||{}).forEach(function(a){ var p=leadById[window.__DUPALIAS[a]]; if(p) leadById[a]=p; });
   FU=null; TCB=null; CL=null; CLMAP={}; NAMEMAP={};
