@@ -983,7 +983,7 @@ function apply(){
   var a=state.agent,p=state.project,s=state.status,f=state.feedback, from=dayMin(state.from), to=dayMin(state.to,true), q=state.q.trim().toLowerCase(), qd=q.replace(/\D/g,"");
   view=[];
   for(var i=0;i<R.length;i++){ var r=R[i];
-    if(a>=0&&r[C.agent]!==a) continue; if(p>=0&&r[C.project]!==p) continue; if(s>=0&&r[C.status]!==s) continue; if(f>=0&&r[C.feedback]!==f) continue; if(f===-2&&r[C.feedback]!==I_PENDING&&r[C.feedback]!==I_NONE) continue; if(state.act===1&&r[C.lastAct]) continue; if(state.act===2&&!r[C.lastAct]) continue; if(state.stale&&__clk(r)>REFMIN-state.stale) continue;
+    if(a>=0&&r[C.agent]!==a) continue; if(p>=0&&r[C.project]!==p) continue; if(s>=0&&r[C.status]!==s) continue; if(f>=0&&r[C.feedback]!==f) continue; if(f===-2&&r[C.feedback]!==I_PENDING&&r[C.feedback]!==I_NONE) continue; if(state.act===1&&r[C.lastAct]) continue; if(state.act===2&&!r[C.lastAct]) continue; if(state.stale&&__clk(r)>REFMIN-state.stale) continue; if(state.fresh&&__entry(r)<state.fresh) continue;
     if(from!==null&&r[C.created]<from) continue; if(to!==null&&r[C.created]>to) continue;
     if(q){ var ct=(r[C.contact]||"").toLowerCase(); if(String(r[C.id]).indexOf(q)<0 && r[C.client].toLowerCase().indexOf(q)<0 && ct.indexOf(q)<0 && (!qd || ct.replace(/\D/g,"").indexOf(qd)<0)) continue; }
     view.push(r); }
@@ -993,7 +993,7 @@ function apply(){
 // Show the leads behind a chart or tile: set the filters, open the Leads tab, bring the table into view.
 function goLeads(f){ f=f||{}; if(f.agentName!==undefined){ var ai=X.agent.indexOf(f.agentName); if(ai>=0) f.agent=ai; }
   ["agent","project","status","feedback"].forEach(function(k){ if(f[k]!==undefined){ state[k]=f[k]; $("f-"+k).value=String(f[k]); } });
-  state.stale=f.stale||0; if(f.act!==undefined){ state.act=f.act; $("f-act").value=String(f.act); } if(f.from!==undefined){ state.from=f.from; $("f-from").value=f.from; } if(f.to!==undefined){ state.to=f.to; $("f-to").value=f.to; }
+  state.stale=f.stale||0; state.fresh=f.fresh||0; if(f.act!==undefined){ state.act=f.act; $("f-act").value=String(f.act); } if(f.from!==undefined){ state.from=f.from; $("f-from").value=f.from; } if(f.to!==undefined){ state.to=f.to; $("f-to").value=f.to; }
   go("leads"); apply(); showTable("lead-table"); }
 function showTable(id){ setTimeout(function(){ var t=$(id); if(t&&t.scrollIntoView) t.scrollIntoView({behavior:"smooth",block:"start"}); },60); }
 function countBy(col){ var m={}; for(var i=0;i<view.length;i++){var k=view[i][col]; m[k]=(m[k]||0)+1;} return m; }
@@ -1397,6 +1397,10 @@ function initials(a){ var p=(a||"").split(" ").filter(Boolean); return ((p[0]||"
 function avatar(a){ var s=el("span","av",initials(a)); s.style.background=agColor(a); s.setAttribute("aria-hidden","true"); return s; }
 
 // ---------- shared figures for Today and the agent cards ----------
+// start (minute) of the day the "Fresh leads" tile counts: the latest logged day, else the day of the latest refresh
+function freshStart(){ var H=histLatest(), m=H&&/^(\d{4})-(\d\d)-(\d\d)$/.exec(H.day); if(m) return Date.UTC(+m[1],+m[2]-1,+m[3])/60000;
+  var mu=/^(\d+) (\w{3}) (\d{4})/.exec((window.D&&D.updated)||""), M={Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11}; return mu? Date.UTC(+mu[3],M[mu[2]],+mu[1])/60000 : 0; }
+function freshCount(fs){ var n=0; if(fs) for(var i=0;i<R.length;i++) if(__entry(R[i])>=fs) n++; return n; }
 function histLatest(){ if(!(window.HIST&&HIST.days)) return null; var ks=Object.keys(HIST.days).sort(); return ks.length? {day:ks[ks.length-1],d:HIST.days[ks[ks.length-1]]} : null; }
 function followup(){ var iq=idx(X.feedback,"Qualified"), ina=idx(X.feedback,"No Answer"), st={}, sd=SH?SH.dict:null; function gs(a){ return st[a]||(st[a]={c:{},qs:0,na:0,leads:0,q:0,nan:0}); }
   for(var j=0;j<R.length;j++){ var r=R[j], a=X.agent[r[C.agent]]; var o=gs(a); o.leads++; var k=pkeys(r[C.contact])[0]||("L"+r[C.id]); var e=o.c[k]||(o.c[k]={h:false,cb:false,sh:false}); e.cb=true;
@@ -1419,7 +1423,7 @@ function today(){ if(!FU) FU=followup(); if(!TCB) TCB=tcrBy(); var H=histLatest(
   var agents=Object.keys(TARGETS), tot={f:0,u:0,na:0,qs:0};
   var rows=agents.map(function(a){ var o=FU[a]||{u:0,na:0,qs:0,n:0}, h=(H&&H.d[a])||{}; var f=(h.cb_new||0)+(h.cb_in||0)+(h.sh_new||0); tot.f+=f; tot.u+=o.u; tot.na+=o.na; tot.qs+=o.qs; return {a:a,o:o,h:h,f:f}; });
   var t=$("td-tiles"); t.textContent=""; var pctT=TEAM_TARGET?Math.round(TCB.total/TEAM_TARGET*100):0;
-  tileIn(t,"Fresh leads",fmt(tot.f),H?"received on "+dstr(Math.floor(Date.UTC(+H.day.slice(0,4),+H.day.slice(5,7)-1,+H.day.slice(8,10))/60000)):"from the latest refresh",false,function(){ go("daily"); });
+  var fs=freshStart(), fN=freshCount(fs); tileIn(t,"Fresh leads",fmt(fN),fs?"received on "+dstr(fs):"from the latest refresh",fN>0,function(){ goLeads({fresh:fs,agent:-1,project:-1,status:-1,feedback:-1,act:0,from:"",to:""}); });
   tileIn(t,"Unhandled clients",fmt(tot.u),"no feedback in CloudBlue or the sheets",tot.u>0,function(){ goLeads({feedback:-2,act:1}); });
   tileIn(t,"No Answer over 24h",fmt(tot.na),"not tried again since",tot.na>0,function(){ goLeads({feedback:ina,act:0,stale:1440}); });
   tileIn(t,"Qualified, quiet 1 week",fmt(tot.qs),"qualified with no activity for 7 days",tot.qs>0,function(){ goLeads({feedback:iq,act:0,stale:10080}); });
@@ -1496,6 +1500,7 @@ function chips(){ var c=$("f-chips"); c.textContent=""; var list=[];
   if(state.project>=0) add(X.project[state.project]||"(no project)",function(){ state.project=-1; $("f-project").value="-1"; });
   if(state.status>=0) add(X.status[state.status],function(){ state.status=-1; $("f-status").value="-1"; });
   if(state.feedback!==-1) add(state.feedback===-2?"No feedback yet":X.feedback[state.feedback],function(){ state.feedback=-1; $("f-feedback").value="-1"; });
+  if(state.fresh) add("Fresh: received since "+dstr(state.fresh),function(){ state.fresh=0; });
   if(state.from) add("From "+state.from,function(){ state.from=""; $("f-from").value=""; });
   if(state.to) add("To "+state.to,function(){ state.to=""; $("f-to").value=""; });
   if(state.act) add(state.act===1?"No activity logged":"Activity logged",function(){ state.act=0; $("f-act").value="0"; });
