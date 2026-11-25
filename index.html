@@ -772,7 +772,13 @@ body.sf .botnav{background:var(--surface);border-top:1px solid var(--line)}
 .sfc{background:var(--surface);border:1px solid var(--line);border-radius:4px;box-shadow:var(--shadow);padding:12px 16px}
 .sfc>header{display:flex;align-items:center;gap:10px;margin:0 0 10px}.sfc>header h2{margin:0;font-size:14px;font-weight:700;flex:1}
 .sfc>header .ic{width:24px;height:24px;border-radius:4px;display:flex;align-items:center;justify-content:center;flex:none}.sfc>header .ic svg{width:15px;height:15px;fill:none;stroke:#fff;stroke-width:2}
-.sfperf .big{display:flex;gap:28px;flex-wrap:wrap;margin-bottom:10px}.sfperf .big div small{display:block;color:var(--ink-3);font-size:12px}.sfperf .big div b{font-size:22px;font-weight:300}
+.sfperf .big{display:flex;gap:28px;flex-wrap:wrap;margin-bottom:10px}
+.sfc>header .sfcardctl{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12.5px;color:var(--ink-3)}
+.sfcardctl .sw{display:inline-flex;align-items:center;gap:4px;cursor:pointer;color:var(--ink-2,inherit);min-height:32px}
+.sfcardctl .sw input{width:16px;height:16px;margin:0;accent-color:#0176d3}
+.sfhid>header{margin:0}
+.sfhid .sfhidtx{font-size:12.5px;color:var(--ink-3);margin-top:6px}
+.sfc>header{flex-wrap:wrap}.sfperf .big div small{display:block;color:var(--ink-3);font-size:12px}.sfperf .big div b{font-size:22px;font-weight:300}
 .sfbar{height:10px;background:var(--surface-3);border-radius:5px;overflow:hidden}.sfbar i{display:block;height:100%;background:var(--sfb)}
 .sfrows{display:flex;flex-direction:column;gap:8px;margin-top:12px}.sfrow{display:grid;grid-template-columns:120px 1fr 90px;gap:10px;align-items:center;font-size:12px}
 .sflist{display:flex;flex-direction:column}.sflist .it{all:unset;box-sizing:border-box;display:flex;gap:10px;align-items:flex-start;padding:8px 2px;border-bottom:1px solid var(--line);cursor:pointer}
@@ -2708,14 +2714,26 @@ function sfNavMark(h){ var nv=$("sf-nav"); if(!nv) return; h=h||VIEW||(location.
   ph.appendChild(sfIco(sec==="today"?"home":sec==="leads"?(h==="board"?"board":"lead"):sec,SF_COL[sec])); var tx=el("div"); tx.appendChild(el("small",null,S0?(S0.label==="Today"?"Home":S0.label):"")); tx.appendChild(el("h1",null,V0?V0[1]:"")); ph.appendChild(tx);
   ph.hidden=(h==="today"); }
 /* ---- home ---- */
+// "Sales vs target" card: admins choose who sees it (Show to me = this person only; Show to agents = every agent's own card)
+window.__cardRefresh=function(){ try{ ui2Dash(); }catch(e){} };
+function sfCardCtl(me,team){ var A=window.CB_APP||{}, w=el("div","sfcardctl"); w.setAttribute("role","group"); w.setAttribute("aria-label","Who sees this card");
+  w.appendChild(el("span","lb","Show to"));
+  function sw(label,on,fn,tip){ var l=el("label","sw"); l.title=tip; var c=document.createElement("input"); c.type="checkbox"; c.checked=on; l.appendChild(c); l.appendChild(document.createTextNode(" "+label));
+    c.addEventListener("change",function(){ var v=c.checked; c.disabled=true; if(!fn){ c.disabled=false; return; } fn(v).then(function(){ window.__cardRefresh(); },function(){ c.checked=!v; c.disabled=false; alertMsg("Could not save. Check your connection and try again."); }); }); w.appendChild(l); }
+  sw("Me",me,A.setCardMe,"Show or hide this card on your own Home page");
+  sw("Agents",team,A.setCardTeam,"Show or hide each agent's own sales vs target card on their Home page");
+  return w; }
+function alertMsg(t){ var m=$("wa-msg"); if(m) m.textContent=t; else console.warn(t); }
 function sfHome(box){ if(!document.body.classList.contains("sf")) return; var A=window.CB_APP||{};
   var d3=box.querySelector(".d3"), call=box.querySelector(".d2call"); var grid=el("div","sfhome"), L=el("div","sfhc"), Rc=el("div","sfhc");
   // greeting + performance
-  if(!window.__NOSALES&&TC){ var TB=tcrBy(), pc=TEAM_TARGET?Math.round(TB.total/TEAM_TARGET*100):0; var pf=el("section","sfc sfperf"); var h=el("header"); h.appendChild(sfIco("sales",SF_COL.sales)); h.appendChild(el("h2",null,(window.CB_AGENT?"Your":"Team")+" sales vs target")); pf.appendChild(h);
+  var cardMe=window.__CARD_ME!==false, cardTeam=window.__CARD_TEAM!==false;
+  if(!window.__NOSALES&&TC&&(A.admin?cardMe:cardTeam)){ var TB=tcrBy(), pc=TEAM_TARGET?Math.round(TB.total/TEAM_TARGET*100):0; var pf=el("section","sfc sfperf"); var h=el("header"); h.appendChild(sfIco("sales",SF_COL.sales)); h.appendChild(el("h2",null,(window.CB_AGENT?"Your":"Team")+" sales vs target")); if(A.admin) h.appendChild(sfCardCtl(cardMe,cardTeam)); pf.appendChild(h);
     var big=el("div","big"); [["Sales volume","EGP "+money(TB.total)],["Target","EGP "+money(TEAM_TARGET)],["Achieved",pc+"%"],["TCRs",fmt(TC.rows.length)]].forEach(function(x){ var d=el("div"); d.appendChild(el("small",null,x[0])); d.appendChild(el("b",null,x[1])); big.appendChild(d); }); pf.appendChild(big);
     var bar=el("div","sfbar"); var fi=el("i"); fi.style.width=Math.min(100,pc)+"%"; bar.appendChild(fi); pf.appendChild(bar);
     if(A.admin){ var rows=el("div","sfrows"); Object.keys(TARGETS).forEach(function(a){ var o=TB.by[a]||{vol:0}, p=TARGETS[a]?Math.round(o.vol/TARGETS[a]*100):0; var r=el("div","sfrow"); r.appendChild(el("span",null,shortName(a))); var b2=el("div","sfbar"); var f2=el("i"); f2.style.width=Math.min(100,p)+"%"; f2.style.background=agColor(a); b2.appendChild(f2); r.appendChild(b2); r.appendChild(el("span",null,money(o.vol)+" · "+p+"%")); rows.appendChild(r); }); pf.appendChild(rows); }
     L.appendChild(pf); }
+  else if(A.admin&&!window.__NOSALES&&TC){ var hs=el("section","sfc sfperf sfhid"); var hh=el("header"); hh.appendChild(sfIco("sales",SF_COL.sales)); hh.appendChild(el("h2",null,"Team sales vs target")); hh.appendChild(sfCardCtl(cardMe,cardTeam)); hs.appendChild(hh); hs.appendChild(el("div","sfhidtx","Hidden for you."+(cardTeam?" Agents still see their own card.":" Hidden for the agents too."))); L.appendChild(hs); }
   if(d3){ var as=el("section","sfc"); var h3=el("header"); h3.appendChild(sfIco("task","#3ba755")); h3.appendChild(el("h2",null,"Assistant")); as.appendChild(h3); as.appendChild(d3); L.appendChild(as); }
   if(call) L.appendChild(call);
   // today's tasks (follow-ups)
@@ -3379,7 +3397,7 @@ async function loadDataOnce(path) {
 function startDashboard(data) {
   window.LEADS = data.LEADS; window.EXTRA = data.EXTRA; window.SNAP = data.SNAP; window.PREV = data.PREV; window.HIST = data.HIST;
   window.CB_AGENT = ME.admin ? "" : ME.name; window.CB_NAME = ME.admin ? "Basel" : (ME.name || "").split(" ")[0];
-  window.CB_APP = { admin: ME.admin, email: ME.email, ak: ME.ak, name: ME.name, logFeedback, updatesFor, FB_OPTIONS, AK_OF, reassign: ME.admin ? reassignLead : null, reassignMany: ME.admin ? reassignMany : null, allUpdates: () => UPDATES, saveWa, setShowSales: ME.admin ? setShowSales : null, setPin: ME.admin ? setPin : null, savePlan: ME.admin ? savePlan : null, removePlan: ME.admin ? removePlan : null, setInfo: ME.admin ? setInfo : null, loadPlan, aiModel, setTaskDone, deleteTask: ME.admin ? deleteTask : null, marketKey, openMarket, marketMgrKey: ME.admin ? marketMgrKey : null, loadBrief, loadTabData };
+  window.CB_APP = { admin: ME.admin, email: ME.email, ak: ME.ak, name: ME.name, logFeedback, updatesFor, FB_OPTIONS, AK_OF, reassign: ME.admin ? reassignLead : null, reassignMany: ME.admin ? reassignMany : null, allUpdates: () => UPDATES, saveWa, setShowSales: ME.admin ? setShowSales : null, setCardMe, setCardTeam: ME.admin ? setCardTeam : null, setPin: ME.admin ? setPin : null, savePlan: ME.admin ? savePlan : null, removePlan: ME.admin ? removePlan : null, setInfo: ME.admin ? setInfo : null, loadPlan, aiModel, setTaskDone, deleteTask: ME.admin ? deleteTask : null, marketKey, openMarket, marketMgrKey: ME.admin ? marketMgrKey : null, loadBrief, loadTabData };
   window.__startDashboard();
   started = true;
   gate.hidden = true;
@@ -3421,16 +3439,19 @@ async function loadPlan(name) {
   return (PLANC[ck] = parts.map(d => (d.exists() ? d.data().d : "")).join(""));
 }
 // each person's own WhatsApp greeting, kept with their account
-async function loadPrefs() { try { const d = await getDoc(doc(db, "prefs", ME.email)); if (d.exists() && d.data().wa && window.__setWa) window.__setWa(d.data().wa); } catch (e) {} }
-async function saveWa(text) { await setDoc(doc(db, "prefs", ME.email), { wa: String(text || "").slice(0, 1500), at: serverTimestamp() }); }
+async function loadPrefs() { try { const d = await getDoc(doc(db, "prefs", ME.email)); if (d.exists() && d.data().wa && window.__setWa) window.__setWa(d.data().wa); if (d.exists() && d.data().hideSalesCard === true) { window.__CARD_ME = false; if (window.__cardRefresh) window.__cardRefresh(); } } catch (e) {} }
+async function saveWa(text) { await setDoc(doc(db, "prefs", ME.email), { wa: String(text || "").slice(0, 1500), at: serverTimestamp() }, { merge: true }); }
+// the "sales vs target" card on Home: Show to me (this person only) and Show to agents (Basel's switch for the team)
+async function setCardMe(show) { await setDoc(doc(db, "prefs", ME.email), { hideSalesCard: !show, at: serverTimestamp() }, { merge: true }); window.__CARD_ME = !!show; }
+async function setCardTeam(show) { await setDoc(doc(db, "settings", "app"), { cardTeam: !!show, at: serverTimestamp() }, { merge: true }); window.__CARD_TEAM = !!show; }
 // Basel's switch: do agents see their sales volume and achievement?
 function watchSettings() {
-  const apply = d => { const show = !d || d.showSales !== false; if (window.__applySales) window.__applySales(show); if (window.__salesToggle) window.__salesToggle(show); };
+  const apply = d => { const show = !d || d.showSales !== false; const ct = !d || d.cardTeam !== false; if (window.__CARD_TEAM !== ct) { window.__CARD_TEAM = ct; if (window.__cardRefresh) window.__cardRefresh(); } if (window.__applySales) window.__applySales(show); if (window.__salesToggle) window.__salesToggle(show); };
   const ref = doc(db, "settings", "app");
   getDoc(ref).then(s => apply(s.exists() ? s.data() : null)).catch(() => apply(null));
   setInterval(() => getDoc(ref).then(s => apply(s.exists() ? s.data() : null)).catch(() => {}), 120000);
 }
-async function setShowSales(show) { await setDoc(doc(db, "settings", "app"), { showSales: !!show, at: serverTimestamp() }); if (window.__applySales) window.__applySales(!!show); }
+async function setShowSales(show) { await setDoc(doc(db, "settings", "app"), { showSales: !!show, at: serverTimestamp() }, { merge: true }); if (window.__applySales) window.__applySales(!!show); }
 async function watchReassigned() {
   const load = async () => { try { const d = await getDoc(doc(db, "reassigned", ME.admin ? "all" : ME.ak)); if (d.exists() && window.__cbReassigned) window.__cbReassigned(JSON.parse(d.data().d || "[]")); else if (window.__cbReassigned) window.__cbReassigned([]); } catch (e) {} };
   load(); setInterval(load, 10 * 60 * 1000);
