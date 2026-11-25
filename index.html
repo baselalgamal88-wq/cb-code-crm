@@ -576,6 +576,7 @@ tr.click{cursor:pointer}
 .d2chip{all:unset;cursor:pointer;padding:9px 16px;border-radius:999px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);font-weight:600;font-size:14px;color:#fff}
 .d2chip:hover{background:rgba(255,255,255,.18)}
 .d2tiles{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+.d3{margin:16px 0}.d3tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin}.d3tab{flex:none;display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:118px;padding:10px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:inherit;font:inherit;cursor:pointer;text-align:left}.d3tab span{font-size:12px;color:var(--ink-3);font-weight:600}.d3tab b{font-size:22px;line-height:1.1}.d3tab.red b{color:#c0392b}.d3tab.amber b{color:#b7791f}.d3tab.green b{color:#1f8a4c}.d3tab.gold b{color:#9a7b1c}.d3tab[aria-selected=true]{border-color:var(--accent,#1f5fbf);box-shadow:0 0 0 2px var(--accent,#1f5fbf) inset}.d3panel{margin-top:10px}.d3hd{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}.d3hd h2{margin:0;font-size:16px}.mr-tbl td.num button{min-width:44px}.mr-cell.on{outline:2px solid var(--accent,#1f5fbf);border-radius:6px}
 @media(max-width:900px){.d2tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.d2big b{font-size:48px}.d2hero{padding:22px}}
 .d2tile{all:unset;box-sizing:border-box;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px 18px;display:flex;flex-direction:column;gap:6px;box-shadow:var(--shadow)}
 button.d2tile{cursor:pointer}button.d2tile:hover{border-color:#b9c7ea}
@@ -876,6 +877,7 @@ body.as-on .as-fab{display:none}
   <section class="view" id="v-market"></section>
   <section class="view" id="v-perf"></section>
   <section class="view" id="v-weekly"></section>
+  <section class="view" id="v-morning"></section>
   <section class="view" id="v-rtm"></section>
   <section class="view" id="v-devstatus"></section>
   <section class="view" id="v-compare"></section>
@@ -1592,9 +1594,10 @@ var SECTIONS=[{id:"today",label:"Today",views:[["today","Today"],["tasks","Tasks
   {id:"projects",label:"Projects",views:[["projects","Projects"]]}];
 if(!window.CB_AGENT) SECTIONS.filter(function(s){ return s.id==="team"; })[0].views.unshift(["perf","Performance report"]);
 if(!window.CB_AGENT) SECTIONS.filter(function(s){ return s.id==="team"; })[0].views.splice(1,0,["weekly","Weekly report"]);
+if(!window.CB_AGENT) SECTIONS.filter(function(s){ return s.id==="team"; })[0].views.splice(1,0,["morning","Morning report"]);
 SECTIONS.filter(function(s){ return s.id==="devs"; })[0].views.push(["incentives","Incentives & double commission"]);
 var ALLVIEWS=[], SECOF={}, LASTV={}; SECTIONS.forEach(function(s){ LASTV[s.id]=s.views[0][0]; s.views.forEach(function(v){ ALLVIEWS.push(v[0]); SECOF[v[0]]=s.id; }); });
-var NOFILTER={weekly:1,recent:1,today:1,tasks:1,market:1,perf:1,rtm:1,devstatus:1,compare:1,incentives:1,agents:1,myleads:1,rotation:1,cold:1,reassigned:1,map:1};
+var NOFILTER={morning:1,weekly:1,recent:1,today:1,tasks:1,market:1,perf:1,rtm:1,devstatus:1,compare:1,incentives:1,agents:1,myleads:1,rotation:1,cold:1,reassigned:1,map:1};
 function icon(name){ var NS="http://www.w3.org/2000/svg", s=document.createElementNS(NS,"svg"); s.setAttribute("viewBox","0 0 24 24"); s.setAttribute("aria-hidden","true"); var p=document.createElementNS(NS,"path"); p.setAttribute("d",ICONS[name]||ICONS.projects); s.appendChild(p); return s; }
 function buildNav(){ [$("tabs"),$("botnav")].forEach(function(nav){ nav.textContent=""; SECTIONS.forEach(function(s){ var b=el("button"); b.type="button"; b.dataset.sec=s.id; b.appendChild(icon(s.id)); b.appendChild(el("span",null,s.label)); b.addEventListener("click",function(){ go(LASTV[s.id]); }); nav.appendChild(b); }); }); }
 
@@ -2403,6 +2406,7 @@ function ui2Dash(){ var v=$("v-today"); if(!v) return; var box=$("ui2-dash"); if
   var tl=el("div","d2tiles"), sold=ui2Logged();
   [["Follow-ups overdue",late.length,"red"],["Due today",today.length,"amber"],["New, not called",cs["new"],"blue",UI2_LISTS[0].go],["Qualified waiting",cs["Qualified"],"green",UI2_LISTS[2].go],["Feedback logged today",sold,"ink"]].filter(Boolean).forEach(function(t){ var c=el(t[3]?"button":"div","d2tile "+t[2]); if(t[3]){ c.type="button"; c.addEventListener("click",t[3]); } c.appendChild(el("span",null,t[0])); c.appendChild(el("b",null,fmt(t[1]))); tl.appendChild(c); });
   box.appendChild(tl);
+  try{ d3Tabs(box,null); }catch(e){}
   /* call today */
   var card=el("div","card d2call"); var hd=el("div","d2callh"); hd.appendChild(el("h2",null,"Call today")); var rows=[];
   due.forEach(function(x){ var u=x.u, l=leadById[u.lead]||leadById[+u.lead]; var days=Math.floor((Date.now()-new Date(x.n).getTime())/864e5); rows.push({name:u.client,phone:u.phone,project:u.project,fb:u.feedback,why:x.late?(days>=1?"Overdue "+days+"d":"Overdue"):"Today "+__niceDt(x.n).replace(/^Today,? ?/,""),cls:x.late?"bad":"warn",lead:l}); });
@@ -2421,6 +2425,74 @@ function ui2Dash(){ var v=$("v-today"); if(!v) return; var box=$("ui2-dash"); if
       if(x.lead){ r.classList.add("click"); r.addEventListener("click",function(ev){ if(ev.target.closest("a")) return; openClient(clientOfLead(x.lead)); }); }
       tb.appendChild(r); }); t.appendChild(tb); var sc=el("div","tscroll"); sc.appendChild(t); card.appendChild(sc); }
   box.appendChild(card); }
+
+/* ---- dashboard tabs: press a tab to list the leads behind it (agents see their own; Basel sees the team or the agents picked in the filter) ---- */
+var D3TABS=[{k:"overdue",label:"Follow-ups overdue",cls:"red"},{k:"noanswer",label:"No answer",cls:"amber"},{k:"qualified",label:"Qualified",cls:"green"},
+  {k:"noact",label:"No activity",cls:"red"},{k:"unqualified",label:"Unqualified",cls:""},{k:"fresh",label:"Fresh leads",cls:"green"},{k:"sales",label:"Sales volume",cls:"gold"}];
+function d3Fb(r){ var ln=window.__lastNote?__lastNote(r):null; return normFb((ln&&ln.fb)||X.feedback[r[C.feedback]]||""); }
+function d3NoAct(r){ var ln=window.__lastNote?__lastNote(r):null; return (r[C.feedback]===I_PENDING||r[C.feedback]===I_NONE)&&!r[C.lastAct]&&!(ln&&(ln.fb||ln.text)); }
+function d3Data(agent){ var A=window.CB_APP||{}, ok=function(a){ return agent? a===agent : (A.admin? agOk(a) : true); };
+  var out={overdue:[],noanswer:[],qualified:[],noact:[],unqualified:[],fresh:[],sales:[]}, fs=freshStart();
+  R.forEach(function(r){ if(!ok(X.agent[r[C.agent]])) return; var f=d3Fb(r);
+    if(f==="noanswer") out.noanswer.push(r); else if(f==="qualified") out.qualified.push(r); else if(f==="unqualified") out.unqualified.push(r);
+    if(d3NoAct(r)) out.noact.push(r); if(fs&&__entry(r)>=fs) out.fresh.push(r); });
+  dueFollowups().filter(function(x){ return x.late; }).forEach(function(x){ var u=x.u, l=leadById[u.lead]||leadById[+u.lead]; var a=l? X.agent[l[C.agent]] : ((A.AK_OF?Object.keys(A.AK_OF).filter(function(n){ return A.AK_OF[n]===u.ak; })[0]:"")||""); if(a&&!ok(a)) return; out.overdue.push({u:u,n:x.n,lead:l}); });
+  if(TC&&!window.__NOSALES) TC.rows.forEach(function(t){ if(ok(t[T.agent])) out.sales.push(t); });
+  out.noanswer.sort(function(a,b){ return __clk(a)-__clk(b); }); out.qualified.sort(function(a,b){ return __clk(a)-__clk(b); }); out.unqualified.sort(function(a,b){ return __clk(b)-__clk(a); });
+  out.noact.sort(function(a,b){ return __entry(a)-__entry(b); }); out.fresh.sort(function(a,b){ return __entry(b)-__entry(a); }); out.sales.sort(function(a,b){ return (b[T.date]||0)-(a[T.date]||0); });
+  out.salesVol=out.sales.reduce(function(s,t){ return s+(t[T.vol]||0); },0); return out; }
+function d3Count(D,k){ return k==="sales"? "EGP "+money(D.salesVol) : fmt(D[k].length); }
+function d3Tabs(box,agent){ var D=d3Data(agent), wrap=el("div","d3"), strip=el("div","d3tabs"); strip.setAttribute("role","tablist"); strip.setAttribute("aria-label","Your lists");
+  var key=agent?"__D3TABA":"__D3TAB", cur=window[key]||"overdue", panel=el("div","card d3panel"); panel.setAttribute("role","tabpanel");
+  D3TABS.forEach(function(t){ if(t.k==="sales"&&(window.__NOSALES||!TC)) return; var b=el("button","d3tab "+t.cls); b.type="button"; b.setAttribute("role","tab"); b.setAttribute("aria-selected",String(t.k===cur));
+    b.appendChild(el("span",null,t.label)); b.appendChild(el("b",null,d3Count(D,t.k))); b.addEventListener("click",function(){ window[key]=t.k; Array.prototype.forEach.call(strip.children,function(c){ c.setAttribute("aria-selected","false"); }); b.setAttribute("aria-selected","true"); d3List(panel,D,t.k,agent); }); strip.appendChild(b); });
+  wrap.appendChild(strip); wrap.appendChild(panel); box.appendChild(wrap); d3List(panel,D,cur,agent); return wrap; }
+function d3List(panel,D,k,agent){ panel.textContent=""; var t=D3TABS.filter(function(x){ return x.k===k; })[0], hd=el("div","d3hd");
+  var title=(agent?shortName(agent)+" · ":"")+t.label+" ("+d3Count(D,k)+(k==="sales"?", "+fmt(D.sales.length)+" TCRs":"")+")"; hd.appendChild(el("h2",null,title));
+  var ina=idx(X.feedback,"No Answer"), iq=idx(X.feedback,"Qualified"), iu=idx(X.feedback,"UnQualified"), ag=agent?{agentName:agent}:{};
+  var go2={noanswer:ina>=0?Object.assign({feedback:ina},ag):null, qualified:iq>=0?Object.assign({feedback:iq},ag):null, unqualified:iu>=0?Object.assign({feedback:iu},ag):null, noact:Object.assign({feedback:-2,act:1},ag), fresh:Object.assign({fresh:freshStart(),act:0},ag)}[k];
+  if(go2){ var all=el("button","btn sm","Open in Leads"); all.type="button"; all.addEventListener("click",function(){ goLeads(Object.assign({agent:-1,project:-1,status:-1,feedback:-1,act:0,from:"",to:""},go2)); }); hd.appendChild(all); }
+  if(k==="sales"){ var b2=el("button","btn sm","Open TCRs"); b2.type="button"; b2.addEventListener("click",function(){ go("tcrs"); }); hd.appendChild(b2); }
+  panel.appendChild(hd);
+  var list=D[k]; if(!list.length){ panel.appendChild(el("div","hint","Nothing here.")); return; }
+  var tbl=el("table","d2tbl"), th=el("thead"), tr=el("tr"), tb=el("tbody"), A=window.CB_APP||{};
+  var cols=k==="sales"? ["Client","Project","Unit","Sales volume","Date","Status"] : ["Name","Project","Feedback",k==="overdue"?"Due":k==="fresh"?"Received":"Last activity"].concat(A.admin&&!agent?["Agent"]:[]).concat([""]);
+  cols.forEach(function(h){ tr.appendChild(el("th",null,h)); }); th.appendChild(tr); tbl.appendChild(th);
+  list.slice(0,200).forEach(function(x){ var row=el("tr");
+    if(k==="sales"){ [x[T.client],x[T.project],x[T.unit],"EGP "+fmt(Math.round(x[T.vol]||0)),x[T.date]?dstr(x[T.date]):"",x[T.status]].forEach(function(v){ var td=el("td",null,v||""); td.dir="auto"; row.appendChild(td); }); tb.appendChild(row); return; }
+    var r=k==="overdue"? x.lead : x, name=k==="overdue"? x.u.client : r[C.client], phone=k==="overdue"? x.u.phone : r[C.contact], proj=k==="overdue"? (x.u.project||(r?X.project[r[C.project]]:"")) : X.project[r[C.project]];
+    var ln=r&&window.__lastNote?__lastNote(r):null, fb=k==="overdue"? (x.u.feedback||"") : ((ln&&ln.fb)||X.feedback[r[C.feedback]]||"");
+    var when=k==="overdue"? (function(){ var d=Math.floor((Date.now()-new Date(x.n).getTime())/864e5); return d>=1?"Overdue "+d+"d":"Overdue today"; })() : k==="fresh"? dtstr(__entry(r)) : (__clk(r)? dstr(__clk(r)) : "No activity");
+    var n=el("td","d2n",name||"(no name)"); n.dir="auto"; row.appendChild(n); row.appendChild(el("td","d2p",proj&&proj!=="No project"?proj:""));
+    var f=el("td"); f.appendChild(el("span","chip "+fbClass(fb||"Pending Feedback"),fb&&!/pending|no feedback/i.test(fb)?fb:"No feedback")); row.appendChild(f);
+    row.appendChild(el("td",null,when)); if(A.admin&&!agent) row.appendChild(el("td",null,r?shortName(X.agent[r[C.agent]]):""));
+    var ac=el("td","d2act"), wa=el("a","d2ic d2wa"); wa.href=listWaUrl(phone); wa.target="_blank"; wa.rel="noopener"; wa.setAttribute("aria-label","WhatsApp"); wa.innerHTML='<svg viewBox="0 0 24 24"><path d="M21 12a8.5 8.5 0 0 1-12.6 7.4L3 21l1.6-5.2A8.5 8.5 0 1 1 21 12z"/></svg>';
+    var cl=el("a","d2ic call"); cl.href="tel:"+telDigits(phone); cl.setAttribute("aria-label","Call"); cl.innerHTML='<svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg>';
+    ac.appendChild(wa); ac.appendChild(cl); row.appendChild(ac);
+    if(r){ row.classList.add("click"); row.addEventListener("click",function(ev){ if(ev.target.closest("a")) return; openClient(clientOfLead(r)); }); }
+    tb.appendChild(row); });
+  tbl.appendChild(tb); var sc=el("div","tscroll"); sc.appendChild(tbl); panel.appendChild(sc);
+  if(list.length>200) panel.appendChild(el("div","hint","Showing the first 200 of "+fmt(list.length)+(go2?". Open in Leads to see all.":"."))); }
+/* ---- morning report (Basel): each agent's numbers; tap a number to list those leads ---- */
+var MRSEL=null;
+function mrRender(){ var box=$("v-morning"); if(!box) return; box.textContent=""; var A=window.CB_APP||{};
+  var hd=el("div","greet"); var hl=el("div"); hl.appendChild(el("h2",null,"Morning report")); hl.appendChild(el("p",null,"Each agent's lists as of "+(D.updated||"the latest refresh")+", with follow-ups and feedback logged in the app up to now. Tap a number to see the leads.")); hd.appendChild(hl);
+  var cp=el("button","btn primary","Copy report"); cp.type="button"; hd.appendChild(cp); box.appendChild(hd);
+  var agents=Object.keys(A.AK_OF||{}).filter(function(n){ return X.agent.indexOf(n)>=0||(TC&&TC.rows.some(function(t){ return t[T.agent]===n; })); }); if(!agents.length) agents=X.agent.slice();
+  var keys=D3TABS.filter(function(t){ return t.k!=="sales"||(TC&&!window.__NOSALES); }), per={}, tot={}; keys.forEach(function(t){ tot[t.k]=0; }); var totVol=0;
+  agents.forEach(function(a){ per[a]=d3Data(a); keys.forEach(function(t){ tot[t.k]+=per[a][t.k].length; }); totVol+=per[a].salesVol; });
+  var card=el("div","card"), tbl=el("table","mr-tbl"), th=el("thead"), tr=el("tr"); tr.appendChild(el("th",null,"Agent")); keys.forEach(function(t){ tr.appendChild(el("th","num",t.label)); }); th.appendChild(tr); tbl.appendChild(th);
+  var tb=el("tbody"), panelWrap=el("div");
+  agents.forEach(function(a){ var row=el("tr"), td=el("td"), w=el("div","who"); w.appendChild(avatar(a)); w.appendChild(el("span",null,shortName(a))); td.appendChild(w); row.appendChild(td);
+    keys.forEach(function(t){ var c=el("td","num"), b=el("button","mr-cell"+(MRSEL&&MRSEL.a===a&&MRSEL.k===t.k?" on":""), t.k==="sales"? money(per[a].salesVol) : fmt(per[a][t.k].length)); b.type="button";
+      b.addEventListener("click",function(){ MRSEL={a:a,k:t.k}; window.__D3TABA=t.k; Array.prototype.forEach.call(tbl.querySelectorAll(".mr-cell"),function(x){ x.classList.remove("on"); }); b.classList.add("on"); panelWrap.textContent=""; d3Tabs(panelWrap,a); panelWrap.scrollIntoView({behavior:"smooth",block:"start"}); });
+      c.appendChild(b); row.appendChild(c); }); tb.appendChild(row); });
+  var trT=el("tr"); trT.appendChild(el("td",null,"Team")); keys.forEach(function(t){ trT.appendChild(el("td","num",t.k==="sales"?money(totVol):fmt(tot[t.k]))); }); tb.appendChild(trT);
+  tbl.appendChild(tb); var sc=el("div","tscroll"); sc.appendChild(tbl); card.appendChild(sc); box.appendChild(card); box.appendChild(panelWrap);
+  if(MRSEL&&per[MRSEL.a]){ window.__D3TABA=MRSEL.k; d3Tabs(panelWrap,MRSEL.a); }
+  cp.addEventListener("click",function(){ var lines=["CB Code CRM – morning report ("+new Date().toLocaleDateString("en-GB",{day:"numeric",month:"short"})+")"];
+    agents.forEach(function(a){ lines.push(shortName(a)+": "+keys.map(function(t){ return t.label+" "+(t.k==="sales"?"EGP "+money(per[a].salesVol):per[a][t.k].length); }).join(" · ")); });
+    var txt=lines.join("\n"); (navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(function(){ cp.textContent="Copied"; setTimeout(function(){ cp.textContent="Copy report"; },1500); },function(){ cp.textContent="Copy failed"; }); }); }
 
 /* ---- lead page top: stage, quick feedback, contact, details, note, WhatsApp templates ---- */
 function ui2Lead(e,b,sel,note){ var A=window.CB_APP||{}, l0=e.leads[0], s0=e.sheets[0]; var LN=l0?__lastNote(l0):{text:"",meta:""};
@@ -2851,7 +2923,7 @@ function route(){ var h=VIEW||(location.hash||"#today").slice(1); if(ALLVIEWS.in
   ALLVIEWS.forEach(function(v){ $("v-"+v).classList.toggle("on",v===h); });
   [$("tabs"),$("botnav")].forEach(function(nav){ Array.prototype.forEach.call(nav.querySelectorAll("button"),function(b){ if(b.dataset.sec===sec) b.setAttribute("aria-current","page"); else b.removeAttribute("aria-current"); }); });
   var sn=$("subnav"); sn.textContent=""; var S0=SECTIONS.filter(function(s){return s.id===sec})[0]; if(S0&&S0.views.length>1) S0.views.forEach(function(v){ var b=el("button",null,v[1]); b.type="button"; b.setAttribute("role","tab"); if(v[0]===h){ b.setAttribute("aria-current","page"); b.setAttribute("aria-selected","true"); } else b.setAttribute("aria-selected","false"); b.addEventListener("click",function(){ go(v[0]); }); sn.appendChild(b); });
-  $("filters").classList.toggle("off",!!NOFILTER[h]); if(h==="sections"&&typeof secRender==="function") secRender(); if(h==="recent") rcRender(); if(h==="map"&&typeof mapRender==="function") mapRender(); if(h==="tasks") tkRender(); if(h==="market") mkRender(); if(h==="perf") rpRender(); if(h==="weekly") wkRender(); if(MD_V[h]) mdRender(h); }
+  $("filters").classList.toggle("off",!!NOFILTER[h]); if(h==="sections"&&typeof secRender==="function") secRender(); if(h==="recent") rcRender(); if(h==="map"&&typeof mapRender==="function") mapRender(); if(h==="tasks") tkRender(); if(h==="market") mkRender(); if(h==="perf") rpRender(); if(h==="weekly") wkRender(); if(h==="morning") mrRender(); if(MD_V[h]) mdRender(h); }
 
 // init
 var sub=$("sub"); if(D.updated){ sub.appendChild(document.createTextNode("Updated ")); sub.appendChild(el("b",null,D.updated)); sub.appendChild(el("br"));
