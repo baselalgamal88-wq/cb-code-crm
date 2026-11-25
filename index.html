@@ -1906,6 +1906,7 @@ window.__cbOverlay=function(list){
   window.__LASTP={}; Object.keys(latestP).forEach(function(pk){ var t=latestP[pk].t; if(t&&t<8e12) window.__LASTP[pk]=Math.floor((t+7200000)/60000); });
   out.forEach(function(r){ var pk=pkeys(r[C.contact]||"")[0], P=pk&&latestP[pk]; if(!P||P.t>8e12) return; var id=String(r[C.id]), m=Math.floor((P.t+7200000)/60000); if(!(__ck[id]>m)) __ck[id]=m; });
   out=out.map(function(r){ var L=latest[String(r[C.id])], pk=pkeys(r[C.contact]||"")[0], P=pk&&latestP[pk]; if(P&&(!L||P.t>L.t)) L=P; if(!L) return r; var fi=__fbIdx(L.fb); if(fi===r[C.feedback]) return r; r=r.slice(); r[C.feedback]=fi; return r; });
+  out=out.filter(function(r){ return pkeys(String(r[C.contact]||"")).length>0; }); // no phone number: not shown in the app
   R.length=0; Array.prototype.push.apply(R,out);
   leadById={}; for(var i=0;i<R.length;i++) leadById[R[i][C.id]]=R[i]; Object.keys(window.__DUPALIAS||{}).forEach(function(a){ var p=leadById[window.__DUPALIAS[a]]; if(p) leadById[a]=p; });
   FU=null; TCB=null; CL=null; CLMAP={}; NAMEMAP={};
@@ -3394,7 +3395,16 @@ async function loadDataOnce(path) {
   return JSON.parse(new TextDecoder().decode(bytes));
 }
 
+// leads with no usable phone number (fewer than 9 digits) are left out of the app; the sheets and CloudBlue are not touched
+function noPhone_(s) { return !String(s || "").split(/[,;\/\n]| - /).some(p => p.indexOf("@") < 0 && p.replace(/\D/g, "").length >= 9); }
+function dropNoPhone_(data) {
+  let n = 0;
+  if (data.LEADS && Array.isArray(data.LEADS.rows)) { const k = data.LEADS.rows.length; data.LEADS.rows = data.LEADS.rows.filter(r => !noPhone_(r[13])); n += k - data.LEADS.rows.length; if (typeof data.LEADS.total === "number") data.LEADS.total = data.LEADS.rows.length; }
+  const sh = data.EXTRA && data.EXTRA.sheets; if (sh && Array.isArray(sh.rows)) { const k = sh.rows.length; sh.rows = sh.rows.filter(r => !noPhone_(r[4])); n += k - sh.rows.length; }
+  window.__NOPHONE_DROPPED = n;
+}
 function startDashboard(data) {
+  try { dropNoPhone_(data); } catch (e) { console.error(e); }
   window.LEADS = data.LEADS; window.EXTRA = data.EXTRA; window.SNAP = data.SNAP; window.PREV = data.PREV; window.HIST = data.HIST;
   window.CB_AGENT = ME.admin ? "" : ME.name; window.CB_NAME = ME.admin ? "Basel" : (ME.name || "").split(" ")[0];
   window.CB_APP = { admin: ME.admin, email: ME.email, ak: ME.ak, name: ME.name, logFeedback, updatesFor, FB_OPTIONS, AK_OF, reassign: ME.admin ? reassignLead : null, reassignMany: ME.admin ? reassignMany : null, allUpdates: () => UPDATES, saveWa, setShowSales: ME.admin ? setShowSales : null, setCardMe, setCardTeam: ME.admin ? setCardTeam : null, setPin: ME.admin ? setPin : null, savePlan: ME.admin ? savePlan : null, removePlan: ME.admin ? removePlan : null, setInfo: ME.admin ? setInfo : null, loadPlan, aiModel, setTaskDone, deleteTask: ME.admin ? deleteTask : null, marketKey, openMarket, marketMgrKey: ME.admin ? marketMgrKey : null, loadBrief, loadTabData };
