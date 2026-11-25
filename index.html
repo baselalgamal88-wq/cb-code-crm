@@ -138,7 +138,8 @@ button,select,input,textarea{font:inherit;color:inherit}
 .f{display:flex;flex-direction:column;gap:4px;min-width:0}
 .f label{font-size:10.5px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.1em;font-weight:700}
 .f select,.f input{height:36px;border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:0 10px;max-width:100%}
-.f select{width:180px}.f input[type=date]{width:150px}.f input[type=search]{width:210px}
+.f select{width:180px}
+.ms{position:relative;width:180px}.ms-btn{width:100%;height:36px;border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:0 28px 0 10px;text-align:left;font:inherit;color:inherit;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:relative}.ms-btn:after{content:"";position:absolute;right:11px;top:14px;border:4px solid transparent;border-top-color:var(--ink-3)}.ms-btn.on{border-color:var(--accent,#1f5fbf);font-weight:600}.ms-pop{position:absolute;z-index:60;top:40px;left:0;min-width:100%;width:max-content;max-width:min(320px,90vw);background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.18);padding:8px}.ms-pop input[type=search]{width:100%;height:32px;margin-bottom:6px}.ms-list{max-height:260px;overflow:auto;display:flex;flex-direction:column}.ms-opt{display:flex;gap:8px;align-items:center;padding:6px 4px;border-radius:6px;cursor:pointer;font-size:13.5px;text-transform:none;letter-spacing:0;font-weight:400;color:inherit}.ms-opt:hover{background:var(--line)}.ms-opt input{width:16px;height:16px;margin:0;flex:none}.ms-foot{display:flex;justify-content:space-between;gap:8px;margin-top:6px}.lhist{color:var(--ink-3);font-size:12.5px}.f input[type=date]{width:150px}.f input[type=search]{width:210px}
 .btn{height:36px;border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:0 14px;cursor:pointer;font-weight:600}
 .btn:hover{border-color:var(--line-2);background:var(--surface-2)}
 .btn.primary{background:var(--navy);border-color:var(--navy);color:#fff}
@@ -317,7 +318,7 @@ a.wa svg{width:12px;height:12px;fill:currentColor}
   .hero h1{font-size:24px}.brand .mark{width:44px;height:44px;font-size:18px}
   .hero-r{align-items:flex-start;width:100%}.hero .sub{text-align:left}.hero-btns{justify-content:flex-start}
   .wrap{padding:0 14px 40px}
-  .f select,.f input[type=search],.f input[type=date]{width:100%}.f{flex:1 1 46%}
+  .f select,.f input[type=search],.f input[type=date],.ms{width:100%}.f{flex:1 1 46%}
   .search{flex:1 1 100%}.count{margin-left:0;width:100%}
   .grid{grid-template-columns:1fr}
   .greet h2{font-size:24px}
@@ -983,11 +984,49 @@ function fillSelect(id,list,allLabel){ var s=$(id); s.textContent=""; var o=el("
 
 function dayMin(s,end){ if(!s) return null; var p=s.split("-"); var t=Date.UTC(+p[0],+p[1]-1,+p[2])/60000; return end? t+1439 : t; }
 
+// Multi-select filters: several options can be ticked. state.agent etc. hold the value when exactly one is picked (-1 otherwise),
+// so the rest of the app keeps working; the full list comes from msVals().
+function msVals(k){ var sel=$("f-"+k), o=[]; if(sel) for(var i=0;i<sel.options.length;i++){ var op=sel.options[i]; if(op.selected&&op.value!=="-1") o.push(+op.value); }
+  if(o.length>1) return o; var v=state[k]; return (v>=0||v===-2)? [v] : []; }
+function msSet(k,arr){ var sel=$("f-"+k), on={}; arr.forEach(function(v){ on[String(v)]=1; }); for(var i=0;i<sel.options.length;i++){ var op=sel.options[i]; op.selected=arr.length? !!on[op.value] : op.value==="-1"; }
+  state[k]=arr.length===1? arr[0] : -1; msSync(k); }
+function msSync(k){ var w=window.__MS&&window.__MS[k]; if(!w) return; var v=msVals(k), sel=$("f-"+k), on={}; v.forEach(function(x){ on[String(x)]=1; });
+  if(v.length) for(var i=0;i<sel.options.length;i++){ var op=sel.options[i]; op.selected=!!on[op.value]; } else sel.value="-1";
+  var txt=!v.length? sel.options[0].text : v.length===1? ((sel.querySelector('option[value="'+v[0]+'"]')||{}).text||"1 selected") : v.length+" selected";
+  w.btn.textContent=txt; w.btn.classList.toggle("on",v.length>0); w.btn.title=v.length>1? v.map(function(x){ return (sel.querySelector('option[value="'+x+'"]')||{}).text; }).join(", ") : "";
+  w.boxes.forEach(function(b){ b.checked=!!on[b.value]; }); }
+function msSyncAll(){ ["agent","project","status","feedback"].forEach(msSync); }
+function msWidget(k){ var sel=$("f-"+k); if(!sel) return; sel.multiple=true; sel.style.display="none"; sel.tabIndex=-1;
+  var wrap=el("div","ms"), btn=el("button","ms-btn"); btn.type="button"; btn.id="f-"+k+"-ms"; btn.setAttribute("aria-haspopup","true"); btn.setAttribute("aria-expanded","false");
+  var lab=document.querySelector('label[for="f-'+k+'"]'); if(lab) lab.htmlFor=btn.id;
+  var pop=el("div","ms-pop"); pop.hidden=true; var q=null, list=el("div","ms-list"), boxes=[];
+  if(sel.options.length>12){ q=el("input"); q.type="search"; q.placeholder="Search"; q.setAttribute("aria-label","Search options"); pop.appendChild(q); }
+  for(var i=0;i<sel.options.length;i++){ var op=sel.options[i]; if(op.value==="-1") continue;
+    var row=el("label","ms-opt"), cb=el("input"); cb.type="checkbox"; cb.value=op.value; row.appendChild(cb); row.appendChild(el("span",null,op.text)); list.appendChild(row); boxes.push(cb);
+    cb.addEventListener("change",function(){ msSet(k, boxes.filter(function(b){ return b.checked; }).map(function(b){ return +b.value; })); apply(); }); }
+  pop.appendChild(list);
+  var foot=el("div","ms-foot"), clr=el("button","btn sm","Clear"), done=el("button","btn sm primary","Done"); clr.type=done.type="button"; foot.appendChild(clr); foot.appendChild(done); pop.appendChild(foot);
+  clr.addEventListener("click",function(){ msSet(k,[]); apply(); }); done.addEventListener("click",function(){ close(); btn.focus(); });
+  if(q) q.addEventListener("input",function(){ var t=q.value.trim().toLowerCase(); boxes.forEach(function(b){ b.parentNode.style.display=!t||b.parentNode.textContent.toLowerCase().indexOf(t)>=0?"":"none"; }); });
+  function close(){ pop.hidden=true; btn.setAttribute("aria-expanded","false"); }
+  btn.addEventListener("click",function(){ var open=pop.hidden; document.querySelectorAll(".ms-pop").forEach(function(p){ p.hidden=true; }); pop.hidden=!open; btn.setAttribute("aria-expanded",open?"true":"false"); if(open&&q){ q.value=""; q.dispatchEvent(new Event("input")); q.focus(); } });
+  document.addEventListener("click",function(ev){ if(!wrap.contains(ev.target)) close(); });
+  wrap.addEventListener("keydown",function(ev){ if(ev.key==="Escape"){ close(); btn.focus(); } });
+  wrap.appendChild(btn); wrap.appendChild(pop); sel.parentNode.insertBefore(wrap,sel.nextSibling);
+  window.__MS=window.__MS||{}; window.__MS[k]={btn:btn,boxes:boxes}; msSync(k); }
+
 function apply(){
   var a=state.agent,p=state.project,s=state.status,f=state.feedback, from=dayMin(state.from), to=dayMin(state.to,true), q=state.q.trim().toLowerCase(), qd=q.replace(/\D/g,"");
   view=[];
+  var mA=msVals("agent"), mP=msVals("project"), mS=msVals("status"), mF=msVals("feedback");
+  function setOf(m){ if(m.length<2) return null; var o={}; m.forEach(function(v){ o[v]=1; }); return o; }
+  var sA=setOf(mA), sP=setOf(mP), sS=setOf(mS), sF=setOf(mF);
   for(var i=0;i<R.length;i++){ var r=R[i];
-    if(a>=0&&r[C.agent]!==a) continue; if(p>=0&&r[C.project]!==p) continue; if(s>=0&&r[C.status]!==s) continue; if(f>=0&&r[C.feedback]!==f) continue; if(f===-2&&r[C.feedback]!==I_PENDING&&r[C.feedback]!==I_NONE) continue; if(state.act===1&&r[C.lastAct]) continue; if(state.act===2&&!r[C.lastAct]) continue; if(state.stale&&__clk(r)>REFMIN-state.stale) continue; if(state.fresh&&__entry(r)<state.fresh) continue; if(state.wait&&waitingMin(r)<state.wait) continue;
+    if(sA){ if(!sA[r[C.agent]]) continue; } else if(a>=0&&r[C.agent]!==a) continue;
+    if(sP){ if(!sP[r[C.project]]) continue; } else if(p>=0&&r[C.project]!==p) continue;
+    if(sS){ if(!sS[r[C.status]]) continue; } else if(s>=0&&r[C.status]!==s) continue;
+    if(sF){ if(!sF[r[C.feedback]]&&!(sF[-2]&&(r[C.feedback]===I_PENDING||r[C.feedback]===I_NONE))) continue; }
+    else { if(f>=0&&r[C.feedback]!==f) continue; if(f===-2&&r[C.feedback]!==I_PENDING&&r[C.feedback]!==I_NONE) continue; } if(state.act===1&&r[C.lastAct]) continue; if(state.act===2&&!r[C.lastAct]) continue; if(state.stale&&__clk(r)>REFMIN-state.stale) continue; if(state.fresh&&__entry(r)<state.fresh) continue; if(state.wait&&waitingMin(r)<state.wait) continue;
     if(from!==null&&r[C.created]<from) continue; if(to!==null&&r[C.created]>to) continue;
     if(q){ var ct=(r[C.contact]||"").toLowerCase(); if(String(r[C.id]).indexOf(q)<0 && r[C.client].toLowerCase().indexOf(q)<0 && ct.indexOf(q)<0 && (!qd || ct.replace(/\D/g,"").indexOf(qd)<0)) continue; }
     view.push(r); }
@@ -1104,11 +1143,13 @@ var S={agent:0,tab:1,project:2,name:3,number:4,date:5,fb:6,next:7,notes:8,lead:9
 var shState={tab:-1,fb:-1,match:"all",page:0}, shView=[];
 var leadById={}; for(var li=0;li<R.length;li++) leadById[R[li][C.id]]=R[li];
 function normFb(s){ s=(s||"").toLowerCase().replace(/[^a-z]/g,""); if(s==="nofeedback"||s==="nofeedbackrecorded"||s==="pendingfeedback") return ""; return s; }
-function selAgentName(){ return state.agent>=0? X.agent[state.agent]:null; }
+function selAgentNames(){ var v=msVals("agent"); return v.length? v.map(function(i){ return X.agent[i]; }) : null; }
+function selAgentName(){ var v=selAgentNames(); return v? v.join("|") : null; }
+function agOk(n){ var v=selAgentNames(); return !v || v.indexOf(n)>=0; }
 function crmFb(r){ var l=r[S.lead]&&leadById[r[S.lead]]; return l? X.feedback[l[C.feedback]]:""; }
 function shApply(){ shView=[]; if(!SH) return; var an=selAgentName(), q=state.q.trim().toLowerCase(), qd=q.replace(/\D/g,""), d=SH.dict;
   for(var i=0;i<SH.rows.length;i++){ var r=SH.rows[i];
-    if(an&&d.agent[r[S.agent]]!==an) continue; if(shState.tab>=0&&r[S.tab]!==shState.tab) continue; if(shState.fb>=0&&r[S.fb]!==shState.fb) continue;
+    if(an&&!agOk(d.agent[r[S.agent]])) continue; if(shState.tab>=0&&r[S.tab]!==shState.tab) continue; if(shState.fb>=0&&r[S.fb]!==shState.fb) continue;
     if(shState.match==="in"&&!r[S.lead]) continue; if(shState.match==="out"&&r[S.lead]) continue;
     if(shState.match==="diff"){ if(!r[S.lead]) continue; if(normFb(d.feedback[r[S.fb]])===normFb(crmFb(r))) continue; }
     if(q){ var num=(r[S.number]||""); if(r[S.name].toLowerCase().indexOf(q)<0 && num.indexOf(q)<0 && (!qd||num.replace(/\D/g,"").indexOf(qd)<0) && (r[S.project]||"").toLowerCase().indexOf(q)<0) continue; }
@@ -1159,7 +1200,7 @@ function tcrMonths(v){ var c=$("tc-month"), x=$("tc-month-x"); c.textContent="";
   bars.forEach(function(b){ var col=el("div","col"); col.appendChild(el("div","cv",b[1]?money(b[1]):"")); var bar=el("div","cb"+(b[2]?" alt":"")); bar.style.height=(max?b[1]/max*100:0)+"%"; col.appendChild(bar); tipOn(col,b[0]+": EGP "+fmt(Math.round(b[1]))); c.appendChild(col); x.appendChild(el("span",null,b[0])); }); }
 function money(v){ return v>=1e6? (v/1e6).toFixed(v>=1e8?0:1)+"M" : fmt(Math.round(v)); }
 function tcrs(){ var tiles=$("tc-tiles"); tiles.textContent=""; var tbl=$("tc-table"); tbl.textContent=""; if(!TC){ tiles.appendChild(el("div","empty","No TCR data loaded yet")); return; }
-  var an=selAgentName(), q=state.q.trim().toLowerCase(); var v=TC.rows.filter(function(r){ if(an&&r[T.agent]!==an) return false; if(window.__tcStatus&&r[T.status]!==window.__tcStatus) return false; if(q&&(r[T.id]+" "+r[T.client]+" "+r[T.unit]+" "+r[T.project]).toLowerCase().indexOf(q)<0) return false; return true; });
+  var an=selAgentName(), q=state.q.trim().toLowerCase(); var v=TC.rows.filter(function(r){ if(an&&!agOk(r[T.agent])) return false; if(window.__tcStatus&&r[T.status]!==window.__tcStatus) return false; if(q&&(r[T.id]+" "+r[T.client]+" "+r[T.unit]+" "+r[T.project]).toLowerCase().indexOf(q)<0) return false; return true; });
   var vol=0, st={}, ag={}; v.forEach(function(r){ vol+=r[T.vol]; st[r[T.status]]=(st[r[T.status]]||0)+1; ag[r[T.agent]]=(ag[r[T.agent]]||0)+r[T.vol]; });
   var reopen=v.filter(function(r){return /re-?open/i.test(r[T.status])}).length;
   var tgt=an?(TARGETS[an]||0):TEAM_TARGET;
@@ -1195,7 +1236,7 @@ function changes(){ var note=$("ch-note"), tiles=$("ch-tiles"), t=$("ch-table");
   if(!P||!N){ note.textContent="No earlier copy to compare with yet. Changes appear after the next daily refresh."; $("ch-info").textContent=""; return; }
   if(!CH) CH=computeChanges(); var base=[]; if(!P.sheets) base.push("agent sheets"); if(!P.tcrs) base.push("TCRs");
   note.textContent="Comparing the copy from "+N.updated+" with the one from "+P.updated+"."+(base.length?" This is the first copy of the "+base.join(" and ")+", so their changes start showing from the next refresh.":"")+" The Agent filter above applies here.";
-  var an=selAgentName(); var all=CH.filter(function(c){return !an||c[5]===an}); var kinds={}; all.forEach(function(c){kinds[c[0]]=(kinds[c[0]]||0)+1});
+  var an=selAgentName(); var all=CH.filter(function(c){return !an||agOk(c[5])}); var kinds={}; all.forEach(function(c){kinds[c[0]]=(kinds[c[0]]||0)+1});
   tileIn(tiles,"All changes",fmt(all.length),"since the previous copy",false,function(){chState.kind="all";chState.page=0;changes();});
   Object.keys(kinds).sort(function(a,b){return kinds[b]-kinds[a]}).forEach(function(k){ tileIn(tiles,k,fmt(kinds[k]),"click to list them",false,function(){chState.kind=k;chState.page=0;changes();}); });
   var sel=$("ch-f-kind"); sel.textContent=""; var o=el("option",null,"All changes"); o.value="all"; sel.appendChild(o); Object.keys(kinds).forEach(function(k){var o2=el("option",null,k); o2.value=k; sel.appendChild(o2)}); if(chState.kind!=="all"&&!kinds[chState.kind]) chState.kind="all"; sel.value=chState.kind;
@@ -1215,7 +1256,7 @@ function buildClients(){ var m={}, list=[], i, k, e;
   return list; }
 var KIND={both:["Validated","good"],sheet:["Not in CloudBlue","warn"],cb:["CloudBlue only","info"]};
 function clients(){ if(!CL) CL=buildClients(); var an=selAgentName(), q=state.q.trim().toLowerCase(), qd=q.replace(/\D/g,""), d=SH?SH.dict:null;
-  var base=CL.filter(function(e){ if(an){ var ok=e.leads.some(function(l){return X.agent[l[C.agent]]===an})||e.sheets.some(function(s){return d.agent[s[S.agent]]===an}); if(!ok) return false; }
+  var base=CL.filter(function(e){ if(an){ var ok=e.leads.some(function(l){return agOk(X.agent[l[C.agent]])})||e.sheets.some(function(s){return agOk(d.agent[s[S.agent]])}); if(!ok) return false; }
     if(q&&(e.name||"").toLowerCase().indexOf(q)<0&&(e.number||"").indexOf(q)<0&&(!qd||(e.number||"").replace(/\D/g,"").indexOf(qd)<0)) return false; return true; });
   var c={both:0,sheet:0,cb:0}, dup=0, multi=0, per={}; base.forEach(function(e){ c[e.kind]++; if(e.records>1) dup++; if(e.multi) multi++; e.sheets.forEach(function(s){ var a=d.agent[s[S.agent]]; var o=per[a]||(per[a]=[0,0]); o[0]++; if(e.kind==="both") o[1]++; }); });
   function setK(kd){ return function(){ clState.kind=kd; $("cl-f-kind").value=kd; clState.page=0; clients(); showTable("cl-table"); }; }
@@ -1248,7 +1289,7 @@ function reports(){ var per={}, d=SH?SH.dict:null; function g(a){ return per[a]|
   view.forEach(function(r){ var o=g(X.agent[r[C.agent]]); o.leads++; if(r[C.lastAct]) o.cont++; if(r[C.feedback]===iq) o.qual++; if(r[C.feedback]===I_PENDING||r[C.feedback]===I_NONE) o.wait++; });
   if(SH) SH.rows.forEach(function(s){ var o=g(d.agent[s[S.agent]]); o.sheet++; if(s[S.lead]){ o.val++; if(normFb(d.feedback[s[S.fb]])!==normFb(crmFb(s))) o.diff++; } });
   if(TC) TC.rows.forEach(function(t){ var o=g(t[T.agent]); o.tcr++; o.vol+=t[T.vol]; });
-  var an=selAgentName(); var names=Object.keys(per).filter(function(a){return !an||a===an}).sort(function(a,b){return per[b].leads-per[a].leads});
+  var an=selAgentName(); var names=Object.keys(per).filter(function(a){return !an||agOk(a)}).sort(function(a,b){return per[b].leads-per[a].leads});
   var tot={leads:0,cont:0,qual:0,wait:0,sheet:0,val:0,diff:0,tcr:0,vol:0}; names.forEach(function(a){ for(var k in tot) tot[k]+=per[a][k]; });
   var tiles=$("rp-tiles"); tiles.textContent=""; tileIn(tiles,"Leads",fmt(tot.leads),pct(tot.cont,tot.leads)+" with activity logged"); tileIn(tiles,"Qualified",fmt(tot.qual),pct(tot.qual,tot.leads)+" of leads"); tileIn(tiles,"Waiting for feedback",fmt(tot.wait),pct(tot.wait,tot.leads)+" of leads",tot.wait>0);
   tileIn(tiles,"Sheet clients",fmt(tot.sheet),pct(tot.val,tot.sheet)+" validated in CloudBlue"); tileIn(tiles,"TCRs",fmt(tot.tcr),"EGP "+money(tot.vol)+" sales volume");
@@ -1288,7 +1329,7 @@ var pfSrc="cb";
 var PF=[["No Answer","noanswer",false],["Qualified","qualified",true],["Unqualified","unqualified",false],["No feedback","",false]];
 function performance(){ var per={}, d=SH?SH.dict:null; function g(a){ return per[a]||(per[a]={n:0,c:{}}); }
   if(pfSrc==="cb") view.forEach(function(r){ var o=g(X.agent[r[C.agent]]); o.n++; var k=normFb(X.feedback[r[C.feedback]]); o.c[k]=(o.c[k]||0)+1; });
-  else if(SH){ var an=selAgentName(); SH.rows.forEach(function(s){ var a=d.agent[s[S.agent]]; if(an&&a!==an) return; var o=g(a); o.n++; var k=normFb(d.feedback[s[S.fb]]); o.c[k]=(o.c[k]||0)+1; }); }
+  else if(SH){ var an=selAgentName(); SH.rows.forEach(function(s){ var a=d.agent[s[S.agent]]; if(an&&!agOk(a)) return; var o=g(a); o.n++; var k=normFb(d.feedback[s[S.fb]]); o.c[k]=(o.c[k]||0)+1; }); }
   var names=Object.keys(per), big=names.filter(function(a){return per[a].n>=50}); var tiles=$("pf-tiles"), grid=$("pf-grid"); tiles.textContent=""; grid.textContent="";
   if(!names.length){ grid.appendChild(el("div","empty","No clients match these filters")); return; }
   var tot=0; names.forEach(function(a){tot+=per[a].n}); tileIn(tiles,"Agents compared",String(big.length),"with 50 or more clients"); tileIn(tiles,"Clients counted",fmt(tot),pfSrc==="cb"?"CloudBlue leads":"rows in the agents' sheets");
@@ -1303,7 +1344,7 @@ var dyDay=null, DYTXT=[];
 function dayKey(min){ return Math.floor(min/1440); }
 function isoDay(k){ return new Date(k*86400000).toISOString().slice(0,10); }
 function daily(){ var an=selAgentName(), byNew={}, byAct={}, maxDay=0, i;
-  for(i=0;i<R.length;i++){ var r=R[i]; if(an&&X.agent[r[C.agent]]!==an) continue; var kn=dayKey(r[C.created]); byNew[kn]=(byNew[kn]||0)+1; if(kn>maxDay) maxDay=kn; if(r[C.lastAct]){ var ka=dayKey(r[C.lastAct]); byAct[ka]=(byAct[ka]||0)+1; if(ka>maxDay) maxDay=ka; } }
+  for(i=0;i<R.length;i++){ var r=R[i]; if(an&&!agOk(X.agent[r[C.agent]])) continue; var kn=dayKey(r[C.created]); byNew[kn]=(byNew[kn]||0)+1; if(kn>maxDay) maxDay=kn; if(r[C.lastAct]){ var ka=dayKey(r[C.lastAct]); byAct[ka]=(byAct[ka]||0)+1; if(ka>maxDay) maxDay=ka; } }
   if(dyDay===null) dyDay=maxDay; $("dy-date").value=isoDay(dyDay);
   function cols(target,xt,m){ var c=$(target), x=$(xt); c.textContent=""; x.textContent=""; var ks=Object.keys(m).map(Number).sort(function(a,b){return a-b}).slice(-14); var max=0; ks.forEach(function(k){ if(m[k]>max) max=m[k]; });
     if(!ks.length){ c.appendChild(el("div","empty","Nothing to show")); return; }
@@ -1515,10 +1556,9 @@ function closeClient(){ $("scrim").classList.remove("on"); var dr=$("drawer"); d
 // ---------- Filter chips ----------
 function chips(){ var c=$("f-chips"); c.textContent=""; var list=[];
   function add(label,clear){ list.push(1); var b=el("button","chip"); b.type="button"; b.title="Remove this filter"; b.appendChild(el("span",null,label)); b.appendChild(el("span","x","×")); b.addEventListener("click",function(){ clear(); apply(); }); c.appendChild(b); }
-  if(state.agent>=0) add(shortName(X.agent[state.agent]),function(){ state.agent=-1; $("f-agent").value="-1"; });
-  if(state.project>=0) add(X.project[state.project]||"(no project)",function(){ state.project=-1; $("f-project").value="-1"; });
-  if(state.status>=0) add(X.status[state.status],function(){ state.status=-1; $("f-status").value="-1"; });
-  if(state.feedback!==-1) add(state.feedback===-2?"No feedback yet":X.feedback[state.feedback],function(){ state.feedback=-1; $("f-feedback").value="-1"; });
+  [["agent",function(i){ return shortName(X.agent[i]); }],["project",function(i){ return X.project[i]||"(no project)"; }],["status",function(i){ return X.status[i]; }],["feedback",function(i){ return i===-2?"No feedback yet":X.feedback[i]; }]].forEach(function(z){ var k=z[0];
+    msVals(k).forEach(function(v){ add(z[1](v),function(){ msSet(k, msVals(k).filter(function(x){ return x!==v; })); }); }); });
+  msSyncAll();
   if(state.fresh) add("Fresh: received since "+dstr(state.fresh),function(){ state.fresh=0; });
   if(state.wait) add("Waiting over "+waitStr(state.wait)+" for a first call",function(){ state.wait=0; });
   if(state.from) add("From "+state.from,function(){ state.from=""; $("f-from").value=""; });
@@ -1552,7 +1592,7 @@ var SECTIONS=[{id:"today",label:"Today",views:[["today","Today"],["tasks","Tasks
   {id:"projects",label:"Projects",views:[["projects","Projects"]]}];
 if(!window.CB_AGENT) SECTIONS.filter(function(s){ return s.id==="team"; })[0].views.unshift(["perf","Performance report"]);
 if(!window.CB_AGENT) SECTIONS.filter(function(s){ return s.id==="team"; })[0].views.splice(1,0,["weekly","Weekly report"]);
-if(!window.CB_AGENT) SECTIONS.filter(function(s){ return s.id==="devs"; })[0].views.push(["incentives","Incentives & double commission"]);
+SECTIONS.filter(function(s){ return s.id==="devs"; })[0].views.push(["incentives","Incentives & double commission"]);
 var ALLVIEWS=[], SECOF={}, LASTV={}; SECTIONS.forEach(function(s){ LASTV[s.id]=s.views[0][0]; s.views.forEach(function(v){ ALLVIEWS.push(v[0]); SECOF[v[0]]=s.id; }); });
 var NOFILTER={weekly:1,recent:1,today:1,tasks:1,market:1,perf:1,rtm:1,devstatus:1,compare:1,incentives:1,agents:1,myleads:1,rotation:1,cold:1,reassigned:1,map:1};
 function icon(name){ var NS="http://www.w3.org/2000/svg", s=document.createElementNS(NS,"svg"); s.setAttribute("viewBox","0 0 24 24"); s.setAttribute("aria-hidden","true"); var p=document.createElementNS(NS,"path"); p.setAttribute("d",ICONS[name]||ICONS.projects); s.appendChild(p); return s; }
@@ -1763,6 +1803,8 @@ function renderList(k){ var box=$("v-"+k); if(!box) return; var A=window.CB_APP|
     var meta=[r.phone,r.project,A.admin?String(r.agent).split(" ").slice(0,2).join(" "):"",r.next?"Next: "+r.next:""].filter(Boolean).join(" · ");
     c.appendChild(el("div","lmeta",meta));
     if(r.note) c.appendChild(el("div","lnote",r.note));
+    if(r.hist) c.appendChild(el("div","lnote lhist","History: "+String(r.hist).split(" | ").slice(0,2).join(" | ")));
+    if(A.admin&&r.prev) c.appendChild(el("div","lnote lhist","Was with: "+r.prev));
     var acts=el("div","lacts"), call=el("a","btn sm","Call"); call.href="tel:"+telDigits(r.phone);
     var wa=el("a","btn sm","WhatsApp"); wa.href=listWaUrl(r.phone); wa.target="_blank"; wa.rel="noopener"; acts.appendChild(call); acts.appendChild(wa);
     [call,wa].forEach(function(a){ a.addEventListener("click",function(ev){ ev.stopPropagation(); }); }); c.appendChild(acts);
@@ -1776,14 +1818,14 @@ function renderList(k){ var box=$("v-"+k); if(!box) return; var A=window.CB_APP|
 function openListItem(k,r){ var A=window.CB_APP; if(!A) return; lastFocus=document.activeElement;
   $("dr-name").textContent=r.client||"(no name)"; $("dr-phone").textContent=r.phone||""; $("dr-tags").textContent=""; $("dr-tags").appendChild(el("span","chip",LNAME[k]));
   var b=$("dr-body"); b.textContent="";
-  b.appendChild(recBox(r.added||"",r.fb||"No feedback yet",fbClass(r.fb||"Pending Feedback"),[["Project",r.project],["Agent",r.agent],["Source",r.source],["Next follow-up",r.next],["Note",r.note],["Last update in the app",r.upAt?(r.upAt+" by "+r.upBy):""]]));
+  b.appendChild(recBox(r.added||"",r.fb||"No feedback yet",fbClass(r.fb||"Pending Feedback"),[["Project",r.project],["Agent",A.admin?r.agent:""],["Source",r.source],["Next follow-up",r.next],["Note",r.note],["History",r.hist?String(r.hist).split(" | ").join("\n"):""],["Was with",A.admin?r.prev:""],["Last update in the app",r.upAt?(r.upAt+(A.admin?" by "+r.upBy:"")):""]]));
   var f=el("div","logf dsec"); f.appendChild(el("h4",null,"Log feedback"));
   var row=el("div","row2"), sel=el("select"); sel.setAttribute("aria-label","Feedback"); A.FB_OPTIONS.forEach(function(o){ var op=el("option",null,o); if(o===r.fb) op.selected=true; sel.appendChild(op); });
   var RF=remindField(sel), nx=RF.input; row.appendChild(sel); f.appendChild(row); f.appendChild(RF.wrap);
   var note=el("textarea"); note.placeholder="Note: what the client said, what's next"; note.setAttribute("aria-label","Note"); note.maxLength=1990; f.appendChild(note);
   var acts=el("div","acts"), save=el("button","btn primary","Save"); save.type="button"; var st=el("span"); st.setAttribute("role","status"); acts.appendChild(save); acts.appendChild(st); f.appendChild(acts); b.appendChild(f);
   save.addEventListener("click",function(){ save.disabled=true; st.className=""; st.textContent="Saving…";
-    A.logFeedback({ak:r.ak||A.ak||"", lead:r.id, client:r.client, phone:r.phone, project:r.project, source:LNAME[k], feedback:sel.value, note:note.value.trim(), next:nx.value})
+    A.logFeedback({ak:r.ak||A.ak||"", lead:r.lead||r.id, client:r.client, phone:r.phone, project:r.project, source:LNAME[k], feedback:sel.value, note:note.value.trim(), next:nx.value})
       .then(function(){ r.fb=sel.value; if(nx.value) r.next=nx.value; if(note.value.trim()) r.note=note.value.trim(); st.className="ok"; st.textContent="Saved. The sheet updates within a minute."; save.disabled=false; renderList(k); })
       .catch(function(err){ st.className="bad"; st.textContent="Not saved ("+((err&&err.code)||"error")+")"; save.disabled=false; }); });
   $("scrim").classList.add("on"); var dr=$("drawer"); dr.classList.add("on"); dr.setAttribute("aria-hidden","false"); }
@@ -2675,7 +2717,7 @@ function mkSources(box,src){ var D0={sources:src};
 var MD_V={rtm:{en:"Ready to move units",ar:"وحدات استلام فوري",sen:"Units developers can hand over now, from the developer emails.",sar:"وحدات المطورين الجاهزة للاستلام، من إيميلات المطورين."},
   devstatus:{en:"Developer status",ar:"حالة المطورين",sen:"Each developer's latest updates: launches, deliveries, price changes, payment plans.",sar:"آخر أخبار كل مطور: لونشات وتسليمات وتغيير أسعار وأنظمة سداد."},
   compare:{en:"Comparisons",ar:"مقارنات",sen:"Side-by-side comparisons of projects and areas for client conversations.",sar:"مقارنات بين المشاريع والمناطق تساعدك مع العميل."},
-  incentives:{en:"Incentives & double commission",ar:"الحوافز والعمولة المضاعفة",sen:"Developer incentives and double commission offers. Only you see this.",sar:"حوافز المطورين وعروض العمولة المضاعفة. حضرتك بس اللي شايف ده."}};
+  incentives:{en:"Incentives & double commission",ar:"الحوافز والعمولة المضاعفة",sen:"Developer incentives and double commission offers for the team.",sar:"حوافز المطورين وعروض العمولة المضاعفة للتيم."}};
 var MD={}; var MD_T={en:{loading:"Loading…",none:"Nothing here yet. It fills in from the developer emails.",search:"Search",updated:"Updated",retry:"Try again"},ar:{loading:"جاري التحميل…",none:"لسه مفيش بيانات. بتتملي من إيميلات المطورين.",search:"بحث",updated:"آخر تحديث",retry:"حاول تاني"}};
 function mdT(k){ return (MD_T[TK.lang]||MD_T.en)[k]; }
 function mdRender(v){ var box=$("v-"+v); if(!box) return; lgBox(box); var V=MD_V[v], ar=TK.lang==="ar";
@@ -2818,10 +2860,10 @@ else sub.textContent="No data loaded yet";
 $("foot").textContent="Sources: CloudBlue (leads), MyCB (Prime TCRs) and the agents' Google Sheets. Includes client contact details: keep this page private. Figures reflect the last daily copy, not live data.";
 fillSelect("f-agent",X.agent||[],"All agents"); fillSelect("f-project",X.project||[],"All projects"); fillSelect("f-status",X.status||[],"All statuses"); fillSelect("f-feedback",X.feedback||[],"All feedback"); (function(){ var o=el("option",null,"No feedback yet (pending or blank)"); o.value="-2"; $("f-feedback").insertBefore(o,$("f-feedback").children[1]); })();
 $("f-act").addEventListener("change",function(e){ state.act=+e.target.value; state.stale=0; apply(); });
-["agent","project","status","feedback"].forEach(function(k){ $("f-"+k).addEventListener("change",function(e){ state[k]=+e.target.value; apply(); }); });
+["agent","project","status","feedback"].forEach(function(k){ msWidget(k); });
 $("f-from").addEventListener("change",function(e){state.from=e.target.value;apply();}); $("f-to").addEventListener("change",function(e){state.to=e.target.value;apply();});
 var qt; $("f-q").addEventListener("input",function(e){ clearTimeout(qt); var v=e.target.value; qt=setTimeout(function(){state.q=v;apply();},180); });
-$("f-reset").addEventListener("click",function(){ shState.tab=shState.fb=-1; shState.match="all"; $("sh-f-tab").value=$("sh-f-fb").value="-1"; $("sh-f-match").value="all"; state.stale=0; state.act=0; $("f-act").value="0"; state.agent=state.project=state.status=state.feedback=-1; state.from=state.to=state.q=""; ["agent","project","status","feedback"].forEach(function(k){$("f-"+k).value="-1"}); $("f-from").value=$("f-to").value=$("f-q").value=""; apply(); });
+$("f-reset").addEventListener("click",function(){ shState.tab=shState.fb=-1; shState.match="all"; $("sh-f-tab").value=$("sh-f-fb").value="-1"; $("sh-f-match").value="all"; state.stale=0; state.act=0; $("f-act").value="0"; state.agent=state.project=state.status=state.feedback=-1; state.from=state.to=state.q=""; ["agent","project","status","feedback"].forEach(function(k){ msSet(k,[]); }); $("f-from").value=$("f-to").value=$("f-q").value=""; apply(); });
 $("pg-prev").addEventListener("click",function(){ state.page--; leads(); }); $("pg-next").addEventListener("click",function(){ state.page++; leads(); });
 if(SH){ var sd=SH.dict; (function(){ var s=$("sh-f-tab"); var o=el("option",null,"All tabs"); o.value="-1"; s.appendChild(o); sd.tab.forEach(function(n,i){var o2=el("option",null,n); o2.value=String(i); s.appendChild(o2)}); var f=$("sh-f-fb"); var o3=el("option",null,"All feedback"); o3.value="-1"; f.appendChild(o3); sd.feedback.map(function(n,i){return [n,i]}).sort(function(a,b){return a[0].localeCompare(b[0])}).forEach(function(x){var o4=el("option",null,x[0]); o4.value=String(x[1]); f.appendChild(o4)}); })(); }
 $("sh-f-tab").addEventListener("change",function(e){shState.tab=+e.target.value;shState.page=0;sheets();}); $("sh-f-fb").addEventListener("change",function(e){shState.fb=+e.target.value;shState.page=0;sheets();}); $("sh-f-match").addEventListener("change",function(e){shState.match=e.target.value;shState.page=0;sheets();});
@@ -3151,12 +3193,17 @@ window.cbSaveBrief = async function (team, managers) {
   if (window.cbBriefSaved) window.cbBriefSaved();
   return "saved " + d;
 };
-const DATA_DOCS = { rtm: ["settings", "rtm"], devstatus: ["settings", "devstatus"], compare: ["settings", "comparisons"], incentives: ["admin", "incentives"] };
+const DATA_DOCS = { rtm: ["settings", "rtm"], devstatus: ["settings", "devstatus"], compare: ["settings", "comparisons"], incentives: ["settings", "incentives"] };
 async function loadTabData(kind) {
   const p = DATA_DOCS[kind]; if (!p) throw new Error("unknown tab " + kind); if (p[0] === "admin" && !ME.admin) return null;
-  const s = await getDoc(doc(db, p[0], p[1])); return s.exists() ? JSON.parse(s.data().json) : null;
+  const s = await getDoc(doc(db, p[0], p[1]));
+  if (!s.exists() && kind === "incentives" && ME.admin) { // incentives used to be Basel-only (admin/incentives): copy them where the team can read them
+    const old = await getDoc(doc(db, "admin", "incentives"));
+    if (old.exists()) { await setDoc(doc(db, "settings", "incentives"), { json: old.data().json, at: Date.now() }); return JSON.parse(old.data().json); }
+  }
+  return s.exists() ? JSON.parse(s.data().json) : null;
 }
-// Basel only: the daily run calls this in Basel's signed-in app. kind = rtm | devstatus | compare | incentives (incentives: Basel only)
+// Basel only: the daily run calls this in Basel's signed-in app. kind = rtm | devstatus | compare | incentives (all four are read by the whole team)
 window.cbSaveData = async function (kind, data) {
   if (!ME.admin) throw new Error("only Basel"); const p = DATA_DOCS[kind]; if (!p) throw new Error("kind must be rtm, devstatus, compare or incentives");
   if (typeof data === "string") data = JSON.parse(data);
